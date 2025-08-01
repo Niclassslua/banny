@@ -9,13 +9,18 @@ interface EmojiPickerProps {
 
 const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect }) => {
     return (
-        <div className="p-2 border rounded-md bg-white dark:bg-gray-800">
-            <Picker
-                data={data}
-                onEmojiSelect={onEmojiSelect}
-                theme="light" // oder "dark", je nach deinem Design
-            />
-        </div>
+        <Picker
+            data={data}
+            onEmojiSelect={onEmojiSelect}
+            theme="dark"
+            icons="outline"
+            navPosition="top"
+            previewPosition="none"
+            skinTonePosition="search"
+            emojiButtonRadius="8px"
+            emojiButtonSize={34}
+            className="!bg-zinc-900 !border-none"  // Tailwind-Utility override
+        />
     );
 };
 

@@ -1,21 +1,22 @@
-// components/Sidebar/Sidebar.tsx
 import React, { useState } from "react";
-import FontControls from "./FontControls";
 import EmojiPicker from "@/components/Sidebar/EmojiPicker";
+import { FontControls } from "../organisms";
 
 interface SidebarProps {
-    toggleStyle: (style: "bold" | "italic" | "underline" | "strikethrough") => void;
-    changeFontSize: (size: number) => void;
-    changeAlignment: (alignment: "left" | "center" | "right" | "justify") => void;
+    toggleStyle: (s: "bold" | "italic" | "underline" | "strikethrough") => void;
+    changeFontSize: (n: number) => void;
+    changeAlignment: (a: "left" | "center" | "right" | "justify") => void;
     currentFontSize: number;
-    changeTextColor: (color: string) => void;
-    changeFontFamily: (font: string) => void;
+    changeTextColor: (c: string) => void;
+    changeFontFamily: (f: string) => void;
+    noWrap: boolean;
+    toggleNoWrap: () => void;
     darkMode: boolean;
     visiblePicker: string | null;
-    togglePicker: (pickerId: string) => void;
+    togglePicker: (id: string) => void;
     patternScale: number;
-    setPatternScale: (scale: number) => void;
-    onEmojiSelect: (emoji: string) => void;
+    setPatternScale: (s: number) => void;
+    onEmojiSelect: (e: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -27,24 +28,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              changeFontFamily,
                                              noWrap,
                                              toggleNoWrap,
-                                             darkMode,
-                                             visiblePicker,
-                                             togglePicker,
-                                             patternScale,
-                                             setPatternScale,
                                              onEmojiSelect,
                                          }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const handleEmojiSelect = (emoji: any) => {
-        console.log("Ausgewähltes Emoji:", emoji); // Zum Debuggen
-        // Sicherstellen, dass die Eigenschaft "native" vorhanden ist
         onEmojiSelect(emoji.native);
-        setShowEmojiPicker(false);
     };
 
     return (
-        <aside className="w-full md:w-64 p-6 bg-white dark:bg-gray-900 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 transition-colors duration-300 flex flex-col space-y-6">
+        <aside
+            className="relative flex flex-col gap-6 w-full md:w-72 flex-shrink-0
+                 p-6 md:h-screen md:sticky md:top-0 overflow-y-auto md:overflow-visible
+                 rounded-xl bg-zinc-800 backdrop-blur-md ring-1 ring-white/10
+                 shadow-md hover:shadow-lg transition duration-150"
+        >
+            {/* Typografie-Kontrollen */}
             <FontControls
                 toggleStyle={toggleStyle}
                 changeAlignment={changeAlignment}
@@ -55,19 +54,31 @@ const Sidebar: React.FC<SidebarProps> = ({
                 noWrap={noWrap}
                 toggleNoWrap={toggleNoWrap}
             />
-            <div className="p-4">
-                <h2 className="text-xl font-bold mb-4">Sidebar</h2>
 
+            {/* Emoji-Toggle & Picker ------------------------------------------- */}
+            <div className="relative flex flex-col gap-3">
                 <button
-                    className="mb-2 px-4 py-2 bg-green-600 text-white rounded-md"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    onClick={() => setShowEmojiPicker((v) => !v)}
+                    className="px-4 py-2 rounded-md font-medium bg-zinc-700 text-white
+               ring-1 ring-white/10 shadow hover:bg-zinc-600
+               active:scale-95 transition"
                 >
                     {showEmojiPicker ? "Emoji Picker schließen" : "Emoji Picker öffnen"}
                 </button>
 
-                {showEmojiPicker && <EmojiPicker onEmojiSelect={handleEmojiSelect} />}
-
-                {/* Weitere Sidebar-Optionen */}
+                {showEmojiPicker && (
+                    <div
+                        className="
+                            absolute left-0 top-full mt-2                     /* Mobile */
+                            md:left-full md:ml-4 md:top-1/2 md:-translate-y-[60%] /* Desktop */
+                            z-[60] rounded-xl bg-zinc-900/60 backdrop-blur
+                            ring-1 ring-white/10 shadow-inner p-2
+                            transform
+                        "
+                    >
+                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                    </div>
+                )}
             </div>
         </aside>
     );

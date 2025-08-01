@@ -92,7 +92,7 @@
   const modeButtons = document.getElementById('mode-buttons');
 
   let emojis = ['😀', '🎉', '❤️', '🌟', '🍀', '🔥']; // Standard-Emojis
-  let pattern = 'dynamic'; // Standard-Muster
+  let pattern = 'spiral'; // Standard-Muster
 
   function createEmojiElement(emoji, size = 'medium', rotation = 0, opacity = 1) {
     const span = document.createElement('span');
@@ -331,33 +331,47 @@
 
   // Spiral-Modus: Dichte Spirale mit Größen- und Transparenzänderung
   function placeSpiralEmojis(width, height, centerX, centerY, numEmojis) {
-    const spiralTurns = 5; // Anzahl der Spiraldrehungen
-    const emojisPerTurn = 50; // Anzahl der Emojis pro Drehung für bessere Dichte
-    const spiralSpacing = 5; // Abstand zwischen Spiraldrehungen
+    container.innerHTML = '';
 
-    for (let i = 0; i < spiralTurns * emojisPerTurn; i++) {
-      const angle = i * 0.2; // Winkelinkrement für dichtere Spirale
-      const radius = spiralSpacing * angle;
+    /* ───── Stellschrauben ───── */
+    const arms       = 12;
+    const turns      = 0.5;
+    const stepAngle  = 8 * Math.PI / 180;
+    const fontInner  = 0.0;
+    const fontOuter  = 6.0;
 
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
+    /* ───── Konstanten ───── */
+    const maxRadius = Math.hypot(width, height) / 2;
+    const a         = maxRadius / (2 * Math.PI * turns);    // r = a·θ
+    const direction = -1;                                   // 1 = CCW, -1 = CW
 
-      // Berechnung der Größe und Transparenz basierend auf dem Radius
-      const maxRadius = spiralSpacing * spiralTurns * emojisPerTurn * 0.2;
-      const sizeFactor = Math.max(0.5, 5 - (radius / maxRadius) * 4.5); // Größe von 5 bis 0.5
-      const opacity = Math.max(0, 1 - (radius / maxRadius) * 1.2); // Transparenz von 1 bis ~0
+    /* ───── Spiralarme zeichnen ───── */
+    for (let arm = 0; arm < arms; arm++) {
+      const baseAngle = arm * (2 * Math.PI / arms);
+      const emojiChar = emojis[arm % numEmojis];
 
-      const size = sizeFactor > 3 ? 'large' : (sizeFactor > 1.5 ? 'medium' : 'small');
+      for (let θ = 0; ; θ += stepAngle) {
+        const r = a * θ;
+        if (r > maxRadius) break;
 
-      const emojiIndex = i % numEmojis;
-      const emoji = emojis[emojiIndex];
-      const emojiElement = createEmojiElement(emojis[emojiIndex], size, 0, opacity);
-      container.appendChild(emojiElement);
-      emojiElement.style.left = `${x}px`;
-      emojiElement.style.top = `${y}px`;
-      emojiElement.style.fontSize = `${sizeFactor}rem`; // Dynamische Größenanpassung
+        const angle = baseAngle + direction * θ;            // ← Richtungswechsel!
+        const x = centerX + r * Math.cos(angle);
+        const y = centerY + r * Math.sin(angle);
+
+        const progress = r / maxRadius;
+        const fontSize = fontInner + (fontOuter - fontInner) * progress;
+
+        const span = createEmojiElement(emojiChar, 'medium', 0, 1);
+        span.style.left      = `${x}px`;
+        span.style.top       = `${y}px`;
+        span.style.fontSize  = `${fontSize}rem`;
+        span.style.transform = `translate(-50%,-50%) rotate(${angle + direction * Math.PI/2}rad)`;
+        container.appendChild(span);
+      }
     }
   }
+
+
 
   // Emoji-Eingabe-Handler
   emojiInput.addEventListener('input', () => {

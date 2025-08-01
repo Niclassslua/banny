@@ -55,10 +55,10 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
             {/* Dynamisch eingebundener Style, der den fontFamily-Wert mit !important setzt */}
             <style>
                 {`
-          .banner-text {
-            font-family: ${textStyles.fontFamily} !important;
-          }
-        `}
+                  .banner-text {
+                    font-family: ${textStyles.fontFamily} !important;
+                  }
+                `}
             </style>
             <div
                 className="banner-text"
