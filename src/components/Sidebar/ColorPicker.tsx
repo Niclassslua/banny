@@ -4,6 +4,8 @@
 import React from "react";
 import ColorPicker from 'react-best-gradient-color-picker';
 
+import {colors} from "@/constants/colors";
+
 interface ColorPickerProps {
     color: string;
     setColor: (color: string) => void;
@@ -19,13 +21,6 @@ const rgbaToHex = (rgba: string): string => {
     return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
 };
 
-const colorPalette = [
-    "#FF6F61", "#6B5B95", "#88B04B", "#F7CAC9", "#92A8D1", "#955251",
-    "#B565A7", "#009B77", "#FFD662", "#D65076", "#45B8AC", "#EFC050",
-    "#5B5EA6", "#9B2335", "#DFCFBE", "#FF0000", "#00FF00", "#0000FF",
-    "#FFFF00", "#FF00FF", "#000000", "#FFFFFF"
-];
-
 const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                                                               color,
                                                               setColor,
@@ -37,13 +32,13 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         <div className="relative">
             <button
                 onClick={togglePicker}
-                className="w-10 h-10 rounded-full border-2 border-gray-400 dark:border-gray-600"
+                className="w-10 h-10 rounded-full ring-2 ring-white/10"
                 style={{ backgroundColor: color }}
                 aria-label="Toggle Color Picker"
             />
             {isVisible && (
                 <div
-                    className="absolute top-12 left-0 bg-gray-50 dark:bg-gray-800 rounded-md shadow-lg border-2 border-gray-400 dark:border-gray-600 p-4 transition-opacity duration-300 z-50"
+                    className="absolute top-12 left-0 bg-gray-50 dark:bg-gray-800 rounded-md shadow-lg border-2 ring-1 ring-white/10 p-4 transition-opacity duration-300 z-50"
                 >
                     <ColorPicker
                         style={{
@@ -96,7 +91,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                         disableLightMode={!darkMode}
                         disableDarkMode={darkMode}
                         hideColorTypeBtns
-                        presets={colorPalette}
+                        presets={colors}
                     />
                 </div>
             )}

@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const ColorPalettePicker: React.FC<Props> = ({ colors, onChange }) => (
-    <div className="flex flex-wrap gap-x-6 gap-y-8 ml-6 mb-12 mt-8">
+    <div className="flex flex-wrap gap-x-3 gap-y-3">
         {colors.map((c) => (
             <ColorSwatch key={c} color={c} onClick={() => onChange(c)} />
         ))}

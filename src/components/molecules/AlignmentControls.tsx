@@ -23,7 +23,7 @@ export const AlignmentControls: React.FC<{ onChange: (v: Align) => void }> = ({ 
     };
 
     return (
-        <div className="flex gap-x-14 ml-4 mb-12 mt-8">
+        <div className="flex ml-4 mb-12 mt-8" style={{columnGap: "4.3rem"}}>
             <GlassButton active={local === "left"}   onClick={() => handle("left")}   aria-label="Links"><MdAlignHorizontalLeft /></GlassButton>
             <GlassButton active={local === "center"} onClick={() => handle("center")} aria-label="Zentriert"><MdAlignHorizontalCenter /></GlassButton>
             <GlassButton active={local === "right"}  onClick={() => handle("right")}  aria-label="Rechts"><MdAlignHorizontalRight /></GlassButton>

@@ -24,14 +24,14 @@ const Page: React.FC = () => {
     const [patternScale, setPatternScale] = useState(10);
 
     /* ----------------------------- Text State -------------------------------- */
-    const [textContent, setTextContent] = useState("Dein Banner Text");
+    const [textContent, setTextContent] = useState("Text");
     const [textStyles, setTextStyles] = useState<TextStyles>({
         bold: false,
         italic: false,
         underline: false,
         strikethrough: false,
         noWrap: false,
-        fontSize: 24,
+        fontSize: 128,
         alignment: "center",
         textColor: "var(--foreground)",
         fontFamily: "Arial",
@@ -138,7 +138,6 @@ const Page: React.FC = () => {
                         />
 
                         {/* Pattern Carousel ------------------------------------------- */}
-                        {/* Pattern Carousel -------------------------------------------------- */}
                         <section className="w-full relative z-0">{/*  <-- hier: relative  */}
                             <div
                                 /* eigener Stacking-Context für die Cards                          */
