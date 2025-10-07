@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import EmojiPicker from "@/components/Sidebar/EmojiPicker";
 import { FontControls } from "../organisms";
@@ -32,16 +34,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                                          }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const handleEmojiSelect = (emoji: any) => {
+    const handleEmojiSelect = (emoji: { native: string }) => {
         onEmojiSelect(emoji.native);
     };
 
     return (
         <aside
-            className="relative flex flex-col gap-6 w-full md:w-72 flex-shrink-0
-                 p-6 md:h-screen md:sticky md:top-0 overflow-y-auto md:overflow-visible
-                 rounded-xl bg-zinc-800 backdrop-blur-md ring-1 ring-white/10
-                 shadow-md hover:shadow-lg transition duration-150"
+            className="relative flex w-full flex-col gap-6 rounded-[26px] border border-white/10 bg-black/40 p-6 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(192,230,244,0.55)] transition duration-150"
         >
             {/* Typografie-Kontrollen */}
             <FontControls
@@ -59,22 +58,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="relative flex flex-col gap-3">
                 <button
                     onClick={() => setShowEmojiPicker((v) => !v)}
-                    className="px-4 py-2 rounded-md font-medium bg-zinc-700 text-white
-               ring-1 ring-white/10 shadow hover:bg-zinc-600
-               active:scale-95 transition"
+                    className="rounded-full border border-[#A1E2F8]/30 bg-[#A1E2F8]/15 px-4 py-2 font-medium text-[#A1E2F8] shadow-[0_10px_30px_-15px_rgba(192,230,244,0.6)] transition hover:border-[#A1E2F8]/50 hover:bg-[#A1E2F8]/25 hover:text-white active:scale-95"
                 >
                     {showEmojiPicker ? "Emoji Picker schließen" : "Emoji Picker öffnen"}
                 </button>
 
                 {showEmojiPicker && (
                     <div
-                        className="
-                            absolute left-0 top-full mt-2                     /* Mobile */
-                            md:left-full md:ml-4 md:top-1/2 md:-translate-y-[60%] /* Desktop */
-                            z-[60] rounded-xl bg-zinc-900/60 backdrop-blur
-                            ring-1 ring-white/10 shadow-inner p-2
-                            transform
-                        "
+                        className="absolute left-0 top-full mt-2 z-[60] rounded-2xl border border-[#A1E2F8]/20 bg-black/80 p-2 shadow-[0_20px_50px_-25px_rgba(192,230,244,0.6)] backdrop-blur md:left-full md:ml-4 md:top-1/2 md:-translate-y-[60%]"
                     >
                         <EmojiPicker onEmojiSelect={handleEmojiSelect} />
                     </div>
