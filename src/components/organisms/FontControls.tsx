@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
     Roboto, Open_Sans, Lato, Montserrat, Poppins, Raleway, Playfair_Display,

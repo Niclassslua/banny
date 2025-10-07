@@ -4,7 +4,7 @@ import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
 interface EmojiPickerProps {
-    onEmojiSelect: (emoji: any) => void;
+    onEmojiSelect: (emoji: { native: string }) => void;
 }
 
 const EmojiPicker: React.FC<EmojiPickerProps> = ({ onEmojiSelect }) => {

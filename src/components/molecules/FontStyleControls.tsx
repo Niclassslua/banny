@@ -1,3 +1,5 @@
+"use client";
+
 import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdStrikethroughS }
     from "react-icons/md";
 import {GlassButton} from "../atoms";

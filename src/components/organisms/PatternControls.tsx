@@ -5,10 +5,11 @@ import { LabelledRange } from "@/components/molecules";
 import { ColorSwatch } from "@/components/atoms";
 import { patterns } from "@/constants/patterns";
 import { parseCSS } from "@/utils/parseCSS";
+import { Pattern } from "@/types";
 
 interface Props {
-    selectedPattern: any;
-    setSelectedPattern: (p: any) => void;
+    selectedPattern: Pattern;
+    setSelectedPattern: (p: Pattern) => void;
     patternColor1: string;
     setPatternColor1: (c: string) => void;
     patternColor2: string;

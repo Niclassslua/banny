@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Layers, Palette, Rocket, Ruler, Stars, Type } from "lucide-react";
+import { Layers, Rocket, Ruler, Type } from "lucide-react";
 
 const features = [
     {
@@ -82,7 +82,7 @@ const Page = () => {
                             className="flex flex-wrap items-center gap-4"
                         >
                             <Link
-                                href="#"
+                                href="/creator"
                                 className="inline-flex items-center gap-3 rounded-full bg-[#A1E2F8]/30 px-8 py-4 text-base font-semibold text-[#A1E2F8] backdrop-blur-md shadow-[0_0_25px_-5px_rgba(192,230,244,0.8)] transition-all hover:scale-105 hover:bg-[#A1E2F8]/40 hover:text-white hover:shadow-[0_0_45px_-5px_rgba(192,230,244,1)]"
                             >
                                 Launch den Creator
