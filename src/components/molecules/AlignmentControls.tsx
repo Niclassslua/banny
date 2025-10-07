@@ -1,20 +1,21 @@
+"use client";
+
 import {
     MdAlignHorizontalLeft,
     MdAlignHorizontalCenter,
     MdAlignHorizontalRight,
     MdFormatAlignJustify,
 } from "react-icons/md";
-import {GlassButton, IconButton} from "../atoms";
-import {useState} from "react";
+import { GlassButton } from "../atoms";
+import { useState } from "react";
 
 type Align = "left" | "center" | "right" | "justify";
 
-interface Props {
-    value: Align;
+interface AlignmentControlsProps {
     onChange: (v: Align) => void;
 }
 
-export const AlignmentControls: React.FC<{ onChange: (v: Align) => void }> = ({ onChange }) => {
+export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange }) => {
     const [local, setLocal] = useState<Align>("left");
 
     const handle = (v: Align) => {
