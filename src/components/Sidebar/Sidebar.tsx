@@ -38,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <aside
-            className="relative flex h-full w-full flex-col gap-6 rounded-[26px] border border-white/10 bg-black/40 p-6 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(192,230,244,0.55)] transition duration-150"
+            className="relative flex h-full w-full flex-col gap-6 rounded-[26px] border border-white/10 bg-black/40 p-6 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(192,230,244,0.55)] transition duration-150 lg:max-w-[260px] xl:max-w-[280px]"
         >
             {/* Typografie-Kontrollen */}
             <FontControls
