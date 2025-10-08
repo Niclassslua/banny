@@ -29,7 +29,7 @@ export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange, 
     };
 
     return (
-        <div className="flex flex-wrap gap-x-16 gap-y-8 pl-4 pt-6 pb-6">
+        <div className="flex flex-wrap gap-x-16 gap-y-8 pt-6 pb-6">
             <GlassButton active={local === "left"} onClick={() => handle("left")} aria-label="Links" padding="14px 18px">
                 <MdAlignHorizontalLeft className="text-xl" />
             </GlassButton>
