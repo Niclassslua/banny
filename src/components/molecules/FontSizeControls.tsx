@@ -24,9 +24,16 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap gap-x-16 gap-y-10 pl-6 pt-6 pb-6">
+            <div className="grid grid-cols-3 gap-3 px-2 pt-4 sm:grid-cols-4 md:grid-cols-6">
                 {PRESET.map((n) => (
-                    <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText padding="10px 14px">
+                    <GlassButton
+                        key={n}
+                        active={local === n}
+                        onClick={() => apply(n)}
+                        isText
+                        padding="12px 0"
+                        style={{ width: "100%" }}
+                    >
                         {n}
                     </GlassButton>
                 ))}
