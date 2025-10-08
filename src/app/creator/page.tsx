@@ -130,7 +130,7 @@ const CreatorPage = () => {
                     className="relative flex flex-col gap-8"
                 >
                     <div className="relative flex flex-col gap-8 xl:flex-row xl:items-stretch xl:gap-10">
-                        <div className="xl:w-[320px] xl:flex-shrink-0">
+                        <div className="xl:max-w-[280px] xl:flex-shrink-0">
                             <Sidebar
                                 toggleStyle={toggleStyle}
                                 changeFontSize={changeFontSize}
