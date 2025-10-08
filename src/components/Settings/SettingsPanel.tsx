@@ -1,5 +1,6 @@
 // src/components/Settings/SettingsPanel.tsx
 import React from "react";
+import { RangeSlider } from "@/components/atoms";
 import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 import { SettingsPanelProps } from "@/types";
 import { IconRefresh, IconArrowsShuffle } from "@tabler/icons-react";
@@ -122,14 +123,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         className="relative w-full pt-4"
                         style={{ "--pos": `${pct}%` } as React.CSSProperties}
                     >
-                        <input
-                            type="range"
+                        <RangeSlider
                             min={5}
                             max={25}
                             step={0.1}
                             value={patternScale}
-                            onChange={(e) => setPatternScale(Number(e.target.value))}
-                            className="modern-slider w-full"
+                            onChange={setPatternScale}
+                            ariaLabel="Pattern scale"
+                            trackColor="rgba(255,255,255,0.1)"
+                            progressColor="rgba(161,226,248,0.9)"
+                            glowColor="rgba(161,226,248,0.45)"
                         />
                         <span className="slider-bubble">{patternScale}px</span>
                     </div>
