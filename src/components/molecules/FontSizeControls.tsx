@@ -24,7 +24,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
 
     return (
         <>
-            <div className="flex flex-wrap gap-x-16 gap-y-14 ml-6 mb-12 mt-8">
+            <div className="flex flex-wrap gap-x-16 gap-y-14 pt-6 pb-8">
                 {PRESET.map((n) => (
                     <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText={true} padding={"7px 7px"}>
                         {n}
@@ -39,7 +39,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
                 step={1}
                 value={local}
                 onChange={(e) => apply(+e.target.value)}
-                className="w-full accent-indigo-500"
+                className="mt-10 w-full accent-indigo-500"
             />
         </>
     );
