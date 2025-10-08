@@ -158,8 +158,8 @@ const CreatorPage = () => {
                     transition={{ duration: 0.7 }}
                     className="relative flex flex-col gap-8"
                 >
-                    <div className="relative flex flex-col gap-8 xl:flex-row xl:items-stretch xl:gap-10">
-                        <div className="xl:max-w-[280px] xl:flex-shrink-0">
+                    <div className="relative flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)] xl:items-start xl:gap-10">
+                        <div className="xl:sticky xl:top-10 xl:self-start">
                             <Sidebar
                                 toggleStyle={toggleStyle}
                                 changeFontSize={changeFontSize}
@@ -174,7 +174,7 @@ const CreatorPage = () => {
                             />
                         </div>
 
-                        <div className="flex flex-1 flex-col gap-8">
+                        <div className="flex min-w-0 flex-1 flex-col gap-8">
                             <div className="w-full rounded-3xl border border-[#A1E2F8]/20 bg-white/5 p-6 backdrop-blur-xl shadow-[0_25px_80px_-35px_rgba(192,230,244,0.55)]">
                                 <div className="mb-4 flex items-center justify-between text-sm uppercase tracking-[0.35em] text-[#A1E2F8]/70">
                                     <span>Preview</span>
