@@ -194,7 +194,6 @@ const CreatorPage = () => {
                             >
                                 <div className="mb-4 flex items-center justify-between text-sm uppercase tracking-[0.35em] text-[#A1E2F8]/70">
                                     <span>Preview</span>
-                                    <span>{textStyles.fontSize}px</span>
                                 </div>
                                 <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                                     <BannerPreview
