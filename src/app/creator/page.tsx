@@ -101,7 +101,7 @@ const CreatorPage = () => {
                 <div className="absolute bottom-0 left-1/2 h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-[#A1E2F8]/10 blur-3xl" />
             </div>
 
-            <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 pb-24 pt-12 md:px-10 lg:px-16">
+            <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 pt-12 md:px-10 lg:px-16">
                 <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-6">
                         <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-[#A1E2F8]/25 bg-[#A1E2F8]/5 text-3xl font-semibold uppercase tracking-[0.3em] text-white/80 shadow-2xl shadow-[0_20px_60px_-20px_rgba(192,230,244,0.45)]">
