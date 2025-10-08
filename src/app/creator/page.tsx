@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
-import { patterns } from "@/constants/patterns";
-import { TextStyles } from "@/types";
+import { animatedPatterns, patterns } from "@/constants/patterns";
+import { Pattern, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 
 const CreatorPage = () => {
@@ -32,6 +32,35 @@ const CreatorPage = () => {
     const [visiblePicker, setVisiblePicker] = useState<string | null>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
+
+    const renderPatternButton = (pattern: Pattern) => {
+        const isSelected = pattern.name === selectedPattern.name;
+        return (
+            <button
+                key={pattern.name}
+                type="button"
+                onClick={() => setSelectedPattern(pattern)}
+                className={`group relative overflow-hidden rounded-2xl border ${
+                    isSelected ? "border-[#A1E2F8]" : "border-white/10"
+                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
+            >
+                <div
+                    className={`relative h-20 w-full overflow-hidden rounded-lg border border-white/10 ${
+                        pattern.className ?? ""
+                    }`}
+                    style={parseCSS(pattern.style, 14, patternColor1, patternColor2)}
+                />
+                <div className="mt-3 flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-white">{pattern.name}</span>
+                    {pattern.isAnimated && (
+                        <span className="rounded-full bg-[#A1E2F8]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A1E2F8]">
+                            ∞ GIF
+                        </span>
+                    )}
+                </div>
+            </button>
+        );
+    };
 
     const toggleStyle = (style: "bold" | "italic" | "underline" | "strikethrough") => {
         setTextStyles((prev) => ({
@@ -171,28 +200,27 @@ const CreatorPage = () => {
                                     <p className="mt-2 text-sm text-white/60">
                                         Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren.
                                     </p>
-                                    <div className="mt-6 max-h-[13rem] overflow-y-auto pr-2">
-                                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                            {patterns.map((pattern) => (
-                                                <button
-                                                    key={pattern.name}
-                                                    type="button"
-                                                    onClick={() => setSelectedPattern(pattern)}
-                                                    className={`group relative overflow-hidden rounded-2xl border ${
-                                                        pattern.name === selectedPattern.name
-                                                            ? "border-[#A1E2F8]"
-                                                            : "border-white/10"
-                                                    } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
-                                                >
-                                                    <div
-                                                        className="h-20 w-full rounded-lg border border-white/10"
-                                                        style={parseCSS(pattern.style, 14, patternColor1, patternColor2)}
-                                                    />
-                                                    <span className="mt-3 block text-sm font-medium text-white">
-                                                        {pattern.name}
+                                    <div className="mt-6 max-h-[20rem] overflow-y-auto pr-2">
+                                        <div className="space-y-6">
+                                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                                {patterns.map((pattern) => renderPatternButton(pattern))}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-xs font-semibold uppercase tracking-[0.45em] text-white/60">
+                                                        Animierte Hintergründe
+                                                    </h3>
+                                                    <span className="text-[11px] uppercase tracking-[0.4em] text-[#A1E2F8]">
+                                                        ∞ GIF
                                                     </span>
-                                                </button>
-                                            ))}
+                                                </div>
+                                                <p className="mt-2 text-xs text-white/60">
+                                                    Diese Hintergründe laufen dauerhaft in einer Endlosschleife.
+                                                </p>
+                                                <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                                    {animatedPatterns.map((pattern) => renderPatternButton(pattern))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

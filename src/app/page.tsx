@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Layers, Rocket, Ruler, Type } from "lucide-react";
+import { Layers, Ruler, Type } from "lucide-react";
 
 const features = [
     {
