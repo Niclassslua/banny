@@ -23,34 +23,24 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-3 px-2 pt-4 sm:grid-cols-4 md:grid-cols-6">
+        <>
+            <div className="flex flex-wrap gap-x-16 gap-y-14 ml-6 mb-12 mt-8">
                 {PRESET.map((n) => (
-                    <GlassButton
-                        key={n}
-                        active={local === n}
-                        onClick={() => apply(n)}
-                        isText
-                        padding="12px 0"
-                        style={{ width: "100%" }}
-                    >
+                    <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText={true} padding={"7px 7px"}>
                         {n}
                     </GlassButton>
                 ))}
             </div>
 
-            <div className="flex flex-col gap-3 px-2">
-                <input
-                    type="range"
-                    min={16}
-                    max={256}
-                    step={1}
-                    value={local}
-                    onChange={(e) => apply(+e.target.value)}
-                    className="accent-[#A1E2F8]"
-                />
-                <span className="text-xs uppercase tracking-[0.3em] text-white/60">{local}px</span>
-            </div>
-        </div>
+            <input
+                type="range"
+                min={16}
+                max={256}
+                step={1}
+                value={local}
+                onChange={(e) => apply(+e.target.value)}
+                className="w-full accent-indigo-500"
+            />
+        </>
     );
 };

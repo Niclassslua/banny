@@ -154,7 +154,7 @@ const FontControls: React.FC<FontControlsProps> = ({
     }, [textStyles.alignment]);
 
     return (
-        <div className="flex flex-col gap-6">
+        <div>
             {/* Stil */}
             <Section title="Schriftstil">
                 <FontStyleControls value={activeStyles} toggleStyle={handleToggleStyle} />
