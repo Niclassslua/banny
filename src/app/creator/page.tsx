@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { LayoutGrid, Sparkles } from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
@@ -30,8 +31,23 @@ const CreatorPage = () => {
     const [patternColor2, setPatternColor2] = useState("#b3b3c4");
     const [patternScale, setPatternScale] = useState(14);
     const [visiblePicker, setVisiblePicker] = useState<string | null>(null);
+    const [patternCategory, setPatternCategory] = useState<"static" | "animated">("static");
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
+
+    useEffect(() => {
+        if (patternCategory === "static") {
+            const isStatic = patterns.some((pattern) => pattern.name === selectedPattern.name);
+            if (!isStatic) {
+                setSelectedPattern(patterns[0]);
+            }
+        } else {
+            const isAnimated = animatedPatterns.some((pattern) => pattern.name === selectedPattern.name);
+            if (!isAnimated && animatedPatterns.length > 0) {
+                setSelectedPattern(animatedPatterns[0]);
+            }
+        }
+    }, [patternCategory, selectedPattern.name]);
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -198,30 +214,64 @@ const CreatorPage = () => {
                                 <div className="rounded-3xl border border-[#A1E2F8]/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_20px_60px_-35px_rgba(192,230,244,0.45)]">
                                     <h2 className="text-lg font-semibold text-white">Pattern auswählen</h2>
                                     <p className="mt-2 text-sm text-white/60">
-                                        Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren.
+                                        {patternCategory === "static"
+                                            ? "Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren."
+                                            : "Diese Hintergründe laufen dauerhaft in einer Endlosschleife und bringen Bewegung in deine Banner."}
                                     </p>
-                                    <div className="mt-6 max-h-[20rem] overflow-y-auto pr-2">
-                                        <div className="space-y-6">
-                                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                                {patterns.map((pattern) => renderPatternButton(pattern))}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="text-xs font-semibold uppercase tracking-[0.45em] text-white/60">
-                                                        Animierte Hintergründe
-                                                    </h3>
-                                                    <span className="text-[11px] uppercase tracking-[0.4em] text-[#A1E2F8]">
-                                                        ∞ GIF
+                                    <div className="mt-5 flex flex-wrap gap-3">
+                                        {[{
+                                            id: "static" as const,
+                                            label: "Statische Banner",
+                                            icon: LayoutGrid,
+                                            subline: "Ruhige Texturen",
+                                        }, {
+                                            id: "animated" as const,
+                                            label: "Animierte Banner",
+                                            icon: Sparkles,
+                                            subline: "Mit Bewegung",
+                                        }].map(({ id, label, icon: Icon, subline }) => {
+                                            const isActive = patternCategory === id;
+                                            return (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => setPatternCategory(id)}
+                                                    aria-pressed={isActive}
+                                                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                                                        isActive
+                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white shadow-[0_12px_40px_-20px_rgba(161,226,248,0.8)]"
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
+                                                    }`}
+                                                >
+                                                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#A1E2F8]">
+                                                        <Icon className="h-5 w-5" />
                                                     </span>
-                                                </div>
-                                                <p className="mt-2 text-xs text-white/60">
-                                                    Diese Hintergründe laufen dauerhaft in einer Endlosschleife.
-                                                </p>
-                                                <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                                    {animatedPatterns.map((pattern) => renderPatternButton(pattern))}
-                                                </div>
-                                            </div>
+                                                    <span className="flex flex-col">
+                                                        <span className="text-sm font-semibold uppercase tracking-[0.35em]">
+                                                            {label}
+                                                        </span>
+                                                        <span className="text-xs text-white/60">{subline}</span>
+                                                    </span>
+                                                    {id === "animated" && (
+                                                        <span className="ml-auto rounded-full bg-[#A1E2F8]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A1E2F8]">
+                                                            ∞
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="mt-6 max-h-[20rem] overflow-y-auto pr-2">
+                                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                            {(patternCategory === "static" ? patterns : animatedPatterns).map((pattern) =>
+                                                renderPatternButton(pattern)
+                                            )}
                                         </div>
+                                        {patternCategory === "animated" && (
+                                            <p className="mt-4 text-xs text-[#A1E2F8]/80">
+                                                Animierte Banner nutzen CSS-Animationen und laufen in einer Endlosschleife.
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
