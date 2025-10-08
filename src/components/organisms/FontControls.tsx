@@ -154,7 +154,7 @@ const FontControls: React.FC<FontControlsProps> = ({
     }, [textStyles.alignment]);
 
     return (
-        <div>
+        <div className="flex flex-col gap-10">
             {/* Stil */}
             <Section title="Schriftstil">
                 <FontStyleControls value={activeStyles} toggleStyle={handleToggleStyle} />
@@ -192,10 +192,12 @@ export default FontControls;
 
 // ───────────────────────────────────────── small helper
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <section className="space-y-3">
+    <section className="flex flex-col gap-5">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
             {title}
         </h2>
-        {children}
+        <div className="pl-4">
+            {children}
+        </div>
     </section>
 );

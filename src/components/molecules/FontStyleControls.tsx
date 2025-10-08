@@ -13,7 +13,7 @@ export const FontStyleControls: React.FC<Props> = ({ value, toggleStyle }) => {
     const isActive = (s: Style) => value.includes(s);
 
     return (
-        <div className="flex flex-wrap gap-x-16 gap-y-8 pl-4 pt-6 pb-6">
+        <div className="flex flex-wrap gap-x-16 gap-y-8 pt-6 pb-6">
             <GlassButton active={isActive("bold")} onClick={() => toggleStyle("bold")} aria-label="Fett" padding="14px 18px">
                 <MdFormatBold className="text-xl" />
             </GlassButton>
