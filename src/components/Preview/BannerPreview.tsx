@@ -48,7 +48,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                 ...parseCSS(selectedPattern.style, patternScale, patternColor1, patternColor2),
                 position: "relative",
                 width: "100%",
-                height: "400px", // Hier die Banner-Höhe anpassen
+                height: "320px", // Hier die Banner-Höhe anpassen
                 overflow: "hidden",
             }}
         >
