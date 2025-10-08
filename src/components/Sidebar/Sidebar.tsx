@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import EmojiPicker from "@/components/Sidebar/EmojiPicker";
 import { FontControls } from "../organisms";
+import { TextStyles } from "@/types";
 
 interface SidebarProps {
     toggleStyle: (s: "bold" | "italic" | "underline" | "strikethrough") => void;
@@ -19,6 +20,7 @@ interface SidebarProps {
     patternScale: number;
     setPatternScale: (s: number) => void;
     onEmojiSelect: (e: string) => void;
+    textStyles: TextStyles;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              noWrap,
                                              toggleNoWrap,
                                              onEmojiSelect,
+                                             textStyles,
                                          }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -52,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 changeFontFamily={changeFontFamily}
                 noWrap={noWrap}
                 toggleNoWrap={toggleNoWrap}
+                textStyles={textStyles}
             />
 
             {/* Emoji-Toggle & Picker ------------------------------------------- */}

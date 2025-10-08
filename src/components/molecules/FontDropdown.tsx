@@ -25,23 +25,32 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
             {/* Trigger‑Button */}
             <button
                 type="button"
-                className="w-full p-2 rounded-md bg-zinc-700 text-left"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
                 onClick={() => setIsOpen((prev) => !prev)}
                 style={{ fontFamily: selectedFontFamily }}
             >
-                {selectedFontFamily || "Select a Font"}
+                <span>
+                    {fonts.find((font) => font.style === selectedFontFamily)?.name || selectedFontFamily || "Schrift auswählen"}
+                </span>
+                <svg
+                    className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
             </button>
 
             {/* Dropdown */}
             {isOpen && (
                 <div
-                    className="absolute z-10 mt-1 w-full bg-zinc-700 rounded-md shadow-lg overflow-y-auto"
-                    style={{ maxHeight: 200 }}
+                    className="absolute z-10 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-white/10 bg-zinc-900/95 p-1 shadow-[0_20px_60px_-30px_rgba(192,230,244,0.6)] backdrop-blur"
                 >
                     {fonts.map((font) => (
                         <div
                             key={font.name}
-                            className={`p-2 cursor-pointer hover:bg-zinc-600 ${font.className}`}
+                            className={`cursor-pointer rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
                             onClick={() => {
                                 onFontChange(font.style); // gibt die CSS‑font-family zurück
                                 setIsOpen(false);

@@ -2,9 +2,9 @@
 "use client";
 
 import React from "react";
-import ColorPicker from 'react-best-gradient-color-picker';
+import ColorPicker from "react-best-gradient-color-picker";
 
-import {colors} from "@/constants/colors";
+import { colors } from "@/constants/colors";
 
 interface ColorPickerProps {
     color: string;
@@ -32,60 +32,63 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         <div className="relative">
             <button
                 onClick={togglePicker}
-                className="w-10 h-10 rounded-full ring-2 ring-white/10"
+                className="h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60"
                 style={{ backgroundColor: color }}
                 aria-label="Toggle Color Picker"
             />
             {isVisible && (
                 <div
-                    className="absolute top-12 left-0 bg-gray-50 dark:bg-gray-800 rounded-md shadow-lg border-2 ring-1 ring-white/10 p-4 transition-opacity duration-300 z-50"
+                    className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-50 w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
                 >
                     <ColorPicker
                         style={{
                             body: {
-                                background: 'rgb(32, 32, 32)',
+                                background: "transparent",
+                                boxShadow: "none",
                             },
                             rbgcpInputLabel: {
-                                color: 'rgb(212, 212, 212)',
+                                color: "rgb(225, 233, 240)",
                             },
                             rbgcpControlBtnWrapper: {
-                                background: 'rgb(54, 54, 54)',
+                                background: "rgba(255,255,255,0.04)",
+                                borderRadius: "12px",
                             },
                             rbgcpInput: {
-                                border: 'none',
-                                color: 'white',
-                                background: 'rgb(54, 54, 54)',
+                                border: "none",
+                                color: "white",
+                                background: "rgba(255,255,255,0.06)",
                             },
                             rbgcpControlBtn: {
-                                color: 'rgb(212, 212, 212)',
+                                color: "rgb(225, 233, 240)",
                             },
                             rbgcpControlIcon: {
-                                stroke: 'rgb(212, 212, 212)',
+                                stroke: "rgb(225, 233, 240)",
                             },
                             rbgcpControlIcon2: {
-                                fill: 'rgb(212, 212, 212)',
+                                fill: "rgb(225, 233, 240)",
                             },
                             rbgcpControlInput: {
-                                color: 'white',
+                                color: "white",
                             },
                             rbgcpControlBtnSelected: {
-                                background: 'black',
-                                color: '#568cf5',
+                                background: "rgba(161, 226, 248, 0.18)",
+                                color: "#A1E2F8",
                             },
                             rbgcpDegreeIcon: {
-                                color: 'rgb(212, 212, 212)',
+                                color: "rgb(225, 233, 240)",
                             },
                             rbgcpColorModelDropdown: {
-                                background: 'rgb(32, 32, 32)',
+                                background: "rgba(8,8,12,0.85)",
+                                borderRadius: "12px",
                             },
                             rbgcpComparibleLabel: {
-                                color: 'rgb(212, 212, 212)',
-                            }
+                                color: "rgb(225, 233, 240)",
+                            },
                         }}
                         value={color}
                         onChange={(newColor) => setColor(rgbaToHex(newColor))}
-                        width={300}
-                        height={150}
+                        width={260}
+                        height={180}
                         hideGradientType
                         hidePresets={false}
                         disableLightMode={!darkMode}

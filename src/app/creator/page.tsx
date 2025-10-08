@@ -180,11 +180,11 @@ const CreatorPage = () => {
                                                     pattern.name === selectedPattern.name
                                                         ? "border-[#A1E2F8]"
                                                         : "border-white/10"
-                                                } bg-white/5 p-3 text-left transition hover:border-[#A1E2F8]/60`}
+                                                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
                                             >
                                                 <div
-                                                    className="h-24 w-full rounded-xl border border-white/10"
-                                                    style={parseCSS(pattern.style, patternScale, patternColor1, patternColor2)}
+                                                    className="h-20 w-full rounded-lg border border-white/10"
+                                                    style={parseCSS(pattern.style, 14, patternColor1, patternColor2)}
                                                 />
                                                 <span className="mt-3 block text-sm font-medium text-white">
                                                     {pattern.name}
@@ -250,6 +250,7 @@ const CreatorPage = () => {
                                             patternScale={patternScale}
                                             setPatternScale={setPatternScale}
                                             onEmojiSelect={handleEmojiSelect}
+                                            textStyles={textStyles}
                                         />
                                     </div>
                                 </motion.aside>
