@@ -14,7 +14,9 @@ export interface TextStyles {
 
 export interface Pattern {
     name: string;
-    style: (scale: number, color1: string, color2: string) => string;
+    style?: string | ((scale: number, color1: string, color2: string) => string);
+    className?: string;
+    isAnimated?: boolean;
 }
 
 export interface SettingsPanelProps {

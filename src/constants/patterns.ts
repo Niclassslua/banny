@@ -1,10 +1,101 @@
-interface Pattern {
-    name: string;
-    style: (scale: number, color1: string, color2: string) => string;
-}
+import { Pattern } from "@/types";
 
 export const patterns: Pattern[] = [
-
+    {
+        name: "Crimson Depth",
+        style: `
+      background: radial-gradient(125% 125% at 50% 100%, #000000 40%, #2b0707 100%);
+      background-color: #000000;
+    `,
+    },
+    {
+        name: "Aurora Dream Corner Whispers",
+        style: `
+      background:
+        radial-gradient(ellipse 85% 65% at 8% 8%, rgba(175, 109, 255, 0.42), transparent 60%),
+        radial-gradient(ellipse 75% 60% at 75% 35%, rgba(255, 235, 170, 0.55), transparent 62%),
+        radial-gradient(ellipse 70% 60% at 15% 80%, rgba(255, 100, 180, 0.40), transparent 62%),
+        radial-gradient(ellipse 70% 60% at 92% 92%, rgba(120, 190, 255, 0.45), transparent 62%),
+        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
+      background-color: #fde2ea;
+    `,
+    },
+    {
+        name: "Aurora Dream Soft Harmony",
+        style: `
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 20%, rgba(175, 109, 255, 0.50), transparent 65%),
+        radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255, 100, 180, 0.45), transparent 65%),
+        radial-gradient(ellipse 60% 50% at 60% 65%, rgba(255, 235, 170, 0.43), transparent 62%),
+        radial-gradient(ellipse 65% 40% at 50% 60%, rgba(120, 190, 255, 0.48), transparent 68%),
+        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
+      background-color: #fde2ea;
+    `,
+    },
+    {
+        name: "Aurora Dream Vivid Bloom",
+        style: `
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(175, 109, 255, 0.85), transparent 68%),
+        radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255, 100, 180, 0.75), transparent 68%),
+        radial-gradient(ellipse 60% 50% at 60% 65%, rgba(255, 235, 170, 0.98), transparent 68%),
+        radial-gradient(ellipse 65% 40% at 50% 60%, rgba(120, 190, 255, 0.3), transparent 68%),
+        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
+      background-color: #fde2ea;
+    `,
+    },
+    {
+        name: "Diagonal Grid with Light",
+        style: `
+      background-color: #fafafa;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px);
+      background-size: 40px 40px;
+    `,
+    },
+    {
+        name: "Dark Grid with White Dots",
+        style: `
+      background: #0f172a;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px);
+      background-size: 20px 20px, 20px 20px, 20px 20px;
+      background-position: 0 0, 0 0, 0 0;
+    `,
+    },
+    {
+        name: "Gradient Diagonal Lines",
+        style: `
+      background-color: #000000;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(0, 255, 65, 0.08) 0, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(0, 255, 65, 0.08) 0, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
+        repeating-linear-gradient(90deg, rgba(0, 255, 65, 0.03) 0, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 4px);
+      background-size: 24px 24px, 24px 24px, 8px 8px;
+    `,
+    },
+    {
+        name: "Dark Noise Colors",
+        style: `
+      background: #000000;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.2) 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.18) 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, rgba(236, 72, 153, 0.15) 1px, transparent 0);
+      background-size: 20px 20px, 30px 30px, 25px 25px;
+      background-position: 0 0, 10px 10px, 15px 5px;
+    `,
+    },
+    {
+        name: "Top Glow Midnight",
+        style: `
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000;
+      background-color: #000000;
+    `,
+    },
     {
         name: "Radial Cross",
         style: (scale: number, color1: string, color2: string) => {
@@ -396,5 +487,51 @@ export const patterns: Pattern[] = [
                   linear-gradient(${color1} ${scale}px, transparent ${scale}px) 0 -1px, 
                   linear-gradient(90deg, ${color1} ${scale}px, ${color2} ${scale}px) -1px 0; 
        background-size: ${scale * 25}px ${scale * 25}px, ${scale * 25}px ${scale * 25}px, ${scale * 12.5}px ${scale * 12.5}px, ${scale * 12.5}px ${scale * 12.5}px;`,
+    },
+];
+
+export const animatedPatterns: Pattern[] = [
+    {
+        name: "Blurred Neon Motion",
+        className: "animated-bg-hiii",
+        isAnimated: true,
+        style: `
+      background-color: #000000;
+    `,
+    },
+    {
+        name: "Golden Hex Flow",
+        className: "animated-bg-g2",
+        isAnimated: true,
+    },
+    {
+        name: "Vintage Wave Spin",
+        className: "animated-bg-g1",
+        isAnimated: true,
+    },
+    {
+        name: "Retro Bloom Shift",
+        className: "animated-bg-g4",
+        isAnimated: true,
+    },
+    {
+        name: "Dual Orbit",
+        className: "animated-bg-g6",
+        isAnimated: true,
+    },
+    {
+        name: "Chrome Lattice",
+        className: "animated-bg-g8",
+        isAnimated: true,
+    },
+    {
+        name: "Sepia Tiles",
+        className: "animated-bg-g16",
+        isAnimated: true,
+    },
+    {
+        name: "Ribbon Drift",
+        className: "animated-bg-g17",
+        isAnimated: true,
     },
 ];

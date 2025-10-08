@@ -39,11 +39,13 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         cursor: "text",
         outline: "none",
         whiteSpace: textStyles.noWrap ? "nowrap" : "normal",
+        zIndex: 2,
     };
 
     return (
         <div
             ref={previewRef}
+            className={selectedPattern.className ? `pattern-surface ${selectedPattern.className}` : "pattern-surface"}
             style={{
                 ...parseCSS(selectedPattern.style, patternScale, patternColor1, patternColor2),
                 position: "relative",
