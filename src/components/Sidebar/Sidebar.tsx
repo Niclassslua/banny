@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import EmojiPicker from "@/components/Sidebar/EmojiPicker";
 import { FontControls } from "../organisms";
+import { TextStyles } from "@/types";
 
 interface SidebarProps {
     toggleStyle: (s: "bold" | "italic" | "underline" | "strikethrough") => void;
@@ -13,12 +14,8 @@ interface SidebarProps {
     changeFontFamily: (f: string) => void;
     noWrap: boolean;
     toggleNoWrap: () => void;
-    darkMode: boolean;
-    visiblePicker: string | null;
-    togglePicker: (id: string) => void;
-    patternScale: number;
-    setPatternScale: (s: number) => void;
     onEmojiSelect: (e: string) => void;
+    textStyles: TextStyles;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              noWrap,
                                              toggleNoWrap,
                                              onEmojiSelect,
+                                             textStyles,
                                          }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -40,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <aside
-            className="relative flex w-full flex-col gap-6 rounded-[26px] border border-white/10 bg-black/40 p-6 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(192,230,244,0.55)] transition duration-150"
+            className="relative flex h-full w-full flex-col gap-6 rounded-[26px] border border-white/10 bg-black/40 p-6 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(192,230,244,0.55)] transition duration-150"
         >
             {/* Typografie-Kontrollen */}
             <FontControls
@@ -52,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 changeFontFamily={changeFontFamily}
                 noWrap={noWrap}
                 toggleNoWrap={toggleNoWrap}
+                textStyles={textStyles}
             />
 
             {/* Emoji-Toggle & Picker ------------------------------------------- */}
