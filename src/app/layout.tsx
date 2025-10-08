@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-    title: "Banner Creator",
+    title: "Banny - Banner Creator",
     description: "Create stunning banners with ease.",
 };
 
