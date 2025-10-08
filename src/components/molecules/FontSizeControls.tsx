@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GlassButton } from "../atoms";
+import { GlassButton, RangeSlider } from "../atoms";
 
 interface Props {
     value: number;
@@ -32,15 +32,16 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
                 ))}
             </div>
 
-            <input
-                type="range"
-                min={16}
-                max={256}
-                step={1}
-                value={local}
-                onChange={(e) => apply(+e.target.value)}
-                className="mt-10 w-full accent-indigo-500"
-            />
+            <div className="mt-10">
+                <RangeSlider
+                    min={16}
+                    max={256}
+                    step={1}
+                    value={local}
+                    onChange={apply}
+                    ariaLabel="Schriftgröße"
+                />
+            </div>
         </>
     );
 };
