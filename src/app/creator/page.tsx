@@ -121,7 +121,7 @@ const CreatorPage = () => {
     );
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-zinc-950 text-white">
+        <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#A1E2F8]/25 blur-3xl" />
                 <div className="absolute top-1/4 -right-40 h-[32rem] w-[32rem] rounded-full bg-[#A1E2F8]/15 blur-3xl" />
@@ -159,7 +159,7 @@ const CreatorPage = () => {
                     className="relative flex flex-col gap-8"
                 >
                     <div className="relative flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)] xl:items-start xl:gap-10">
-                        <div className="xl:sticky xl:top-10 xl:self-start">
+                        <div className="xl:sticky xl:top-10 xl:self-start xl:[position:-webkit-sticky]">
                             <Sidebar
                                 toggleStyle={toggleStyle}
                                 changeFontSize={changeFontSize}
