@@ -549,3 +549,16 @@ body {
       0 0;
   }
 }
+
+.safari-transform-none {
+    transform: none !important;
+    will-change: auto !important;
+}
+
+/* WebKit-sichere Sticky-Deklaration */
+@supports (-webkit-hyphens: none) {
+    .safari-sticky {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+}
