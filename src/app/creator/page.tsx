@@ -131,7 +131,7 @@ const CreatorPage = () => {
                     transition={{ duration: 0.7 }}
                     className="relative flex flex-col gap-8"
                 >
-                    <div className="flex justify-end">
+                    <div className="flex justify-start">
                         <button
                             type="button"
                             aria-expanded={isFontPanelOpen}
@@ -228,10 +228,10 @@ const CreatorPage = () => {
                                     onClick={() => setIsFontPanelOpen(false)}
                                 />
                                 <motion.aside
-                                    className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md p-6"
-                                    initial={{ x: "100%" }}
+                                    className="fixed inset-y-0 left-0 z-50 flex h-full w-full max-w-md p-6"
+                                    initial={{ x: "-100%" }}
                                     animate={{ x: 0 }}
-                                    exit={{ x: "100%" }}
+                                    exit={{ x: "-100%" }}
                                     transition={{ type: "spring", stiffness: 260, damping: 30 }}
                                 >
                                     <div className="h-full w-full overflow-y-auto">

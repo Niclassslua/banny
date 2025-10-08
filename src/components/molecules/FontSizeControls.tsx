@@ -23,16 +23,16 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
     };
 
     return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-4 gap-2 md:grid-cols-6">
+        <div className="space-y-6">
+            <div className="flex flex-wrap gap-x-16 gap-y-10 pl-6 pt-6 pb-6">
                 {PRESET.map((n) => (
-                    <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText padding="8px 8px">
+                    <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText padding="10px 14px">
                         {n}
                     </GlassButton>
                 ))}
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 px-2">
                 <input
                     type="range"
                     min={16}
@@ -42,7 +42,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
                     onChange={(e) => apply(+e.target.value)}
                     className="accent-[#A1E2F8]"
                 />
-                <span className="text-xs uppercase tracking-[0.2em] text-white/60">{local}px</span>
+                <span className="text-xs uppercase tracking-[0.3em] text-white/60">{local}px</span>
             </div>
         </div>
     );
