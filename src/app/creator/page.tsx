@@ -12,7 +12,7 @@ import { TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 
 const CreatorPage = () => {
-    const [textContent, setTextContent] = useState("Create bold banners in seconds");
+    const [textContent, setTextContent] = useState("Text");
     const [textStyles, setTextStyles] = useState<TextStyles>({
         bold: true,
         italic: false,
@@ -188,7 +188,7 @@ const CreatorPage = () => {
                                     <p className="mt-2 text-sm text-white/60">
                                         Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren.
                                     </p>
-                                    <div className="mt-6 max-h-[22rem] overflow-y-auto pr-2">
+                                    <div className="mt-6 max-h-[13rem] overflow-y-auto pr-2">
                                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                             {patterns.map((pattern) => (
                                                 <button
