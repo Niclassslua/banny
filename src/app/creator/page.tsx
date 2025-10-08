@@ -109,7 +109,7 @@ const CreatorPage = () => {
                         </div>
                         <div>
                             <span className="text-sm uppercase tracking-[0.45em] text-[#A1E2F8]">Banner Creator</span>
-                            <h1 className="text-3xl font-semibold text-white md:text-4xl">Workspace</h1>
+                            <h1 className="text-3xl font-semibold text-white md:text-4xl">Banny Workspace</h1>
                         </div>
                     </div>
                     <nav className="flex items-center gap-4 text-sm text-white/70">
@@ -188,7 +188,7 @@ const CreatorPage = () => {
                                     <p className="mt-2 text-sm text-white/60">
                                         Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren.
                                     </p>
-                                    <div className="mt-6 max-h-[13rem] overflow-y-auto pr-2">
+                                    <div className="mt-6 max-h-[9rem] overflow-y-auto pr-2">
                                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                             {patterns.map((pattern) => (
                                                 <button
@@ -202,7 +202,7 @@ const CreatorPage = () => {
                                                     } bg-white/5 p-3 text-left transition hover:border-[#A1E2F8]/60`}
                                                 >
                                                     <div
-                                                        className="h-24 w-full rounded-xl border border-white/10"
+                                                        className="h-16 w-full rounded-xl border border-white/10"
                                                         style={parseCSS(pattern.style, patternScale, patternColor1, patternColor2)}
                                                     />
                                                     <span className="mt-3 block text-sm font-medium text-white">
