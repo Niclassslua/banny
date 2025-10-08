@@ -109,7 +109,7 @@ const CreatorPage = () => {
                         </div>
                         <div>
                             <span className="text-sm uppercase tracking-[0.45em] text-[#A1E2F8]">Banner Creator</span>
-                            <h1 className="text-3xl font-semibold text-white md:text-4xl">Workspace</h1>
+                            <h1 className="text-3xl font-semibold text-white md:text-4xl">Banny Workspace</h1>
                         </div>
                     </div>
                     <nav className="flex items-center gap-4 text-sm text-white/70">
