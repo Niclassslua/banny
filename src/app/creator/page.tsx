@@ -188,9 +188,6 @@ const CreatorPage = () => {
                                 transition={{ duration: 0.5 }}
                                 className="w-full rounded-3xl border border-[#A1E2F8]/20 bg-white/5 p-6 backdrop-blur-xl shadow-[0_25px_80px_-35px_rgba(192,230,244,0.55)]"
                             >
-                                <div className="mb-4 flex items-center justify-between text-sm uppercase tracking-[0.35em] text-[#A1E2F8]/70">
-                                    <span>Preview</span>
-                                </div>
                                 <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                                     <BannerPreview
                                         selectedPattern={selectedPattern}
@@ -211,17 +208,16 @@ const CreatorPage = () => {
                                 transition={{ duration: 0.5, delay: 0.05 }}
                                 className="flex flex-col gap-6"
                             >
-                                <div className="rounded-3xl border border-[#A1E2F8]/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_20px_60px_-35px_rgba(192,230,244,0.45)]">
-                                    <h2 className="text-lg font-semibold text-white">
-                                        Pattern auswählen
-                                    </h2>
+                                <div className="rounded-3xl border border-[#A1E2F8]/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_16px_50px_-30px_rgba(192,230,244,0.45)]">
+                                    <h2 className="text-lg font-semibold text-white">Pattern auswählen</h2>
                                     <p className="mt-2 text-sm text-white/60">
                                         {patternCategory === "static"
                                             ? "Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren."
                                             : "Diese Hintergründe laufen dauerhaft in einer Endlosschleife und bringen Bewegung in deine Banner."}
                                     </p>
 
-                                    <div className="mt-5 flex flex-wrap gap-3">
+                                    {/* kompaktere Selector-Buttons */}
+                                    <div className="mt-4 flex flex-wrap gap-2.5">
                                         {[
                                             {
                                                 id: "static" as const,
@@ -243,41 +239,36 @@ const CreatorPage = () => {
                                                     type="button"
                                                     onClick={() => setPatternCategory(id)}
                                                     aria-pressed={isActive}
-                                                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                                                    className={[
+                                                        "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A1E2F8]/60",
                                                         isActive
-                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white shadow-[0_12px_40px_-20px_rgba(161,226,248,0.8)]"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
-                                                    }`}
+                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white shadow-[0_8px_25px_-15px_rgba(161,226,248,0.7)]"
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
+                                                    ].join(" ")}
                                                 >
-                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#A1E2F8]">
-                            <Icon className="h-5 w-5" />
-                          </span>
-                                                    <span className="flex flex-col">
-                            <span className="text-sm font-semibold uppercase tracking-[0.35em]">
-                              {label}
-                            </span>
-                            <span className="text-xs text-white/60">{subline}</span>
-                          </span>
-                                                    {id === "animated" && (
-                                                        <span className="ml-auto rounded-full bg-[#A1E2F8]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A1E2F8]">
-                              ∞
-                            </span>
-                                                    )}
+                                                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#A1E2F8]">
+                                                    <Icon className="h-4 w-4" />
+                                                  </span>
+                                                                                            <span className="flex flex-col leading-tight">
+                                                    <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
+                                                      {label}
+                                                    </span>
+                                                    <span className="text-[10px] text-white/60">{subline}</span>
+                                                  </span>
                                                 </button>
                                             );
                                         })}
                                     </div>
 
-                                    <div className="mt-6 max-h-[20rem] overflow-y-auto pr-2">
+                                    <div className="mt-5 max-h-[12rem] overflow-y-auto pr-2">
                                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                            {(patternCategory === "static" ? patterns : animatedPatterns).map(
-                                                (pattern) => renderPatternButton(pattern),
+                                            {(patternCategory === "static" ? patterns : animatedPatterns).map((pattern) =>
+                                                renderPatternButton(pattern),
                                             )}
                                         </div>
                                         {patternCategory === "animated" && (
                                             <p className="mt-4 text-xs text-[#A1E2F8]/80">
-                                                Animierte Banner nutzen CSS-Animationen und laufen in
-                                                einer Endlosschleife.
+                                                Animierte Banner nutzen CSS-Animationen und laufen in einer Endlosschleife.
                                             </p>
                                         )}
                                     </div>

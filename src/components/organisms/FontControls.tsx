@@ -191,13 +191,17 @@ const FontControls: React.FC<FontControlsProps> = ({
 export default FontControls;
 
 // ───────────────────────────────────────── small helper
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <section className="flex flex-col gap-5">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
-            {title}
-        </h2>
-        <div className="pl-4">
-            {children}
-        </div>
-    </section>
-);
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
+    const noPadding = ["Schriftart", "Textfarbe"].includes(title);
+
+    return (
+        <section className="flex flex-col gap-5">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
+                {title}
+            </h2>
+            <div className={noPadding ? "" : "pl-4"}>
+                {children}
+            </div>
+        </section>
+    );
+};

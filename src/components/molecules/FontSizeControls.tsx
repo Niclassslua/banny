@@ -32,7 +32,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
                 ))}
             </div>
 
-            <div className="mt-10">
+            <div className="mt-4">
                 <RangeSlider
                     min={16}
                     max={256}
