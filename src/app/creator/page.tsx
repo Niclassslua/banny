@@ -105,9 +105,6 @@ const CreatorPage = () => {
     const toggleNoWrap = () =>
         setTextStyles((prev) => ({ ...prev, noWrap: !prev.noWrap }));
 
-    const handleEmojiSelect = (emoji: string) =>
-        setTextContent((prev) => `${prev}${emoji}`);
-
     const togglePicker = (pickerId: string) =>
         setVisiblePicker((prev) => (prev === pickerId ? null : pickerId));
 
@@ -179,7 +176,6 @@ const CreatorPage = () => {
                                 changeFontFamily={changeFontFamily}
                                 noWrap={textStyles.noWrap}
                                 toggleNoWrap={toggleNoWrap}
-                                onEmojiSelect={handleEmojiSelect}
                                 textStyles={textStyles}
                             />
                         </div>
