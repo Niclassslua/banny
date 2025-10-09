@@ -1,5 +1,4 @@
-import html2canvas from "html2canvas";
-import { toBlob } from "html-to-image";
+import { toBlob, toCanvas } from "html-to-image";
 
 import { createGifFromFrames } from "@/utils/gifEncoder";
 import type { GifFrame } from "@/utils/gifEncoder";
@@ -13,6 +12,14 @@ type DownloadBannerOptions = {
 
 const DEFAULT_DURATION = 2400;
 const DEFAULT_DELAY = 120;
+const MIN_FRAMES = 6;
+const MAX_FRAMES = 12;
+
+const RENDER_OPTIONS = {
+    pixelRatio: 2,
+    cacheBust: true,
+    backgroundColor: null,
+} as const;
 
 function triggerDownload(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
@@ -47,11 +54,7 @@ export function sanitizeFileName(name: string) {
 }
 
 async function downloadStatic(node: HTMLElement, fileName: string) {
-    const blob = await toBlob(node, {
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: null,
-    });
+    const blob = await toBlob(node, RENDER_OPTIONS);
 
     if (!blob) {
         throw new Error("Konnte kein Bild generieren");
@@ -67,21 +70,20 @@ async function downloadAnimated(
     frameDelayMs: number,
 ) {
     const frames: GifFrame[] = [];
-    const steps = Math.max(6, Math.floor(durationMs / frameDelayMs));
+    const estimatedSteps = Math.max(MIN_FRAMES, Math.ceil(durationMs / frameDelayMs));
+    const steps = Math.min(MAX_FRAMES, estimatedSteps);
+    const delayPerFrame = Math.max(20, Math.round(durationMs / steps));
 
     for (let index = 0; index < steps; index += 1) {
         if (index > 0) {
-            await wait(frameDelayMs);
+            await wait(delayPerFrame);
         }
 
-        const canvas = await html2canvas(node, {
-            backgroundColor: null,
-            scale: 2,
-            logging: false,
-            useCORS: true,
-        });
+        await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
-        const context = canvas.getContext("2d");
+        const canvas = await toCanvas(node, RENDER_OPTIONS);
+
+        const context = canvas.getContext("2d", { willReadFrequently: true });
 
         if (!context) {
             continue;
@@ -89,8 +91,12 @@ async function downloadAnimated(
 
         frames.push({
             imageData: context.getImageData(0, 0, canvas.width, canvas.height),
-            delayMs: frameDelayMs,
+            delayMs: delayPerFrame,
         });
+
+        canvas.width = 0;
+        canvas.height = 0;
+        canvas.remove();
     }
 
     if (!frames.length) {
