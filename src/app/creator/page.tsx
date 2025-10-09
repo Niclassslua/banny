@@ -164,9 +164,9 @@ const CreatorPage = () => {
                         isSafari ? "safari-transform-none" : ""
                     }`}
                 >
-                    <div className="relative flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)] xl:items-start xl:gap-10">
+                    <div className="relative flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)] xl:items-stretch xl:gap-10">
                         {/* Sidebar – WebKit-sticky */}
-                        <div className="xl:sticky xl:top-10 xl:self-start safari-sticky">
+                        <div className="xl:sticky xl:top-10 xl:self-stretch safari-sticky">
                             <Sidebar
                                 toggleStyle={toggleStyle}
                                 changeFontSize={changeFontSize}
