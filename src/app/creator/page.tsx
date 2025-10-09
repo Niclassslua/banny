@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LayoutGrid, Sparkles } from "lucide-react";
+import { Download, LayoutGrid, Sparkles } from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
@@ -11,6 +11,7 @@ import SettingsPanel from "@/components/Settings/SettingsPanel";
 import { animatedPatterns, patterns } from "@/constants/patterns";
 import { Pattern, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
+import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
 
 // --- Safari detection (für sticky/transform-Fix)
 const isSafari =
@@ -41,6 +42,7 @@ const CreatorPage = () => {
     );
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
+    const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
         if (patternCategory === "static") {
@@ -116,6 +118,31 @@ const CreatorPage = () => {
         [],
     );
 
+    const handleDownload = async () => {
+        if (!previewRef.current) {
+            return;
+        }
+
+        const filenameBase = sanitizeFileName(
+            textContent.trim() || selectedPattern.name || "banny-banner",
+        );
+
+        setIsDownloading(true);
+
+        try {
+            await downloadBanner(previewRef.current, {
+                animated: Boolean(selectedPattern.isAnimated),
+                fileName: filenameBase,
+            });
+        } catch (error) {
+            console.error("Download fehlgeschlagen", error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const isAnimatedPattern = Boolean(selectedPattern.isAnimated);
+
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
             {/* Orbs */}
@@ -141,17 +168,32 @@ const CreatorPage = () => {
                             </h1>
                         </div>
                     </div>
-                    <nav className="flex items-center gap-4 text-sm text-white/70">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="rounded-full border border-white/10 px-4 py-2 transition hover:border-[#A1E2F8]/50 hover:text-white"
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
+                    <div className="flex flex-col items-start gap-4 text-sm md:flex-row md:items-center md:gap-5">
+                        <nav className="flex items-center gap-3 text-sm text-white/70">
+                            {navItems.map((item) => (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="rounded-full border border-white/10 px-4 py-2 transition hover:border-[#A1E2F8]/50 hover:text-white"
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
+                        </nav>
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                            className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <Download className="h-4 w-4" />
+                            {isDownloading
+                                ? "Bereite Download vor…"
+                                : isAnimatedPattern
+                                    ? "Download GIF"
+                                    : "Download PNG"}
+                        </button>
+                    </div>
                 </header>
 
                 {/* === Safari-FIX: KEIN y-Transform auf dem Vorfahren der sticky Sidebar === */}
