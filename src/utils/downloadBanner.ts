@@ -19,8 +19,16 @@ function triggerDownload(blob: Blob, filename: string) {
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = filename;
+    anchor.style.display = "none";
+    anchor.rel = "noopener";
+
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(anchor);
+
+    window.setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 1000);
 }
 
 function wait(ms: number) {
