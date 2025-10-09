@@ -13,12 +13,22 @@ import { Pattern, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
 
-// --- Safari detection (für sticky/transform-Fix)
-const isSafari =
-    typeof navigator !== "undefined" &&
-    /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
 const CreatorPage = () => {
+    // --- Safari detection (für sticky/transform-Fix)
+    const [isSafari, setIsSafari] = useState(false);
+
+    useEffect(() => {
+        if (typeof navigator === "undefined") {
+            return;
+        }
+
+        const detectedSafari = /^((?!chrome|android).)*safari/i.test(
+            navigator.userAgent,
+        );
+
+        setIsSafari(detectedSafari);
+    }, []);
+
     const [textContent, setTextContent] = useState("Text");
     const [textStyles, setTextStyles] = useState<TextStyles>({
         bold: true,
