@@ -29,13 +29,16 @@ export interface Pattern {
     style?: string | ((scale: number, color1: string, color2: string) => string);
 }
 
-export interface CanvasSize {
+export interface ImageLayer {
+    id: string;
+    name: string;
+    src: string;
+    x: number;
+    y: number;
     width: number;
     height: number;
-}
-
-export interface CanvasPreset extends CanvasSize {
-    label: string;
+    visible: boolean;
+    aspectRatio: number;
 }
 
 export interface SettingsPanelProps {

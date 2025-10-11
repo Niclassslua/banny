@@ -1,15 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, DragEvent } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
+import ImageLayersPanel from "@/components/Settings/ImageLayersPanel";
 import { patterns } from "@/constants/patterns";
-import { LayerPosition, CanvasPreset, CanvasSize, Pattern, TextLayer, TextStyles } from "@/types";
+import { ImageLayer, LayerPosition, CanvasPreset, CanvasSize, Pattern, TextLayer, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
 
@@ -95,6 +97,279 @@ const CreatorPage = () => {
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
+    const [imageLayers, setImageLayers] = useState<ImageLayer[]>([]);
+    const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+    const [isDragActive, setIsDragActive] = useState(false);
+    const [isImportingLayers, setIsImportingLayers] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const dragCounterRef = useRef(0);
+
+    const generateLayerId = useCallback(() => {
+        if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+            return crypto.randomUUID();
+        }
+        return `layer-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }, []);
+
+    const readFileAsImageData = useCallback(
+        (file: File) =>
+            new Promise<{
+                src: string;
+                naturalWidth: number;
+                naturalHeight: number;
+                aspectRatio: number;
+            }>((resolve, reject) => {
+                if (!file.type.startsWith("image/")) {
+                    reject(new Error("Nur Bilddateien können verwendet werden."));
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+                reader.onload = () => {
+                    const result = reader.result;
+                    if (typeof result !== "string") {
+                        reject(new Error("Ungültiges Dateiformat."));
+                        return;
+                    }
+
+                    const image = new Image();
+                    image.onload = () => {
+                        const naturalWidth = image.naturalWidth || image.width || 1;
+                        const naturalHeight = image.naturalHeight || image.height || 1;
+                        const aspectRatio = naturalWidth / (naturalHeight || 1) || 1;
+                        resolve({
+                            src: result,
+                            naturalWidth,
+                            naturalHeight,
+                            aspectRatio,
+                        });
+                    };
+                    image.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+                    image.src = result;
+                };
+                reader.readAsDataURL(file);
+            }),
+        [],
+    );
+
+    const createLayerFromFile = useCallback(
+        async (file: File): Promise<ImageLayer> => {
+            const { src, naturalWidth, aspectRatio } = await readFileAsImageData(file);
+            const previewWidth = previewRef.current?.clientWidth ?? 800;
+            const previewHeight = previewRef.current?.clientHeight ?? 320;
+
+            const maxInitialWidth = Math.max(120, previewWidth * 0.65);
+            const calculatedWidth = Math.min(naturalWidth || maxInitialWidth, maxInitialWidth);
+            const width = Math.max(48, calculatedWidth);
+            const height = width / (aspectRatio || 1);
+
+            const x = Math.max(0, (previewWidth - width) / 2);
+            const y = Math.max(0, (previewHeight - height) / 2);
+
+            return {
+                id: generateLayerId(),
+                name: file.name,
+                src,
+                width,
+                height,
+                x,
+                y,
+                visible: true,
+                aspectRatio: aspectRatio || 1,
+            };
+        },
+        [generateLayerId, readFileAsImageData],
+    );
+
+    const handleAddFiles = useCallback(
+        async (fileList: FileList | null) => {
+            if (!fileList || fileList.length === 0) {
+                return;
+            }
+
+            const candidates = Array.from(fileList).filter((file) => file.type.startsWith("image/"));
+            if (candidates.length === 0) {
+                return;
+            }
+
+            setIsImportingLayers(true);
+
+            try {
+                const newLayers = await Promise.all(candidates.map((file) => createLayerFromFile(file)));
+                if (newLayers.length === 0) {
+                    return;
+                }
+
+                setImageLayers((prev) => [...prev, ...newLayers]);
+                setSelectedLayerId(newLayers[newLayers.length - 1].id);
+            } catch (error) {
+                console.error("Konnte Bild-Layer nicht erstellen", error);
+            } finally {
+                setIsImportingLayers(false);
+            }
+        },
+        [createLayerFromFile],
+    );
+
+    const handleFileInputChange = useCallback(
+        (event: ChangeEvent<HTMLInputElement>) => {
+            void handleAddFiles(event.target.files);
+            event.target.value = "";
+        },
+        [handleAddFiles],
+    );
+
+    const handleUploadClick = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
+    const handleDragEnter = useCallback((event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        dragCounterRef.current += 1;
+        setIsDragActive(true);
+    }, []);
+
+    const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "copy";
+        }
+    }, []);
+
+    const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+        if (dragCounterRef.current === 0) {
+            setIsDragActive(false);
+        }
+    }, []);
+
+    const handleDrop = useCallback(
+        (event: DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            dragCounterRef.current = 0;
+            setIsDragActive(false);
+            void handleAddFiles(event.dataTransfer?.files ?? null);
+        },
+        [handleAddFiles],
+    );
+
+    const handleLayerChange = useCallback((layerId: string, updates: Partial<ImageLayer>) => {
+        setImageLayers((prev) =>
+            prev.map((layer) => {
+                if (layer.id !== layerId) {
+                    return layer;
+                }
+
+                const next: ImageLayer = {
+                    ...layer,
+                    ...updates,
+                };
+
+                if (!Number.isFinite(next.width)) {
+                    next.width = layer.width;
+                }
+                if (!Number.isFinite(next.height)) {
+                    next.height = layer.height;
+                }
+                if (!Number.isFinite(next.x)) {
+                    next.x = layer.x;
+                }
+                if (!Number.isFinite(next.y)) {
+                    next.y = layer.y;
+                }
+
+                next.width = Math.max(32, next.width);
+                next.height = Math.max(32, next.height);
+
+                return next;
+            }),
+        );
+    }, []);
+
+    const handleMoveLayer = useCallback((layerId: string, direction: "up" | "down") => {
+        setImageLayers((prev) => {
+            const index = prev.findIndex((layer) => layer.id === layerId);
+            if (index === -1) {
+                return prev;
+            }
+
+            const targetIndex = direction === "up" ? index + 1 : index - 1;
+            if (targetIndex < 0 || targetIndex >= prev.length) {
+                return prev;
+            }
+
+            const reordered = [...prev];
+            const [item] = reordered.splice(index, 1);
+            reordered.splice(targetIndex, 0, item);
+            return reordered;
+        });
+    }, []);
+
+    const handleToggleLayerVisibility = useCallback((layerId: string) => {
+        let wasHidden = false;
+        setImageLayers((prev) =>
+            prev.map((layer) => {
+                if (layer.id !== layerId) {
+                    return layer;
+                }
+
+                const nextVisible = !layer.visible;
+                if (!nextVisible) {
+                    wasHidden = true;
+                }
+
+                return {
+                    ...layer,
+                    visible: nextVisible,
+                };
+            }),
+        );
+
+        if (wasHidden) {
+            setSelectedLayerId((current) => (current === layerId ? null : current));
+        }
+    }, [setSelectedLayerId]);
+
+    const handleReplaceLayer = useCallback(
+        async (layerId: string, file: File) => {
+            try {
+                const data = await readFileAsImageData(file);
+                setImageLayers((prev) =>
+                    prev.map((layer) => {
+                        if (layer.id !== layerId) {
+                            return layer;
+                        }
+
+                        const aspectRatio = data.aspectRatio || 1;
+                        const centerX = layer.x + layer.width / 2;
+                        const centerY = layer.y + layer.height / 2;
+                        const width = Math.max(32, layer.width);
+                        const height = Math.max(32, width / aspectRatio);
+                        const x = Math.max(0, centerX - width / 2);
+                        const y = Math.max(0, centerY - height / 2);
+
+                        return {
+                            ...layer,
+                            src: data.src,
+                            name: file.name,
+                            aspectRatio,
+                            width,
+                            height,
+                            x,
+                            y,
+                            visible: true,
+                        };
+                    }),
+                );
+                setSelectedLayerId(layerId);
+            } catch (error) {
+                console.error("Layer konnte nicht ersetzt werden", error);
+            }
+        },
+        [readFileAsImageData],
+    );
 
     const canvasPresets = useMemo<CanvasPreset[]>(
         () => [
@@ -391,7 +666,17 @@ const CreatorPage = () => {
                                 transition={{ duration: 0.5 }}
                                 className="w-full rounded-3xl border border-[#A1E2F8]/20 bg-white/5 p-6 backdrop-blur-xl shadow-[0_25px_80px_-35px_rgba(192,230,244,0.55)]"
                             >
-                                <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                                <div
+                                    className={`relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 transition ${
+                                        isDragActive
+                                            ? "border-[#A1E2F8]/60 shadow-[0_0_0_4px_rgba(161,226,248,0.25)]"
+                                            : ""
+                                    }`}
+                                    onDragEnter={handleDragEnter}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                >
                                     <BannerPreview
                                         selectedPattern={selectedPattern}
                                         patternColor1={patternColor1}
@@ -404,8 +689,39 @@ const CreatorPage = () => {
                                         onLayerPositionChange={handleLayerPositionChange}
                                         onSelectLayer={handleSelectLayer}
                                         onTextChange={setTextContent}
+                                        imageLayers={imageLayers}
+                                        onLayerChange={handleLayerChange}
+                                        onSelectLayer={setSelectedLayerId}
+                                        selectedLayerId={selectedLayerId}
+                                        isDragActive={isDragActive}
                                         canvasSize={canvasSize}
                                     />
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleFileInputChange}
+                                    />
+                                </div>
+                                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span>
+                                            Ziehe Bilder direkt in die Vorschau oder nutze den Upload-Button.
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={handleUploadClick}
+                                            className="inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white"
+                                        >
+                                            <Upload className="h-4 w-4" />
+                                            Bilder hochladen
+                                        </button>
+                                    </div>
+                                    {isImportingLayers && (
+                                        <span className="text-xs text-[#A1E2F8]">Verarbeite Upload …</span>
+                                    )}
                                 </div>
                             </motion.div>
 
@@ -450,6 +766,15 @@ const CreatorPage = () => {
                                         canvasPresets={canvasPresets}
                                     />
                                 </div>
+
+                                <ImageLayersPanel
+                                    layers={imageLayers}
+                                    selectedLayerId={selectedLayerId}
+                                    onSelectLayer={setSelectedLayerId}
+                                    onToggleVisibility={handleToggleLayerVisibility}
+                                    onMoveLayer={handleMoveLayer}
+                                    onReplaceLayer={handleReplaceLayer}
+                                />
                             </motion.div>
                         </div>
                     </div>
