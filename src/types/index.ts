@@ -17,6 +17,18 @@ export interface Pattern {
     style?: string | ((scale: number, color1: string, color2: string) => string);
 }
 
+export interface ImageLayer {
+    id: string;
+    name: string;
+    src: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    visible: boolean;
+    aspectRatio: number;
+}
+
 export interface SettingsPanelProps {
     patternColor1: string;
     setPatternColor1: (color: string) => void;

@@ -79,6 +79,43 @@ async function downloadStatic(node: HTMLElement, fileName: string, backgroundCol
     triggerDownload(blob, `${fileName}.png`);
 }
 
+async function waitForImages(node: HTMLElement) {
+    const images = Array.from(node.querySelectorAll("img"));
+    if (images.length === 0) {
+        return;
+    }
+
+    await Promise.all(
+        images.map(
+            (image) =>
+                new Promise<void>((resolve) => {
+                    if (image.complete && image.naturalWidth !== 0) {
+                        resolve();
+                        return;
+                    }
+
+                    const handleLoad = () => {
+                        cleanup();
+                        resolve();
+                    };
+
+                    const handleError = () => {
+                        cleanup();
+                        resolve();
+                    };
+
+                    const cleanup = () => {
+                        image.removeEventListener("load", handleLoad);
+                        image.removeEventListener("error", handleError);
+                    };
+
+                    image.addEventListener("load", handleLoad, { once: true });
+                    image.addEventListener("error", handleError, { once: true });
+                }),
+        ),
+    );
+}
+
 export async function downloadBanner(
     node: HTMLElement,
     { fileName, backgroundColor }: DownloadBannerOptions,
@@ -89,6 +126,8 @@ export async function downloadBanner(
     }
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    await waitForImages(node);
 
     await downloadStatic(node, fileName, backgroundColor);
 }
