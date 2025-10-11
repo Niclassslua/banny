@@ -165,26 +165,59 @@ function normalizeToSize(img: ImageData, w: number, h: number): ImageData {
 
 /* ───── GIF-Encoding via gifenc mit globaler Palette ───── */
 
-async function importGifenc(): Promise<GifencModule | null> {
-    try {
-        const mod = (await import("gifenc")) as { default?: GifencModule } & Partial<GifencModule>;
-        const resolved = (mod.default ?? mod) as Partial<GifencModule>;
+type GifencImportShape = Partial<GifencModule> & { default?: Partial<GifencModule> };
 
-        if (!resolved.GIFEncoder || !resolved.quantize || !resolved.applyPalette) {
-            return null;
-        }
+let gifencModulePromise: Promise<GifencModule | null> | null = null;
 
-        return {
-            GIFEncoder: resolved.GIFEncoder,
-            quantize: resolved.quantize,
-            applyPalette: resolved.applyPalette,
-        };
-    } catch (error) {
-        if (process.env.NODE_ENV !== "production") {
-            console.error("Failed to dynamically import gifenc", error);
-        }
+async function loadGifencFrom(loader: () => Promise<GifencImportShape>): Promise<GifencModule | null> {
+    const imported = await loader();
+    const resolved = (imported.default ?? imported) as Partial<GifencModule>;
+
+    if (!resolved.GIFEncoder || !resolved.quantize || !resolved.applyPalette) {
         return null;
     }
+
+    return {
+        GIFEncoder: resolved.GIFEncoder,
+        quantize: resolved.quantize,
+        applyPalette: resolved.applyPalette,
+    };
+}
+
+async function importGifenc(): Promise<GifencModule | null> {
+    if (!gifencModulePromise) {
+        gifencModulePromise = (async () => {
+            const loaders: Array<() => Promise<GifencImportShape>> = [
+                () => import("gifenc"),
+                () => import("gifenc/dist/gifenc.esm.js"),
+                () => import("gifenc/dist/gifenc.js"),
+            ];
+
+            let lastError: unknown;
+            for (const loader of loaders) {
+                try {
+                    const mod = await loadGifencFrom(loader);
+                    if (mod) {
+                        return mod;
+                    }
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            if (process.env.NODE_ENV !== "production") {
+                console.error("Failed to load gifenc via dynamic import", lastError);
+            }
+
+            return null;
+        })();
+    }
+
+    const loaded = await gifencModulePromise;
+    if (!loaded) {
+        gifencModulePromise = null;
+    }
+    return loaded;
 }
 
 /** Baut eine globale Palette aus subsampelten Pixeln aller Frames → stabilere Farben */
