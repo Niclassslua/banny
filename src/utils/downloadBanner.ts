@@ -44,10 +44,13 @@ type GifencModule = {
     ) => Uint8Array;
 };
 
-const DEFAULT_DURATION = 4800;
-const DEFAULT_DELAY = 10;   // ~25 FPS → flüssiger
-const MIN_FRAMES = 48;      // mehr Frames → weniger Ruckeln
-const MAX_FRAMES = 120;
+const DEFAULT_DURATION = 2400;
+const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
+const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
+const MAX_FRAMES = 600;     // höheres Limit für längere/gleichmäßige Loops
+const MIN_FRAME_DELAY = 10; // GIF-Spezifikation: mindestens 1/100 Sekunde
+const MAX_CAPTURE_FPS = 60; // requestAnimationFrame ≈ 60fps
+const MAX_CAPTURE_INTERVAL = 1000 / MAX_CAPTURE_FPS;
 
 const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
@@ -321,24 +324,30 @@ async function downloadAnimated(
     frameDelayMs: number,
 ) {
     const frames: GifFrame[] = [];
-    // mehr Frames → smoother; konstante Steps erzwingen
-    const desiredDelay = Math.max(20, frameDelayMs);
-    const targetFrames = Math.round(durationMs / desiredDelay) || MIN_FRAMES;
-    const steps = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, targetFrames));
-    const delayPerFrame = Math.max(20, Math.round(durationMs / steps));
+    const desiredDelay = Math.max(MIN_FRAME_DELAY, frameDelayMs);
+    const captureBudget = Math.ceil(durationMs / MAX_CAPTURE_INTERVAL);
+    const maxFrameBudget = Math.min(MAX_FRAMES, captureBudget || MIN_FRAMES);
+    const targetFrameCount = Math.max(
+        MIN_FRAMES,
+        Math.min(maxFrameBudget, Math.ceil(durationMs / desiredDelay) || MIN_FRAMES),
+    );
+
+    const nextFrame = () => new Promise<number>((resolve) => requestAnimationFrame(resolve));
 
     await withVisibleNode(node, async (n) => {
-        for (let index = 0; index < steps; index += 1) {
-            if (index > 0) await wait(delayPerFrame);
-            await new Promise((r) => requestAnimationFrame(r));
-
+        const captureFrame = async (): Promise<boolean> => {
             const canvas = await safeRenderToCanvas(n);
-            if (!canvas) continue;
+            if (!canvas) return false;
 
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
-            if (!ctx) continue;
+            if (!ctx) {
+                canvas.width = 0;
+                canvas.height = 0;
+                canvas.remove();
+                return false;
+            }
 
-            // **stabiler Weiß-BG** (kein Alpha, bessere Quantisierung)
+            // stabiler Weiß-BG → keine Alpha-Artefakte bei der Quantisierung
             ctx.save();
             ctx.globalCompositeOperation = "destination-over";
             ctx.fillStyle = "#ffffff";
@@ -349,23 +358,88 @@ async function downloadAnimated(
             try {
                 imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             } catch {
-                continue;
+                canvas.width = 0;
+                canvas.height = 0;
+                canvas.remove();
+                return false;
             }
 
-            frames.push({ imageData, delayMs: delayPerFrame });
+            frames.push({ imageData, delayMs: desiredDelay });
 
             canvas.width = 0;
             canvas.height = 0;
             canvas.remove();
+            return true;
+        };
+
+        // mindestens ein Frame sammeln (bei Problemen erneut versuchen)
+        while (!frames.length) {
+            const ok = await captureFrame();
+            if (ok) break;
+            await wait(MIN_FRAME_DELAY);
         }
+        if (!frames.length) return;
+
+        const start = performance.now();
+        let previousTimestamp = start;
+        let lastDelay = frames[frames.length - 1].delayMs;
+
+        while (frames.length < targetFrameCount) {
+            const timestamp = await nextFrame();
+            const delta = Math.max(
+                MIN_FRAME_DELAY,
+                Math.round(timestamp - previousTimestamp) || MIN_FRAME_DELAY,
+            );
+            previousTimestamp = timestamp;
+            lastDelay = delta;
+
+            frames[frames.length - 1].delayMs = delta;
+
+            const elapsed = timestamp - start;
+            if (elapsed >= durationMs && frames.length >= MIN_FRAMES) {
+                break;
+            }
+
+            const ok = await captureFrame();
+            if (!ok) {
+                break;
+            }
+        }
+
+        frames[frames.length - 1].delayMs = Math.max(MIN_FRAME_DELAY, lastDelay);
     });
 
     if (!frames.length) throw new Error("Keine Frames für die Animation gesammelt.");
 
+    const targetDurationMs = Math.max(durationMs, frames.length * MIN_FRAME_DELAY);
+    let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
+
+    if (totalDelayMs <= 0) {
+        const fallback = Math.max(MIN_FRAME_DELAY, Math.round(targetDurationMs / frames.length));
+        frames.forEach((frame) => {
+            frame.delayMs = fallback;
+        });
+        totalDelayMs = fallback * frames.length;
+    }
+
+    if (Math.abs(totalDelayMs - targetDurationMs) > MIN_FRAME_DELAY) {
+        const scale = targetDurationMs / totalDelayMs;
+        let accumulated = 0;
+        for (let i = 0; i < frames.length - 1; i += 1) {
+            const scaled = Math.max(MIN_FRAME_DELAY, Math.round(frames[i].delayMs * scale));
+            frames[i].delayMs = scaled;
+            accumulated += scaled;
+        }
+        frames[frames.length - 1].delayMs = Math.max(
+            MIN_FRAME_DELAY,
+            Math.round(targetDurationMs - accumulated),
+        );
+    }
+
     // **einheitliche Größe + kein Alpha**
     const W = frames[0].imageData.width;
     const H = frames[0].imageData.height;
-    const normalized = frames.map(f => ({
+    const normalized = frames.map((f) => ({
         imageData: normalizeToSize(hardenAlpha(f.imageData), W, H),
         delayMs: f.delayMs,
     }));
