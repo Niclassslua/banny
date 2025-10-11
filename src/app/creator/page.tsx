@@ -11,9 +11,46 @@ import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
 import ImageLayersPanel from "@/components/Settings/ImageLayersPanel";
 import { patterns } from "@/constants/patterns";
-import { ImageLayer, Pattern, TextStyles } from "@/types";
+import { ImageLayer, LayerPosition, CanvasPreset, CanvasSize, Pattern, TextLayer, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
+
+const DEFAULT_TEXT_STYLES: TextStyles = {
+    bold: true,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    noWrap: false,
+    fontSize: 72,
+    alignment: "center",
+    textColor: "#FFFFFF",
+    fontFamily: "Arial, sans-serif",
+};
+
+const DEFAULT_LAYER_POSITION: LayerPosition = {
+    x: 50,
+    y: 50,
+};
+
+type LayerOverrides = Partial<Omit<TextLayer, "styles" | "position">> & {
+    styles?: Partial<TextStyles>;
+    position?: Partial<LayerPosition>;
+};
+
+const generateLayerId = () => {
+    if (typeof window !== "undefined" && typeof window.crypto?.randomUUID === "function") {
+        return window.crypto.randomUUID();
+    }
+
+    return `layer-${Math.random().toString(36).slice(2, 11)}`;
+};
+
+const createTextLayer = (overrides: LayerOverrides = {}): TextLayer => ({
+    id: overrides.id ?? generateLayerId(),
+    content: overrides.content ?? "Text",
+    styles: { ...DEFAULT_TEXT_STYLES, ...(overrides.styles ?? {}) },
+    position: { ...DEFAULT_LAYER_POSITION, ...(overrides.position ?? {}) },
+});
 
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
@@ -31,18 +68,26 @@ const CreatorPage = () => {
         setIsSafari(detectedSafari);
     }, []);
 
-    const [textContent, setTextContent] = useState("Text");
-    const [textStyles, setTextStyles] = useState<TextStyles>({
-        bold: true,
-        italic: false,
-        underline: false,
-        strikethrough: false,
-        noWrap: false,
-        fontSize: 72,
-        alignment: "center",
-        textColor: "#FFFFFF",
-        fontFamily: "Arial, sans-serif",
-    });
+    const initialLayerRef = useRef<TextLayer | null>(null);
+    if (!initialLayerRef.current) {
+        initialLayerRef.current = createTextLayer();
+    }
+
+    const [layers, setLayers] = useState<TextLayer[]>(() => [initialLayerRef.current as TextLayer]);
+    const [selectedLayerId, setSelectedLayerId] = useState<string | null>(
+        () => initialLayerRef.current?.id ?? null,
+    );
+
+    const activeLayer = useMemo(
+        () => layers.find((layer) => layer.id === selectedLayerId) ?? layers[0] ?? null,
+        [layers, selectedLayerId],
+    );
+
+    useEffect(() => {
+        if (!selectedLayerId && layers.length > 0) {
+            setSelectedLayerId(layers[0].id);
+        }
+    }, [layers, selectedLayerId]);
 
     const [selectedPattern, setSelectedPattern] = useState(() => patterns[0]);
     const [patternColor1, setPatternColor1] = useState("#131313");
@@ -326,6 +371,20 @@ const CreatorPage = () => {
         [readFileAsImageData],
     );
 
+    const canvasPresets = useMemo<CanvasPreset[]>(
+        () => [
+            { label: "Twitter Header", width: 1500, height: 500 },
+            { label: "LinkedIn Banner", width: 1584, height: 396 },
+            { label: "YouTube Banner", width: 2048, height: 1152 },
+        ],
+        [],
+    );
+
+    const [canvasSize, setCanvasSize] = useState<CanvasSize>(() => ({
+        width: canvasPresets[0].width,
+        height: canvasPresets[0].height,
+    }));
+
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
         return (
@@ -348,23 +407,115 @@ const CreatorPage = () => {
         );
     };
 
+    const updateSelectedLayer = useCallback(
+        (updater: (layer: TextLayer) => TextLayer) => {
+            if (!selectedLayerId) {
+                return;
+            }
+
+            setLayers((prevLayers) =>
+                prevLayers.map((layer) => (layer.id === selectedLayerId ? updater(layer) : layer)),
+            );
+        },
+        [selectedLayerId],
+    );
+
     const toggleStyle = (style: "bold" | "italic" | "underline" | "strikethrough") =>
-        setTextStyles((prev) => ({ ...prev, [style]: !prev[style] }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, [style]: !layer.styles[style] },
+        }));
 
     const changeFontSize = (size: number) =>
-        setTextStyles((prev) => ({ ...prev, fontSize: size }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, fontSize: size },
+        }));
 
     const changeAlignment = (alignment: "left" | "center" | "right" | "justify") =>
-        setTextStyles((prev) => ({ ...prev, alignment }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, alignment },
+        }));
 
     const changeTextColor = (color: string) =>
-        setTextStyles((prev) => ({ ...prev, textColor: color }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, textColor: color },
+        }));
 
     const changeFontFamily = (fontFamily: string) =>
-        setTextStyles((prev) => ({ ...prev, fontFamily }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, fontFamily },
+        }));
 
     const toggleNoWrap = () =>
-        setTextStyles((prev) => ({ ...prev, noWrap: !prev.noWrap }));
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            styles: { ...layer.styles, noWrap: !layer.styles.noWrap },
+        }));
+
+    const handleLayerContentChange = (layerId: string, content: string) => {
+        setLayers((prevLayers) =>
+            prevLayers.map((layer) => (layer.id === layerId ? { ...layer, content } : layer)),
+        );
+    };
+
+    const handleLayerPositionChange = (layerId: string, position: LayerPosition) => {
+        setLayers((prevLayers) =>
+            prevLayers.map((layer) => (layer.id === layerId ? { ...layer, position } : layer)),
+        );
+    };
+
+    const handleSelectLayer = (layerId: string) => {
+        setSelectedLayerId(layerId);
+    };
+
+    const handleAddLayer = () => {
+        const newLayer = createTextLayer();
+        setLayers((prevLayers) => [...prevLayers, newLayer]);
+        setSelectedLayerId(newLayer.id);
+    };
+
+    const handleDuplicateLayer = (layerId: string) => {
+        const sourceLayer = layers.find((layer) => layer.id === layerId);
+        if (!sourceLayer) {
+            return;
+        }
+
+        const newLayer = createTextLayer({
+            content: sourceLayer.content,
+            styles: { ...sourceLayer.styles },
+            position: {
+                x: Math.min(100, sourceLayer.position.x + 5),
+                y: Math.min(100, sourceLayer.position.y + 5),
+            },
+        });
+
+        setLayers((prevLayers) => [...prevLayers, newLayer]);
+        setSelectedLayerId(newLayer.id);
+    };
+
+    const handleDeleteLayer = (layerId: string) => {
+        setLayers((prevLayers) => {
+            if (prevLayers.length === 1) {
+                const replacement = createTextLayer();
+                setSelectedLayerId(replacement.id);
+                return [replacement];
+            }
+
+            const filteredLayers = prevLayers.filter((layer) => layer.id !== layerId);
+            setSelectedLayerId((currentId) => {
+                if (currentId === layerId) {
+                    return filteredLayers[filteredLayers.length - 1]?.id ?? null;
+                }
+
+                return currentId;
+            });
+            return filteredLayers;
+        });
+    };
 
     const togglePicker = (pickerId: string) =>
         setVisiblePicker((prev) => (prev === pickerId ? null : pickerId));
@@ -383,7 +534,7 @@ const CreatorPage = () => {
         }
 
         const filenameBase = sanitizeFileName(
-            textContent.trim() || selectedPattern.name || "banny-banner",
+            activeLayer?.content.trim() || selectedPattern.name || "banny-banner",
         );
 
         setIsDownloading(true);
@@ -415,6 +566,7 @@ const CreatorPage = () => {
             await downloadBanner(previewRef.current, {
                 fileName: filenameBase,
                 backgroundColor: exportBackground,
+                targetSize: canvasSize,
             });
         } catch (error) {
             console.error("Download fehlgeschlagen", error);
@@ -486,15 +638,23 @@ const CreatorPage = () => {
                         {/* Sidebar – WebKit-sticky */}
                         <div className="xl:sticky xl:top-10 xl:self-stretch safari-sticky">
                             <Sidebar
+                                layers={layers}
+                                activeLayerId={activeLayer?.id ?? null}
                                 toggleStyle={toggleStyle}
                                 changeFontSize={changeFontSize}
                                 changeAlignment={changeAlignment}
-                                currentFontSize={textStyles.fontSize}
+                                currentFontSize={
+                                    activeLayer?.styles.fontSize ?? DEFAULT_TEXT_STYLES.fontSize
+                                }
                                 changeTextColor={changeTextColor}
                                 changeFontFamily={changeFontFamily}
-                                noWrap={textStyles.noWrap}
+                                noWrap={activeLayer?.styles.noWrap ?? DEFAULT_TEXT_STYLES.noWrap}
                                 toggleNoWrap={toggleNoWrap}
-                                textStyles={textStyles}
+                                textStyles={activeLayer?.styles ?? DEFAULT_TEXT_STYLES}
+                                onAddLayer={handleAddLayer}
+                                onSelectLayer={handleSelectLayer}
+                                onDuplicateLayer={handleDuplicateLayer}
+                                onDeleteLayer={handleDeleteLayer}
                             />
                         </div>
 
@@ -522,15 +682,19 @@ const CreatorPage = () => {
                                         patternColor1={patternColor1}
                                         patternColor2={patternColor2}
                                         patternScale={patternScale}
-                                        textContent={textContent}
-                                        textStyles={textStyles}
+                                        layers={layers}
+                                        selectedLayerId={activeLayer?.id ?? null}
                                         previewRef={previewRef}
+                                        onLayerContentChange={handleLayerContentChange}
+                                        onLayerPositionChange={handleLayerPositionChange}
+                                        onSelectLayer={handleSelectLayer}
                                         onTextChange={setTextContent}
                                         imageLayers={imageLayers}
                                         onLayerChange={handleLayerChange}
                                         onSelectLayer={setSelectedLayerId}
                                         selectedLayerId={selectedLayerId}
                                         isDragActive={isDragActive}
+                                        canvasSize={canvasSize}
                                     />
                                     <input
                                         ref={fileInputRef}
@@ -597,6 +761,9 @@ const CreatorPage = () => {
                                         darkMode={darkMode}
                                         visiblePicker={visiblePicker}
                                         togglePicker={togglePicker}
+                                        canvasSize={canvasSize}
+                                        setCanvasSize={setCanvasSize}
+                                        canvasPresets={canvasPresets}
                                     />
                                 </div>
 

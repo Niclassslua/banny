@@ -2,9 +2,11 @@
 
 import type { Options as HtmlToImageOptions } from "html-to-image";
 import { toBlob } from "html-to-image";
+import type { CanvasSize } from "@/types";
 type DownloadBannerOptions = {
     fileName: string;
     backgroundColor?: string;
+    targetSize?: CanvasSize;
 };
 
 const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
@@ -32,6 +34,8 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         transform: node.style.transform,
         width: node.style.width,
         height: node.style.height,
+        maxWidth: node.style.maxWidth,
+        maxHeight: node.style.maxHeight,
     };
 
     try {
@@ -54,6 +58,8 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         node.style.transform = prev.transform;
         node.style.width = prev.width;
         node.style.height = prev.height;
+        node.style.maxWidth = prev.maxWidth;
+        node.style.maxHeight = prev.maxHeight;
     }
 }
 
@@ -62,11 +68,32 @@ export function sanitizeFileName(name: string) {
     return normalized || "banny-banner";
 }
 
-async function downloadStatic(node: HTMLElement, fileName: string, backgroundColor?: string) {
+async function downloadStatic(
+    node: HTMLElement,
+    fileName: string,
+    backgroundColor?: string,
+    targetSize?: CanvasSize,
+) {
     const blob = await withVisibleNode(node, async (n) => {
+        if (targetSize) {
+            n.style.width = `${targetSize.width}px`;
+            n.style.height = `${targetSize.height}px`;
+            n.style.maxWidth = `${targetSize.width}px`;
+            n.style.maxHeight = `${targetSize.height}px`;
+        }
+
         const renderOptions: HtmlToImageOptions = {
             ...BASE_RENDER_OPTIONS,
             ...(backgroundColor ? { backgroundColor } : {}),
+            ...(targetSize
+                ? {
+                      width: targetSize.width,
+                      height: targetSize.height,
+                      canvasWidth: targetSize.width,
+                      canvasHeight: targetSize.height,
+                      pixelRatio: 1,
+                  }
+                : {}),
         };
 
         const generated = await toBlob(n, renderOptions);
@@ -118,7 +145,7 @@ async function waitForImages(node: HTMLElement) {
 
 export async function downloadBanner(
     node: HTMLElement,
-    { fileName, backgroundColor }: DownloadBannerOptions,
+    { fileName, backgroundColor, targetSize }: DownloadBannerOptions,
 ) {
     const active = document.activeElement as HTMLElement | null;
     if (active && node.contains(active)) {
