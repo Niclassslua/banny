@@ -1,18 +1,62 @@
 "use client";
 
 import type { Options as HtmlToImageOptions } from "html-to-image";
-import { toBlob } from "html-to-image";
+import { toBlob, toJpeg, toPng, toSvg } from "html-to-image";
+
 import type { CanvasSize } from "@/types";
+
+export type BannerFormat = "png" | "jpg" | "jpeg" | "webp" | "svg";
+
+export type BannerExportVariant = {
+    format: BannerFormat;
+    quality?: number;
+    pixelRatio?: number;
+    suffix?: string;
+};
+
+export type DownloadProgressEvent = {
+    variant: BannerExportVariant;
+    filename: string;
+    index: number;
+    total: number;
+    success: boolean;
+    error?: unknown;
+};
+
 type DownloadBannerOptions = {
     fileName: string;
     backgroundColor?: string;
     targetSize?: CanvasSize;
+    variants: BannerExportVariant[];
+    onProgress?: (event: DownloadProgressEvent) => void;
 };
 
 const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
     cacheBust: true,
 };
+
+const DEFAULT_JPEG_QUALITY = 0.92;
+const DEFAULT_WEBP_QUALITY = 0.95;
+
+function clampQuality(value: number) {
+    if (Number.isNaN(value)) {
+        return DEFAULT_JPEG_QUALITY;
+    }
+    return Math.min(1, Math.max(0.1, value));
+}
+
+async function dataUrlToBlob(dataUrl: string, fallbackType: string) {
+    if (dataUrl.startsWith("data:")) {
+        const response = await fetch(dataUrl);
+        if (!response.ok) {
+            throw new Error("Konnte Bilddaten nicht laden.");
+        }
+        return await response.blob();
+    }
+
+    return new Blob([dataUrl], { type: fallbackType });
+}
 
 function triggerDownload(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
@@ -68,42 +112,116 @@ export function sanitizeFileName(name: string) {
     return normalized || "banny-banner";
 }
 
-async function downloadStatic(
+type NormalizedFormat = "png" | "jpg" | "webp" | "svg";
+
+function normalizeFormat(format: BannerFormat): NormalizedFormat {
+    switch (format) {
+        case "jpg":
+        case "jpeg":
+            return "jpg";
+        case "png":
+            return "png";
+        case "webp":
+            return "webp";
+        case "svg":
+            return "svg";
+        default:
+            return "png";
+    }
+}
+
+function getExtension(format: BannerFormat) {
+    const normalized = normalizeFormat(format);
+    switch (normalized) {
+        case "jpg":
+            return "jpg";
+        case "png":
+            return "png";
+        case "svg":
+            return "svg";
+        case "webp":
+            return "webp";
+        default:
+            return normalized;
+    }
+}
+
+function buildFileName(baseName: string, variant: BannerExportVariant, extension: string) {
+    const safeBase = sanitizeFileName(baseName);
+    const suffixParts: string[] = [];
+
+    if (variant.suffix) {
+        const sanitizedSuffix = sanitizeFileName(variant.suffix);
+        if (sanitizedSuffix) {
+            suffixParts.push(sanitizedSuffix);
+        }
+    }
+
+    if (variant.pixelRatio && variant.pixelRatio !== 1) {
+        const ratioLabel = `${variant.pixelRatio}x`;
+        if (!suffixParts.includes(ratioLabel)) {
+            suffixParts.push(ratioLabel);
+        }
+    }
+
+    const suffix = suffixParts.length > 0 ? `-${suffixParts.join("-")}` : "";
+    return `${safeBase}${suffix}.${extension}`;
+}
+
+async function renderVariant(
     node: HTMLElement,
-    fileName: string,
-    backgroundColor?: string,
-    targetSize?: CanvasSize,
+    variant: BannerExportVariant,
+    options: { backgroundColor?: string; targetSize?: CanvasSize },
 ) {
-    const blob = await withVisibleNode(node, async (n) => {
-        if (targetSize) {
-            n.style.width = `${targetSize.width}px`;
-            n.style.height = `${targetSize.height}px`;
-            n.style.maxWidth = `${targetSize.width}px`;
-            n.style.maxHeight = `${targetSize.height}px`;
+    const normalizedFormat = normalizeFormat(variant.format);
+    const baseOptions: HtmlToImageOptions = {
+        ...BASE_RENDER_OPTIONS,
+        ...(options.backgroundColor ? { backgroundColor: options.backgroundColor } : {}),
+        ...(options.targetSize
+            ? {
+                  width: options.targetSize.width,
+                  height: options.targetSize.height,
+                  canvasWidth: options.targetSize.width,
+                  canvasHeight: options.targetSize.height,
+              }
+            : {}),
+    };
+
+    const renderOptions: HtmlToImageOptions = {
+        ...baseOptions,
+        pixelRatio: variant.pixelRatio ?? baseOptions.pixelRatio ?? 1,
+    };
+
+    switch (normalizedFormat) {
+        case "png": {
+            const dataUrl = await toPng(node, renderOptions);
+            return await dataUrlToBlob(dataUrl, "image/png");
         }
-
-        const renderOptions: HtmlToImageOptions = {
-            ...BASE_RENDER_OPTIONS,
-            ...(backgroundColor ? { backgroundColor } : {}),
-            ...(targetSize
-                ? {
-                      width: targetSize.width,
-                      height: targetSize.height,
-                      canvasWidth: targetSize.width,
-                      canvasHeight: targetSize.height,
-                      pixelRatio: 1,
-                  }
-                : {}),
-        };
-
-        const generated = await toBlob(n, renderOptions);
-        if (!generated) {
-            throw new Error("Konnte kein PNG generieren.");
+        case "jpg": {
+            const dataUrl = await toJpeg(node, {
+                ...renderOptions,
+                quality: clampQuality(variant.quality ?? DEFAULT_JPEG_QUALITY),
+            });
+            return await dataUrlToBlob(dataUrl, "image/jpeg");
         }
-        return generated;
-    });
-
-    triggerDownload(blob, `${fileName}.png`);
+        case "svg": {
+            const svgMarkup = await toSvg(node, renderOptions);
+            return new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
+        }
+        case "webp": {
+            const blob = await toBlob(node, {
+                ...renderOptions,
+                quality: clampQuality(variant.quality ?? DEFAULT_WEBP_QUALITY),
+                type: "image/webp",
+            });
+            if (!blob) {
+                throw new Error("Konnte kein WebP generieren.");
+            }
+            return blob;
+        }
+        default:
+            throw new Error(`Nicht unterstütztes Export-Format: ${variant.format}`);
+    }
 }
 
 async function waitForImages(node: HTMLElement) {
@@ -143,10 +261,12 @@ async function waitForImages(node: HTMLElement) {
     );
 }
 
-export async function downloadBanner(
-    node: HTMLElement,
-    { fileName, backgroundColor, targetSize }: DownloadBannerOptions,
-) {
+export async function downloadBanner(node: HTMLElement, options: DownloadBannerOptions) {
+    const { fileName, backgroundColor, targetSize, variants, onProgress } = options;
+    if (!variants || variants.length === 0) {
+        return [] as DownloadProgressEvent[];
+    }
+
     const active = document.activeElement as HTMLElement | null;
     if (active && node.contains(active)) {
         active.blur();
@@ -156,5 +276,49 @@ export async function downloadBanner(
 
     await waitForImages(node);
 
-    await downloadStatic(node, fileName, backgroundColor);
+    const results: DownloadProgressEvent[] = [];
+    const total = variants.length;
+
+    await withVisibleNode(node, async (visibleNode) => {
+        if (targetSize) {
+            visibleNode.style.width = `${targetSize.width}px`;
+            visibleNode.style.height = `${targetSize.height}px`;
+            visibleNode.style.maxWidth = `${targetSize.width}px`;
+            visibleNode.style.maxHeight = `${targetSize.height}px`;
+        }
+
+        for (let index = 0; index < variants.length; index += 1) {
+            const variant = variants[index];
+            const extension = getExtension(variant.format);
+            const filename = buildFileName(fileName, variant, extension);
+
+            try {
+                const blob = await renderVariant(visibleNode, variant, { backgroundColor, targetSize });
+                triggerDownload(blob, filename);
+
+                const event: DownloadProgressEvent = {
+                    variant,
+                    filename,
+                    index,
+                    total,
+                    success: true,
+                };
+                results.push(event);
+                onProgress?.(event);
+            } catch (error) {
+                const event: DownloadProgressEvent = {
+                    variant,
+                    filename,
+                    index,
+                    total,
+                    success: false,
+                    error,
+                };
+                results.push(event);
+                onProgress?.(event);
+            }
+        }
+    });
+
+    return results;
 }
