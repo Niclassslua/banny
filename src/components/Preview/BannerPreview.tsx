@@ -1,6 +1,6 @@
 // components/Preview/BannerPreview.tsx
 import React, { useEffect, useRef } from "react";
-import { TextStyles, Pattern } from "@/types";
+import { TextStyles, Pattern, CanvasSize } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 
 interface BannerPreviewProps {
@@ -12,6 +12,7 @@ interface BannerPreviewProps {
     textStyles: TextStyles;
     previewRef: React.RefObject<HTMLDivElement>;
     onTextChange: (newText: string) => void;
+    canvasSize: CanvasSize;
 }
 
 const BannerPreview: React.FC<BannerPreviewProps> = ({
@@ -23,6 +24,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                                                          textStyles,
                                                          previewRef,
                                                          onTextChange,
+                                                         canvasSize,
                                                      }) => {
     // Inline-Stile für den Text (ohne fontFamily, da diese über den Style-Tag mit !important gesetzt wird)
     const textStyle: React.CSSProperties = {
@@ -62,7 +64,9 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                 ...parseCSS(selectedPattern.style, patternScale, patternColor1, patternColor2),
                 position: "relative",
                 width: "100%",
-                height: "320px", // Hier die Banner-Höhe anpassen
+                maxWidth: `${canvasSize.width}px`,
+                aspectRatio: `${canvasSize.width} / ${canvasSize.height}`,
+                height: "auto",
                 overflow: "hidden",
             }}
         >

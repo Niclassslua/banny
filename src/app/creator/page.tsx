@@ -9,7 +9,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
 import { patterns } from "@/constants/patterns";
-import { Pattern, TextStyles } from "@/types";
+import { CanvasPreset, CanvasSize, Pattern, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
 
@@ -50,6 +50,20 @@ const CreatorPage = () => {
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
+
+    const canvasPresets = useMemo<CanvasPreset[]>(
+        () => [
+            { label: "Twitter Header", width: 1500, height: 500 },
+            { label: "LinkedIn Banner", width: 1584, height: 396 },
+            { label: "YouTube Banner", width: 2048, height: 1152 },
+        ],
+        [],
+    );
+
+    const [canvasSize, setCanvasSize] = useState<CanvasSize>(() => ({
+        width: canvasPresets[0].width,
+        height: canvasPresets[0].height,
+    }));
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -140,6 +154,7 @@ const CreatorPage = () => {
             await downloadBanner(previewRef.current, {
                 fileName: filenameBase,
                 backgroundColor: exportBackground,
+                targetSize: canvasSize,
             });
         } catch (error) {
             console.error("Download fehlgeschlagen", error);
@@ -241,6 +256,7 @@ const CreatorPage = () => {
                                         textStyles={textStyles}
                                         previewRef={previewRef}
                                         onTextChange={setTextContent}
+                                        canvasSize={canvasSize}
                                     />
                                 </div>
                             </motion.div>
@@ -281,6 +297,9 @@ const CreatorPage = () => {
                                         darkMode={darkMode}
                                         visiblePicker={visiblePicker}
                                         togglePicker={togglePicker}
+                                        canvasSize={canvasSize}
+                                        setCanvasSize={setCanvasSize}
+                                        canvasPresets={canvasPresets}
                                     />
                                 </div>
                             </motion.div>
