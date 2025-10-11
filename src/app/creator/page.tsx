@@ -114,8 +114,32 @@ const CreatorPage = () => {
         setIsDownloading(true);
 
         try {
+            const parsedStyles = parseCSS(
+                selectedPattern.style,
+                patternScale,
+                patternColor1,
+                patternColor2,
+            );
+
+            let exportBackground = parsedStyles.backgroundColor;
+
+            if (previewRef.current) {
+                const computedBackground = getComputedStyle(previewRef.current).backgroundColor;
+                if (
+                    (!exportBackground ||
+                        exportBackground === "transparent" ||
+                        exportBackground === "none") &&
+                    computedBackground &&
+                    computedBackground !== "rgba(0, 0, 0, 0)" &&
+                    computedBackground !== "transparent"
+                ) {
+                    exportBackground = computedBackground;
+                }
+            }
+
             await downloadBanner(previewRef.current, {
                 fileName: filenameBase,
+                backgroundColor: exportBackground,
             });
         } catch (error) {
             console.error("Download fehlgeschlagen", error);

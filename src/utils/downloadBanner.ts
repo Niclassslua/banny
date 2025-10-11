@@ -4,12 +4,12 @@ import type { Options as HtmlToImageOptions } from "html-to-image";
 import { toBlob } from "html-to-image";
 type DownloadBannerOptions = {
     fileName: string;
+    backgroundColor?: string;
 };
 
-const RENDER_OPTIONS: HtmlToImageOptions = {
+const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
     cacheBust: true,
-    backgroundColor: "#ffffff",
 };
 
 function triggerDownload(blob: Blob, filename: string) {
@@ -62,9 +62,14 @@ export function sanitizeFileName(name: string) {
     return normalized || "banny-banner";
 }
 
-async function downloadStatic(node: HTMLElement, fileName: string) {
+async function downloadStatic(node: HTMLElement, fileName: string, backgroundColor?: string) {
     const blob = await withVisibleNode(node, async (n) => {
-        const generated = await toBlob(n, RENDER_OPTIONS);
+        const renderOptions: HtmlToImageOptions = {
+            ...BASE_RENDER_OPTIONS,
+            ...(backgroundColor ? { backgroundColor } : {}),
+        };
+
+        const generated = await toBlob(n, renderOptions);
         if (!generated) {
             throw new Error("Konnte kein PNG generieren.");
         }
@@ -76,7 +81,7 @@ async function downloadStatic(node: HTMLElement, fileName: string) {
 
 export async function downloadBanner(
     node: HTMLElement,
-    { fileName }: DownloadBannerOptions,
+    { fileName, backgroundColor }: DownloadBannerOptions,
 ) {
     const active = document.activeElement as HTMLElement | null;
     if (active && node.contains(active)) {
@@ -85,5 +90,5 @@ export async function downloadBanner(
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    await downloadStatic(node, fileName);
+    await downloadStatic(node, fileName, backgroundColor);
 }
