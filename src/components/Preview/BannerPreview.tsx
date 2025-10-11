@@ -1,5 +1,5 @@
 // components/Preview/BannerPreview.tsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { TextStyles, Pattern } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 
@@ -42,6 +42,18 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         zIndex: 2,
     };
 
+    const textRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!textRef.current) {
+            return;
+        }
+
+        if (textRef.current.textContent !== textContent) {
+            textRef.current.textContent = textContent;
+        }
+    }, [textContent]);
+
     return (
         <div
             ref={previewRef}
@@ -65,6 +77,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
             <div
                 className="banner-text"
                 style={textStyle}
+                ref={textRef}
                 contentEditable
                 suppressContentEditableWarning
                 onInput={(e) => onTextChange(e.currentTarget.textContent || "")}
@@ -86,9 +99,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                         sel.collapseToEnd();
                     }
                 }}
-            >
-                {textContent}
-            </div>
+            />
         </div>
     );
 };
