@@ -12,6 +12,18 @@ export interface TextStyles {
     fontFamily: string;
 }
 
+export interface LayerPosition {
+    x: number;
+    y: number;
+}
+
+export interface TextLayer {
+    id: string;
+    content: string;
+    styles: TextStyles;
+    position: LayerPosition;
+}
+
 export interface Pattern {
     name: string;
     style?: string | ((scale: number, color1: string, color2: string) => string);
