@@ -1,5 +1,6 @@
 "use client";
 
+import type { Options as HtmlToImageOptions } from "html-to-image";
 import { toBlob, toCanvas, toSvg } from "html-to-image";
 // GIF-Encoder: klein & zuverlässig
 // npm i gifenc
@@ -12,16 +13,47 @@ type DownloadBannerOptions = {
     frameDelayMs?: number;
 };
 
+type GifPaletteEntry = [number, number, number] | [number, number, number, number];
+type GifPalette = GifPaletteEntry[];
+
+type GifEncoder = {
+    writeFrame: (
+        indexedPixels: Uint8Array,
+        width: number,
+        height: number,
+        options: {
+            palette: GifPalette;
+            delay: number;
+            transparent: number | null;
+            disposal: number;
+        },
+    ) => void;
+    finish: () => void;
+    bytesView: () => Uint8Array;
+    setRepeat?: (repeat: number) => void;
+    setLoops?: (loops: number) => void;
+};
+
+type GifencModule = {
+    GIFEncoder: (options?: { auto?: boolean }) => GifEncoder;
+    quantize: (pixels: Uint8Array, maxColors?: number) => GifPalette;
+    applyPalette: (
+        pixels: Uint8Array | Uint8ClampedArray,
+        palette: GifPalette,
+        format?: "rgb565" | "rgb444" | "rgba4444",
+    ) => Uint8Array;
+};
+
 const DEFAULT_DURATION = 2400;
 const DEFAULT_DELAY = 80;   // kleiner = smoother
 const MIN_FRAMES = 12;      // mehr Frames → weniger Ruckeln
 const MAX_FRAMES = 32;
 
-const RENDER_OPTIONS = {
+const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
     cacheBust: true,
     backgroundColor: "#ffffff", // fester BG für saubere Quantisierung
-} as const;
+};
 
 /* ───────── helpers ───────── */
 
@@ -75,14 +107,14 @@ async function renderViaSvg(node: HTMLElement): Promise<HTMLCanvasElement> {
     await img.decode();
 
     const { width, height } = node.getBoundingClientRect();
-    const ratio = (RENDER_OPTIONS as any).pixelRatio ?? 1;
+    const ratio = RENDER_OPTIONS.pixelRatio ?? 1;
 
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round((width || node.offsetWidth || 1) * ratio));
     canvas.height = Math.max(1, Math.round((height || node.offsetHeight || 1) * ratio));
 
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = (RENDER_OPTIONS as any).backgroundColor || "#ffffff";
+    ctx.fillStyle = RENDER_OPTIONS.backgroundColor ?? "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     return canvas;
@@ -131,19 +163,32 @@ function normalizeToSize(img: ImageData, w: number, h: number): ImageData {
     return out;
 }
 
-/* ───── GIF-Encoding via gifenc mit globaler Palette & Dithering ───── */
+/* ───── GIF-Encoding via gifenc mit globaler Palette ───── */
 
-async function importGifenc(): Promise<any | null> {
+async function importGifenc(): Promise<GifencModule | null> {
     try {
-        const dyn = new Function("s", "return import(s)");
-        return await (dyn as any)("gifenc");
-    } catch {
+        const mod = (await import("gifenc")) as { default?: GifencModule } & Partial<GifencModule>;
+        const resolved = (mod.default ?? mod) as Partial<GifencModule>;
+
+        if (!resolved.GIFEncoder || !resolved.quantize || !resolved.applyPalette) {
+            return null;
+        }
+
+        return {
+            GIFEncoder: resolved.GIFEncoder,
+            quantize: resolved.quantize,
+            applyPalette: resolved.applyPalette,
+        };
+    } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+            console.error("Failed to dynamically import gifenc", error);
+        }
         return null;
     }
 }
 
 /** Baut eine globale Palette aus subsampelten Pixeln aller Frames → stabilere Farben */
-function buildGlobalPalette(frames: GifFrame[], quantize: any, maxColors = 256): Uint8Array {
+function buildGlobalPalette(frames: GifFrame[], quantize: GifencModule["quantize"], maxColors = 256): GifPalette {
     // subsample: jedes n-te Pixel, um RAM/CPU zu schonen
     const sampleStride = 4 * 8; // ~ jede 8. RGBA-Zelle
     const buckets: number[] = [];
@@ -160,7 +205,7 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
     const mod = await importGifenc();
     if (!mod) throw new Error("gifenc not available");
 
-    const { GIFEncoder, quantize, applyPalette, dither } = mod as any;
+    const { GIFEncoder, quantize, applyPalette } = mod;
     const W = frames[0].imageData.width;
     const H = frames[0].imageData.height;
 
@@ -171,13 +216,12 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
     const encoder = GIFEncoder();
     if (typeof encoder.setRepeat === "function") encoder.setRepeat(0); // endlos
     // (manche Builds nutzen encoder.setLoops(0))
-    if (typeof (encoder as any).setLoops === "function") (encoder as any).setLoops(0);
+    if (typeof encoder.setLoops === "function") encoder.setLoops(0);
 
-    // 3) Frames quantisieren (mit Dithering für bessere Farbe/Verläufe)
-    const useDither = true;
+    // 3) Frames quantisieren (RGB565 liefert gute Ergebnisse bei voller Deckkraft)
     for (const f of frames) {
         const rgba = f.imageData.data;
-        const indexed = applyPalette(rgba, palette, useDither ? dither.floydSteinberg : undefined);
+        const indexed = applyPalette(rgba, palette, "rgb565");
         encoder.writeFrame(indexed, W, H, {
             palette,
             delay: msToCs(f.delayMs), // 1/100 s
@@ -186,7 +230,8 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
         });
     }
 
-    const out: Uint8Array = encoder.finish();
+    encoder.finish();
+    const out = encoder.bytesView();
     triggerDownload(new Blob([out], { type: "image/gif" }), `${fileName}.gif`);
 }
 
