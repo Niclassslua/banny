@@ -1,14 +1,45 @@
 "use client";
 
 import type { Options as HtmlToImageOptions } from "html-to-image";
-import { toBlob } from "html-to-image";
+import { toJpeg, toPng, toSvg, toWebp } from "html-to-image";
+
+export type ExportFormat = "png" | "jpeg" | "webp" | "svg";
+
+export type ExportVariant = {
+    format: ExportFormat;
+    pixelRatio?: number;
+    quality?: number;
+    /**
+     * Optional suffix that will be appended to the generated file name
+     * (before the extension). This is mainly used internally to add
+     * semantic hints such as the resolution label.
+     */
+    suffix?: string;
+};
+
+export type DownloadResult = {
+    variant: ExportVariant;
+    fileName: string;
+    success: boolean;
+    error?: unknown;
+};
+
+export type DownloadSummary = {
+    total: number;
+    succeeded: number;
+    failed: DownloadResult[];
+    results: DownloadResult[];
+};
+
 type DownloadBannerOptions = {
     fileName: string;
     backgroundColor?: string;
+    variants: ExportVariant[];
+    onProgress?: (current: number, total: number) => void;
 };
 
 const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
-    pixelRatio: 2,
+    pixelRatio: 1,
     cacheBust: true,
 };
 
@@ -62,27 +93,62 @@ export function sanitizeFileName(name: string) {
     return normalized || "banny-banner";
 }
 
-async function downloadStatic(node: HTMLElement, fileName: string, backgroundColor?: string) {
-    const blob = await withVisibleNode(node, async (n) => {
-        const renderOptions: HtmlToImageOptions = {
-            ...BASE_RENDER_OPTIONS,
-            ...(backgroundColor ? { backgroundColor } : {}),
-        };
+async function dataUrlToBlob(dataUrl: string) {
+    const response = await fetch(dataUrl);
+    return await response.blob();
+}
 
-        const generated = await toBlob(n, renderOptions);
-        if (!generated) {
-            throw new Error("Konnte kein PNG generieren.");
-        }
-        return generated;
-    });
+function svgStringToBlob(svgMarkup: string) {
+    return new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
+}
 
-    triggerDownload(blob, `${fileName}.png`);
+function buildFileName(baseName: string, variant: ExportVariant) {
+    const extension = variant.format === "jpeg" ? "jpg" : variant.format;
+    const labelParts = [baseName, extension];
+
+    if (variant.pixelRatio) {
+        labelParts.push(`${variant.pixelRatio}x`);
+    } else if (variant.format !== "svg") {
+        labelParts.push("1x");
+    }
+
+    if (variant.suffix) {
+        labelParts.push(variant.suffix);
+    }
+
+    return `${labelParts.join("-")}.${extension}`;
+}
+
+async function renderVariant(
+    node: HTMLElement,
+    variant: ExportVariant,
+    backgroundColor?: string,
+) {
+    const renderOptions: HtmlToImageOptions = {
+        ...BASE_RENDER_OPTIONS,
+        ...(variant.pixelRatio !== undefined ? { pixelRatio: variant.pixelRatio } : {}),
+        ...(backgroundColor ? { backgroundColor } : {}),
+        ...(variant.quality !== undefined ? { quality: variant.quality } : {}),
+    };
+
+    switch (variant.format) {
+        case "png":
+            return await dataUrlToBlob(await toPng(node, renderOptions));
+        case "jpeg":
+            return await dataUrlToBlob(await toJpeg(node, renderOptions));
+        case "webp":
+            return await dataUrlToBlob(await toWebp(node, renderOptions));
+        case "svg":
+            return svgStringToBlob(await toSvg(node, renderOptions));
+        default:
+            throw new Error(`Nicht unterstütztes Exportformat: ${variant.format}`);
+    }
 }
 
 export async function downloadBanner(
     node: HTMLElement,
-    { fileName, backgroundColor }: DownloadBannerOptions,
-) {
+    { fileName, backgroundColor, variants, onProgress }: DownloadBannerOptions,
+): Promise<DownloadSummary> {
     const active = document.activeElement as HTMLElement | null;
     if (active && node.contains(active)) {
         active.blur();
@@ -90,5 +156,46 @@ export async function downloadBanner(
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    await downloadStatic(node, fileName, backgroundColor);
+    if (!variants || variants.length === 0) {
+        throw new Error("Keine Exportvarianten angegeben.");
+    }
+
+    return await withVisibleNode(node, async (visibleNode) => {
+        const results: DownloadResult[] = [];
+        const total = variants.length;
+        let processed = 0;
+
+        for (const variant of variants) {
+            const filename = buildFileName(fileName, variant);
+
+            try {
+                const blob = await renderVariant(visibleNode, variant, backgroundColor);
+                triggerDownload(blob, filename);
+                results.push({
+                    variant,
+                    fileName: filename,
+                    success: true,
+                });
+            } catch (error) {
+                results.push({
+                    variant,
+                    fileName: filename,
+                    success: false,
+                    error,
+                });
+            } finally {
+                processed += 1;
+                onProgress?.(processed, total);
+            }
+        }
+
+        const failed = results.filter((result) => !result.success);
+
+        return {
+            total,
+            succeeded: total - failed.length,
+            failed,
+            results,
+        } satisfies DownloadSummary;
+    });
 }
