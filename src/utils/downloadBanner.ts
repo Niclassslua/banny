@@ -45,9 +45,9 @@ type GifencModule = {
 };
 
 const DEFAULT_DURATION = 2400;
-const DEFAULT_DELAY = 80;   // kleiner = smoother
-const MIN_FRAMES = 12;      // mehr Frames → weniger Ruckeln
-const MAX_FRAMES = 32;
+const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
+const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
+const MAX_FRAMES = 60;
 
 const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
@@ -283,10 +283,11 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
     // (manche Builds nutzen encoder.setLoops(0))
     if (typeof encoder.setLoops === "function") encoder.setLoops(0);
 
-    // 3) Frames quantisieren (RGB565 liefert gute Ergebnisse bei voller Deckkraft)
+    // 3) Frames quantisieren (direkt mit RGBA-Daten für unverfälschte Farben)
     for (const f of frames) {
         const rgba = f.imageData.data;
-        const indexed = applyPalette(rgba, palette, "rgb565");
+        // gifenc erwartet RGBA-Daten; der rgb565-Pfad verfälscht Farben.
+        const indexed = applyPalette(new Uint8Array(rgba), palette);
         encoder.writeFrame(indexed, W, H, {
             palette,
             delay: msToCs(f.delayMs), // 1/100 s
@@ -321,7 +322,9 @@ async function downloadAnimated(
 ) {
     const frames: GifFrame[] = [];
     // mehr Frames → smoother; konstante Steps erzwingen
-    const steps = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, Math.round(durationMs / Math.max(40, frameDelayMs))));
+    const desiredDelay = Math.max(20, frameDelayMs);
+    const targetFrames = Math.round(durationMs / desiredDelay) || MIN_FRAMES;
+    const steps = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, targetFrames));
     const delayPerFrame = Math.max(20, Math.round(durationMs / steps));
 
     await withVisibleNode(node, async (n) => {
