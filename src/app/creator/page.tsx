@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
@@ -8,10 +8,161 @@ import { Download } from "lucide-react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
+import TemplateManager from "@/components/Creator/TemplateManager";
 import { patterns } from "@/constants/patterns";
-import { Pattern, TextStyles } from "@/types";
+import {
+    CreatorState,
+    Pattern,
+    SavedTemplate,
+    TextStyles,
+} from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
+
+const STORAGE_KEY = "banny-presets";
+const STORAGE_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 1;
+const SHARE_QUERY_PARAM = "preset";
+
+interface PresetStoragePayload {
+    version: number;
+    lastDraft?: CreatorState;
+    templates: SavedTemplate[];
+}
+
+type ShareMode = "json" | "url";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isValidAlignment = (value: unknown): value is TextStyles["alignment"] =>
+    value === "left" || value === "center" || value === "right" || value === "justify";
+
+const isFiniteNumber = (value: unknown): value is number =>
+    typeof value === "number" && Number.isFinite(value);
+
+const isTextStyles = (value: unknown): value is TextStyles => {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return (
+        typeof value.bold === "boolean" &&
+        typeof value.italic === "boolean" &&
+        typeof value.underline === "boolean" &&
+        typeof value.strikethrough === "boolean" &&
+        typeof value.noWrap === "boolean" &&
+        isFiniteNumber(value.fontSize) &&
+        isValidAlignment(value.alignment) &&
+        typeof value.textColor === "string" &&
+        typeof value.fontFamily === "string"
+    );
+};
+
+const isCreatorState = (value: unknown): value is CreatorState => {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    if (!isFiniteNumber(value.schemaVersion) || typeof value.textContent !== "string") {
+        return false;
+    }
+
+    if (!isRecord(value.pattern) || typeof value.pattern.name !== "string") {
+        return false;
+    }
+
+    if (
+        typeof value.patternColor1 !== "string" ||
+        typeof value.patternColor2 !== "string" ||
+        !isFiniteNumber(value.patternScale)
+    ) {
+        return false;
+    }
+
+    if (!isTextStyles(value.textStyles)) {
+        return false;
+    }
+
+    if (!Array.isArray(value.elements)) {
+        return false;
+    }
+
+    return value.elements.every(
+        (element) =>
+            isRecord(element) &&
+            typeof element.id === "string" &&
+            element.type === "text" &&
+            typeof element.textContent === "string" &&
+            isTextStyles(element.textStyles),
+    );
+};
+
+const cloneCreatorState = (state: CreatorState): CreatorState => ({
+    schemaVersion: state.schemaVersion,
+    textContent: state.textContent,
+    textStyles: { ...state.textStyles },
+    elements: state.elements.map((element) => ({
+        ...element,
+        textStyles: { ...element.textStyles },
+    })),
+    pattern: { ...state.pattern },
+    patternColor1: state.patternColor1,
+    patternColor2: state.patternColor2,
+    patternScale: state.patternScale,
+});
+
+const encodeStateForUrl = (state: CreatorState): string => {
+    if (typeof window === "undefined") {
+        throw new Error("Teilen ist nur im Browser verfügbar.");
+    }
+
+    const json = JSON.stringify(state);
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(json);
+    let binary = "";
+    bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+    });
+    const base64 = window.btoa(binary);
+    return encodeURIComponent(base64);
+};
+
+const decodeStateFromUrl = (encoded: string): CreatorState | null => {
+    if (typeof window === "undefined") {
+        return null;
+    }
+
+    try {
+        const base64 = decodeURIComponent(encoded);
+        const binary = window.atob(base64);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        const decoder = new TextDecoder();
+        const json = decoder.decode(bytes);
+        const parsed = JSON.parse(json);
+        return isCreatorState(parsed) ? parsed : null;
+    } catch (error) {
+        console.error("Fehler beim Dekodieren der geteilten Vorlage", error);
+        return null;
+    }
+};
+
+const copyToClipboard = async (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+};
 
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
@@ -50,6 +201,10 @@ const CreatorPage = () => {
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
+    const [templates, setTemplates] = useState<SavedTemplate[]>([]);
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const hasHydratedRef = useRef(false);
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -93,6 +248,274 @@ const CreatorPage = () => {
 
     const togglePicker = (pickerId: string) =>
         setVisiblePicker((prev) => (prev === pickerId ? null : pickerId));
+
+    const currentState = useMemo<CreatorState>(
+        () => {
+            const baseStyles = { ...textStyles };
+            return {
+                schemaVersion: CURRENT_SCHEMA_VERSION,
+                textContent,
+                textStyles: baseStyles,
+                elements: [
+                    {
+                        id: "text-1",
+                        type: "text",
+                        textContent,
+                        textStyles: { ...baseStyles },
+                    },
+                ],
+                pattern: {
+                    name: selectedPattern.name,
+                },
+                patternColor1,
+                patternColor2,
+                patternScale,
+            };
+        },
+        [patternColor1, patternColor2, patternScale, selectedPattern.name, textContent, textStyles],
+    );
+
+    const applyCreatorState = useCallback(
+        (state: CreatorState, contextLabel?: string) => {
+            if (state.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+                setErrorMessage(
+                    "Die Vorlage verwendet eine inkompatible Schema-Version und kann nicht geladen werden.",
+                );
+                return false;
+            }
+
+            const resolvedPattern = patterns.find((pattern) => pattern.name === state.pattern.name);
+
+            if (!resolvedPattern) {
+                setErrorMessage(
+                    "Das Pattern der Vorlage konnte nicht gefunden werden. Bitte aktualisiere deine gespeicherten Vorlagen.",
+                );
+                return false;
+            }
+
+            const resolvedTextStyles = isTextStyles(state.textStyles)
+                ? state.textStyles
+                : state.elements.find((element) => element.type === "text")?.textStyles;
+
+            if (!resolvedTextStyles || !isTextStyles(resolvedTextStyles)) {
+                setErrorMessage("Die Textstile der Vorlage sind ungültig.");
+                return false;
+            }
+
+            setSelectedPattern(resolvedPattern);
+            setPatternColor1(state.patternColor1);
+            setPatternColor2(state.patternColor2);
+            setPatternScale(state.patternScale);
+            setTextContent(state.textContent);
+            setTextStyles({ ...resolvedTextStyles });
+            setErrorMessage(null);
+
+            if (contextLabel) {
+                setStatusMessage(contextLabel);
+            }
+
+            return true;
+        },
+        [],
+    );
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+
+            if (raw) {
+                const parsed = JSON.parse(raw) as PresetStoragePayload;
+
+                if (parsed.version === STORAGE_VERSION) {
+                    if (Array.isArray(parsed.templates)) {
+                        const validTemplates = parsed.templates.filter(
+                            (entry): entry is SavedTemplate =>
+                                isRecord(entry) &&
+                                typeof entry.id === "string" &&
+                                typeof entry.name === "string" &&
+                                typeof entry.createdAt === "string" &&
+                                isCreatorState(entry.state),
+                        );
+
+                        setTemplates(
+                            validTemplates.map((template) => ({
+                                ...template,
+                                state: cloneCreatorState(template.state),
+                            })),
+                        );
+                    }
+
+                    if (parsed.lastDraft && isCreatorState(parsed.lastDraft)) {
+                        applyCreatorState(parsed.lastDraft);
+                    }
+                } else {
+                    setErrorMessage(
+                        "Lokale Daten verwenden eine ältere Version und konnten nicht automatisch geladen werden.",
+                    );
+                }
+            }
+        } catch (error) {
+            console.error("Fehler beim Laden der Presets", error);
+            setErrorMessage("Vorlagen konnten nicht aus dem lokalen Speicher geladen werden.");
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const sharedPreset = params.get(SHARE_QUERY_PARAM);
+
+        if (sharedPreset) {
+            const decodedState = decodeStateFromUrl(sharedPreset);
+
+            if (decodedState) {
+                const applied = applyCreatorState(
+                    decodedState,
+                    "Geteilte Vorlage erfolgreich angewendet.",
+                );
+                if (!applied) {
+                    setErrorMessage("Die geteilte Vorlage konnte nicht angewendet werden.");
+                }
+            } else {
+                setErrorMessage("Die geteilte Vorlage ist beschädigt oder inkompatibel.");
+            }
+
+            params.delete(SHARE_QUERY_PARAM);
+            const newSearch = params.toString();
+            const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ""}${window.location.hash}`;
+            window.history.replaceState({}, "", newUrl);
+        }
+
+        hasHydratedRef.current = true;
+    }, [applyCreatorState]);
+
+    useEffect(() => {
+        if (!hasHydratedRef.current || typeof window === "undefined") {
+            return;
+        }
+
+        const payload: PresetStoragePayload = {
+            version: STORAGE_VERSION,
+            lastDraft: cloneCreatorState(currentState),
+            templates: templates.map((template) => ({
+                ...template,
+                state: cloneCreatorState(template.state),
+            })),
+        };
+
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch (error) {
+            console.error("Fehler beim Speichern der Presets", error);
+            setErrorMessage("Vorlagen konnten nicht gespeichert werden. Prüfe den verfügbaren Speicher.");
+        }
+    }, [currentState, templates]);
+
+    useEffect(() => {
+        if (!statusMessage || typeof window === "undefined") {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => setStatusMessage(null), 4000);
+        return () => window.clearTimeout(timeout);
+    }, [statusMessage]);
+
+    useEffect(() => {
+        if (!errorMessage || typeof window === "undefined") {
+            return;
+        }
+
+        const timeout = window.setTimeout(() => setErrorMessage(null), 5000);
+        return () => window.clearTimeout(timeout);
+    }, [errorMessage]);
+
+    const shareState = useCallback(
+        async (state: CreatorState, mode: ShareMode, context: string) => {
+            try {
+                if (mode === "json") {
+                    await copyToClipboard(JSON.stringify(state, null, 2));
+                    setStatusMessage(`${context} als JSON kopiert.`);
+                } else {
+                    const encoded = encodeStateForUrl(state);
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?${SHARE_QUERY_PARAM}=${encoded}`;
+                    await copyToClipboard(shareUrl);
+                    setStatusMessage(`${context} als Link kopiert.`);
+                }
+                setErrorMessage(null);
+            } catch (error) {
+                console.error("Fehler beim Teilen der Vorlage", error);
+                setErrorMessage("Die Vorlage konnte nicht geteilt werden.");
+            }
+        },
+        [],
+    );
+
+    const handleSaveTemplate = useCallback(
+        (name: string) => {
+            const id =
+                typeof crypto !== "undefined" && "randomUUID" in crypto
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+            const newTemplate: SavedTemplate = {
+                id,
+                name,
+                createdAt: new Date().toISOString(),
+                state: cloneCreatorState(currentState),
+            };
+
+            setTemplates((prev) => [...prev, newTemplate]);
+            setStatusMessage(`Vorlage "${name}" gespeichert.`);
+            setErrorMessage(null);
+        },
+        [currentState],
+    );
+
+    const handleApplyTemplate = useCallback(
+        (templateId: string) => {
+            const template = templates.find((item) => item.id === templateId);
+
+            if (!template) {
+                setErrorMessage("Die ausgewählte Vorlage wurde nicht gefunden.");
+                return;
+            }
+
+            applyCreatorState(template.state, `Vorlage "${template.name}" geladen.`);
+        },
+        [applyCreatorState, templates],
+    );
+
+    const handleDeleteTemplate = useCallback((templateId: string) => {
+        setTemplates((prev) => {
+            const template = prev.find((item) => item.id === templateId);
+            if (template) {
+                setStatusMessage(`Vorlage "${template.name}" gelöscht.`);
+            }
+            return prev.filter((item) => item.id !== templateId);
+        });
+    }, []);
+
+    const handleShareTemplate = useCallback(
+        (templateId: string, mode: ShareMode) => {
+            const template = templates.find((item) => item.id === templateId);
+
+            if (!template) {
+                setErrorMessage("Die ausgewählte Vorlage wurde nicht gefunden.");
+                return;
+            }
+
+            void shareState(template.state, mode, `Vorlage "${template.name}"`);
+        },
+        [shareState, templates],
+    );
+
+    const handleShareCurrent = useCallback(
+        (mode: ShareMode) => {
+            void shareState(currentState, mode, "Aktueller Entwurf");
+        },
+        [currentState, shareState],
+    );
 
     const navItems = useMemo(
         () => [
@@ -283,6 +706,16 @@ const CreatorPage = () => {
                                         togglePicker={togglePicker}
                                     />
                                 </div>
+                                <TemplateManager
+                                    templates={templates}
+                                    onSaveTemplate={handleSaveTemplate}
+                                    onApplyTemplate={handleApplyTemplate}
+                                    onDeleteTemplate={handleDeleteTemplate}
+                                    onShareTemplate={handleShareTemplate}
+                                    onShareCurrent={handleShareCurrent}
+                                    statusMessage={statusMessage}
+                                    errorMessage={errorMessage}
+                                />
                             </motion.div>
                         </div>
                     </div>
