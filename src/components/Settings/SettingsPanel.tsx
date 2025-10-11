@@ -60,9 +60,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                          darkMode,
                                                          visiblePicker,
                                                          togglePicker,
+                                                         canvasSize,
+                                                         setCanvasSize,
+                                                         canvasPresets,
                                                      }) => {
     /* Slider-Tooltip-Position berechnen (0-100 %) */
     const pct = ((patternScale - 5) / (25 - 5)) * 100;
+
+    const handleDimensionChange = (dimension: "width" | "height") =>
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const nextValue = Number(event.target.value);
+            if (Number.isNaN(nextValue) || nextValue <= 0) {
+                return;
+            }
+
+            setCanvasSize({
+                ...canvasSize,
+                [dimension]: nextValue,
+            });
+        };
+
+    const isPresetSelected = (preset: { width: number; height: number }) =>
+        preset.width === canvasSize.width && preset.height === canvasSize.height;
 
     return (
         <section className="flex flex-col gap-6 mt-8">
@@ -144,6 +163,70 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </div>
                 </Card>
             </div>
+
+            <Card className="w-full">
+                <header className="flex items-center w-full gap-2">
+                    <h3 className="text-xs font-semibold tracking-wider uppercase text-foreground/70">
+                        Canvas size
+                    </h3>
+                    <span className="ml-auto text-sm tabular-nums text-foreground/80">
+                        {canvasSize.width} × {canvasSize.height}
+                    </span>
+                </header>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                    {canvasPresets.map((preset) => {
+                        const selected = isPresetSelected(preset);
+                        return (
+                            <button
+                                key={`${preset.label}-${preset.width}x${preset.height}`}
+                                type="button"
+                                onClick={() =>
+                                    setCanvasSize({
+                                        width: preset.width,
+                                        height: preset.height,
+                                    })
+                                }
+                                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+                                    selected
+                                        ? "border-[#A1E2F8] bg-[#A1E2F8]/10 text-white"
+                                        : "border-white/10 bg-white/5 text-foreground/80 hover:border-[#A1E2F8]/60"
+                                }`}
+                            >
+                                <span className="font-medium">{preset.label}</span>
+                                <span className="ml-2 text-xs text-foreground/60">
+                                    {preset.width}×{preset.height}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-4 grid w-full gap-3 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-foreground/60">
+                        Width (px)
+                        <input
+                            type="number"
+                            min={100}
+                            max={6000}
+                            value={canvasSize.width}
+                            onChange={handleDimensionChange("width")}
+                            className="w-full rounded-lg border border-white/10 bg-zinc-900/60 px-3 py-2 text-sm text-foreground/90 focus:border-[#A1E2F8] focus:outline-none focus:ring-2 focus:ring-[#A1E2F8]/40"
+                        />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-foreground/60">
+                        Height (px)
+                        <input
+                            type="number"
+                            min={100}
+                            max={6000}
+                            value={canvasSize.height}
+                            onChange={handleDimensionChange("height")}
+                            className="w-full rounded-lg border border-white/10 bg-zinc-900/60 px-3 py-2 text-sm text-foreground/90 focus:border-[#A1E2F8] focus:outline-none focus:ring-2 focus:ring-[#A1E2F8]/40"
+                        />
+                    </label>
+                </div>
+            </Card>
         </section>
     );
 };

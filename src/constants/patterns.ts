@@ -19,7 +19,7 @@ export function addAlpha(color: string, alpha: number | string): string {
     if (c.startsWith("#")) {
         const hex = c.slice(1);
         if (hex.length === 3 || hex.length === 4) {
-            const [r, g, b, a] = hex.split("");
+            const [r, g, b] = hex.split("");
             const rr = r + r, gg = g + g, bb = b + b;
             // replace alpha if provided in 4-digit form
             return `#${rr}${gg}${bb}${aHex}`;
