@@ -49,8 +49,6 @@ const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
 const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
 const MAX_FRAMES = 600;     // höheres Limit für längere/gleichmäßige Loops
 const MIN_FRAME_DELAY = 10; // GIF-Spezifikation: mindestens 1/100 Sekunde
-const MAX_CAPTURE_FPS = 60; // requestAnimationFrame ≈ 60fps
-const MAX_CAPTURE_INTERVAL = 1000 / MAX_CAPTURE_FPS;
 
 const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
@@ -71,10 +69,6 @@ function triggerDownload(blob: Blob, filename: string) {
     a.click();
     document.body.removeChild(a);
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function wait(ms: number) {
-    return new Promise((r) => window.setTimeout(r, ms));
 }
 
 async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Promise<T>) {
@@ -317,22 +311,117 @@ async function downloadStatic(node: HTMLElement, fileName: string) {
 
 /* ───────── animated ───────── */
 
+type AnimationController = {
+    seek: (offsetMs: number) => void;
+    restore: () => void;
+};
+
+function createAnimationController(root: HTMLElement): AnimationController {
+    const canAnimate = typeof root.getAnimations === "function";
+    if (!canAnimate) {
+        return {
+            seek: () => {},
+            restore: () => {},
+        };
+    }
+
+    const animations = root.getAnimations({ subtree: true });
+    if (!animations.length) {
+        return {
+            seek: () => {},
+            restore: () => {},
+        };
+    }
+
+    type Snapshot = {
+        animation: Animation;
+        currentTime: number;
+        playbackRate: number;
+        playState: AnimationPlayState;
+    };
+
+    const snapshots: Snapshot[] = animations.map((animation) => ({
+        animation,
+        currentTime: animation.currentTime ?? 0,
+        playbackRate: animation.playbackRate,
+        playState: animation.playState,
+    }));
+
+    animations.forEach((animation) => {
+        try {
+            animation.pause();
+        } catch {}
+    });
+
+    const seek = (offsetMs: number) => {
+        const offset = Number.isFinite(offsetMs) ? offsetMs : 0;
+        snapshots.forEach(({ animation, currentTime, playbackRate }) => {
+            try {
+                const rate = playbackRate ?? 1;
+                animation.currentTime = currentTime + offset * rate;
+                animation.commitStyles?.();
+            } catch {}
+        });
+    };
+
+    const restore = () => {
+        snapshots.forEach(({ animation, currentTime, playbackRate, playState }) => {
+            try {
+                animation.currentTime = currentTime;
+                if (typeof playbackRate === "number") {
+                    animation.playbackRate = playbackRate;
+                }
+                if (playState === "running") {
+                    animation.play();
+                } else if (playState === "finished") {
+                    animation.finish();
+                } else if (playState === "idle") {
+                    animation.cancel();
+                }
+            } catch {}
+        });
+    };
+
+    return { seek, restore };
+}
+
+function buildFrameSchedule(durationMs: number, desiredDelay: number) {
+    const clampedDelay = Math.max(MIN_FRAME_DELAY, desiredDelay);
+    const minimumDuration = MIN_FRAME_DELAY * MIN_FRAMES;
+    const scheduledDuration = Math.max(durationMs, minimumDuration);
+    const provisionalCount = Math.max(MIN_FRAMES, Math.ceil(scheduledDuration / clampedDelay));
+    const frameCount = Math.min(MAX_FRAMES, provisionalCount);
+    const denominator = Math.max(1, frameCount - 1);
+
+    const offsets: number[] = [];
+    for (let i = 0; i < frameCount; i += 1) {
+        if (i === frameCount - 1) {
+            offsets.push(scheduledDuration);
+        } else {
+            offsets.push(Math.round((scheduledDuration * i) / denominator));
+        }
+    }
+
+    return offsets;
+}
+
 async function downloadAnimated(
     node: HTMLElement,
     fileName: string,
     durationMs: number,
     frameDelayMs: number,
 ) {
-    const frames: GifFrame[] = [];
     const desiredDelay = Math.max(MIN_FRAME_DELAY, frameDelayMs);
-    const captureBudget = Math.ceil(durationMs / MAX_CAPTURE_INTERVAL);
-    const maxFrameBudget = Math.min(MAX_FRAMES, captureBudget || MIN_FRAMES);
-    const targetFrameCount = Math.max(
-        MIN_FRAMES,
-        Math.min(maxFrameBudget, Math.ceil(durationMs / desiredDelay) || MIN_FRAMES),
-    );
+    const schedule = buildFrameSchedule(durationMs, desiredDelay);
+    const plannedDuration = schedule[schedule.length - 1] ?? durationMs;
+    const captured: Array<{ imageData: ImageData; offset: number }> = [];
 
-    const nextFrame = () => new Promise<number>((resolve) => requestAnimationFrame(resolve));
+    await withVisibleNode(node, async (n) => {
+        const controller = createAnimationController(n);
+
+        const captureFrame = async (offset: number): Promise<boolean> => {
+            controller.seek(offset);
+            await new Promise((resolve) => requestAnimationFrame(resolve));
 
     await withVisibleNode(node, async (n) => {
         const captureFrame = async (): Promise<boolean> => {
@@ -364,7 +453,7 @@ async function downloadAnimated(
                 return false;
             }
 
-            frames.push({ imageData, delayMs: desiredDelay });
+            captured.push({ imageData, offset });
 
             canvas.width = 0;
             canvas.height = 0;
@@ -372,11 +461,18 @@ async function downloadAnimated(
             return true;
         };
 
-        // mindestens ein Frame sammeln (bei Problemen erneut versuchen)
-        while (!frames.length) {
-            const ok = await captureFrame();
-            if (ok) break;
-            await wait(MIN_FRAME_DELAY);
+        try {
+            for (const offset of schedule) {
+                let attempts = 0;
+                let ok = false;
+                while (attempts < 3 && !ok) {
+                    ok = await captureFrame(offset);
+                    attempts += 1;
+                }
+                if (!ok) continue;
+            }
+        } finally {
+            controller.restore();
         }
         if (!frames.length) return;
 
@@ -409,7 +505,49 @@ async function downloadAnimated(
         frames[frames.length - 1].delayMs = Math.max(MIN_FRAME_DELAY, lastDelay);
     });
 
-    if (!frames.length) throw new Error("Keine Frames für die Animation gesammelt.");
+    if (!captured.length) throw new Error("Keine Frames für die Animation gesammelt.");
+
+    const targetDurationMs = Math.max(
+        durationMs,
+        plannedDuration,
+        captured.length * MIN_FRAME_DELAY,
+    );
+
+    const frames: GifFrame[] = captured.map((frame, index) => {
+        const nextOffset = captured[index + 1]?.offset ?? targetDurationMs;
+        const delta = Math.max(
+            MIN_FRAME_DELAY,
+            Math.round(nextOffset - frame.offset) || desiredDelay,
+        );
+        return {
+            imageData: frame.imageData,
+            delayMs: delta,
+        };
+    });
+
+    let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
+
+    if (totalDelayMs <= 0) {
+        const fallback = Math.max(MIN_FRAME_DELAY, Math.round(targetDurationMs / frames.length));
+        frames.forEach((frame) => {
+            frame.delayMs = fallback;
+        });
+        totalDelayMs = fallback * frames.length;
+    }
+
+    if (Math.abs(totalDelayMs - targetDurationMs) > MIN_FRAME_DELAY) {
+        const scale = targetDurationMs / totalDelayMs;
+        let accumulated = 0;
+        for (let i = 0; i < frames.length - 1; i += 1) {
+            const scaled = Math.max(MIN_FRAME_DELAY, Math.round(frames[i].delayMs * scale));
+            frames[i].delayMs = scaled;
+            accumulated += scaled;
+        }
+        frames[frames.length - 1].delayMs = Math.max(
+            MIN_FRAME_DELAY,
+            Math.round(targetDurationMs - accumulated),
+        );
+    }
 
     const targetDurationMs = Math.max(durationMs, frames.length * MIN_FRAME_DELAY);
     let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
