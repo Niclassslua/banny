@@ -1,5 +1,6 @@
 "use client";
 
+import type { Options as HtmlToImageOptions } from "html-to-image";
 import { toBlob, toCanvas, toSvg } from "html-to-image";
 // GIF-Encoder: klein & zuverlässig
 // npm i gifenc
@@ -12,16 +13,47 @@ type DownloadBannerOptions = {
     frameDelayMs?: number;
 };
 
-const DEFAULT_DURATION = 2400;
-const DEFAULT_DELAY = 80;   // kleiner = smoother
-const MIN_FRAMES = 12;      // mehr Frames → weniger Ruckeln
-const MAX_FRAMES = 32;
+type GifPaletteEntry = [number, number, number] | [number, number, number, number];
+type GifPalette = GifPaletteEntry[];
 
-const RENDER_OPTIONS = {
+type GifEncoder = {
+    writeFrame: (
+        indexedPixels: Uint8Array,
+        width: number,
+        height: number,
+        options: {
+            palette: GifPalette;
+            delay: number;
+            transparent: number | null;
+            disposal: number;
+        },
+    ) => void;
+    finish: () => void;
+    bytesView: () => Uint8Array;
+    setRepeat?: (repeat: number) => void;
+    setLoops?: (loops: number) => void;
+};
+
+type GifencModule = {
+    GIFEncoder: (options?: { auto?: boolean }) => GifEncoder;
+    quantize: (pixels: Uint8Array, maxColors?: number) => GifPalette;
+    applyPalette: (
+        pixels: Uint8Array | Uint8ClampedArray,
+        palette: GifPalette,
+        format?: "rgb565" | "rgb444" | "rgba4444",
+    ) => Uint8Array;
+};
+
+const DEFAULT_DURATION = 2400;
+const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
+const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
+const MAX_FRAMES = 60;
+
+const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
     cacheBust: true,
     backgroundColor: "#ffffff", // fester BG für saubere Quantisierung
-} as const;
+};
 
 /* ───────── helpers ───────── */
 
@@ -75,14 +107,14 @@ async function renderViaSvg(node: HTMLElement): Promise<HTMLCanvasElement> {
     await img.decode();
 
     const { width, height } = node.getBoundingClientRect();
-    const ratio = (RENDER_OPTIONS as any).pixelRatio ?? 1;
+    const ratio = RENDER_OPTIONS.pixelRatio ?? 1;
 
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round((width || node.offsetWidth || 1) * ratio));
     canvas.height = Math.max(1, Math.round((height || node.offsetHeight || 1) * ratio));
 
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = (RENDER_OPTIONS as any).backgroundColor || "#ffffff";
+    ctx.fillStyle = RENDER_OPTIONS.backgroundColor ?? "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     return canvas;
@@ -131,19 +163,97 @@ function normalizeToSize(img: ImageData, w: number, h: number): ImageData {
     return out;
 }
 
-/* ───── GIF-Encoding via gifenc mit globaler Palette & Dithering ───── */
+/* ───── GIF-Encoding via gifenc mit globaler Palette ───── */
 
-async function importGifenc(): Promise<any | null> {
-    try {
-        const dyn = new Function("s", "return import(s)");
-        return await (dyn as any)("gifenc");
-    } catch {
-        return null;
+let gifencModulePromise: Promise<GifencModule | null> | null = null;
+
+function coerceGifencModule(candidate: unknown): GifencModule | null {
+    if (!candidate) return null;
+
+    const collected: Partial<GifencModule> = {};
+    const visited = new Set<unknown>();
+
+    const visit = (value: unknown) => {
+        if (!value || visited.has(value)) return;
+        visited.add(value);
+
+        if (typeof value === "function") {
+            collected.GIFEncoder = value as GifencModule["GIFEncoder"];
+            return;
+        }
+
+        if (typeof value !== "object") return;
+
+        const obj = value as Record<string, unknown>;
+
+        if (typeof obj.GIFEncoder === "function") {
+            collected.GIFEncoder = obj.GIFEncoder as GifencModule["GIFEncoder"];
+        }
+
+        if (typeof obj.quantize === "function") {
+            collected.quantize = obj.quantize as GifencModule["quantize"];
+        }
+
+        if (typeof obj.applyPalette === "function") {
+            collected.applyPalette = obj.applyPalette as GifencModule["applyPalette"];
+        }
+
+        if ("default" in obj) {
+            visit(obj.default);
+        }
+    };
+
+    visit(candidate);
+
+    return collected.GIFEncoder && collected.quantize && collected.applyPalette
+        ? (collected as GifencModule)
+        : null;
+}
+
+async function loadGifencFrom(loader: () => Promise<unknown>): Promise<GifencModule | null> {
+    const imported = await loader();
+    return coerceGifencModule(imported);
+}
+
+async function importGifenc(): Promise<GifencModule | null> {
+    if (!gifencModulePromise) {
+        gifencModulePromise = (async () => {
+            const loaders: Array<() => Promise<unknown>> = [
+                () => import("gifenc"),
+                () => import("gifenc/dist/gifenc.esm.js"),
+                () => import("gifenc/dist/gifenc.js"),
+            ];
+
+            let lastError: unknown;
+            for (const loader of loaders) {
+                try {
+                    const mod = await loadGifencFrom(loader);
+                    if (mod) {
+                        return mod;
+                    }
+                    lastError = new Error("gifenc module missing required exports");
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            if (process.env.NODE_ENV !== "production") {
+                console.error("Failed to load gifenc via dynamic import", lastError);
+            }
+
+            return null;
+        })();
     }
+
+    const loaded = await gifencModulePromise;
+    if (!loaded) {
+        gifencModulePromise = null;
+    }
+    return loaded;
 }
 
 /** Baut eine globale Palette aus subsampelten Pixeln aller Frames → stabilere Farben */
-function buildGlobalPalette(frames: GifFrame[], quantize: any, maxColors = 256): Uint8Array {
+function buildGlobalPalette(frames: GifFrame[], quantize: GifencModule["quantize"], maxColors = 256): GifPalette {
     // subsample: jedes n-te Pixel, um RAM/CPU zu schonen
     const sampleStride = 4 * 8; // ~ jede 8. RGBA-Zelle
     const buckets: number[] = [];
@@ -160,7 +270,7 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
     const mod = await importGifenc();
     if (!mod) throw new Error("gifenc not available");
 
-    const { GIFEncoder, quantize, applyPalette, dither } = mod as any;
+    const { GIFEncoder, quantize, applyPalette } = mod;
     const W = frames[0].imageData.width;
     const H = frames[0].imageData.height;
 
@@ -171,13 +281,13 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
     const encoder = GIFEncoder();
     if (typeof encoder.setRepeat === "function") encoder.setRepeat(0); // endlos
     // (manche Builds nutzen encoder.setLoops(0))
-    if (typeof (encoder as any).setLoops === "function") (encoder as any).setLoops(0);
+    if (typeof encoder.setLoops === "function") encoder.setLoops(0);
 
-    // 3) Frames quantisieren (mit Dithering für bessere Farbe/Verläufe)
-    const useDither = true;
+    // 3) Frames quantisieren (direkt mit RGBA-Daten für unverfälschte Farben)
     for (const f of frames) {
         const rgba = f.imageData.data;
-        const indexed = applyPalette(rgba, palette, useDither ? dither.floydSteinberg : undefined);
+        // gifenc erwartet RGBA-Daten; der rgb565-Pfad verfälscht Farben.
+        const indexed = applyPalette(new Uint8Array(rgba), palette);
         encoder.writeFrame(indexed, W, H, {
             palette,
             delay: msToCs(f.delayMs), // 1/100 s
@@ -186,7 +296,8 @@ async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promis
         });
     }
 
-    const out: Uint8Array = encoder.finish();
+    encoder.finish();
+    const out = encoder.bytesView();
     triggerDownload(new Blob([out], { type: "image/gif" }), `${fileName}.gif`);
 }
 
@@ -211,7 +322,9 @@ async function downloadAnimated(
 ) {
     const frames: GifFrame[] = [];
     // mehr Frames → smoother; konstante Steps erzwingen
-    const steps = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, Math.round(durationMs / Math.max(40, frameDelayMs))));
+    const desiredDelay = Math.max(20, frameDelayMs);
+    const targetFrames = Math.round(durationMs / desiredDelay) || MIN_FRAMES;
+    const steps = Math.max(MIN_FRAMES, Math.min(MAX_FRAMES, targetFrames));
     const delayPerFrame = Math.max(20, Math.round(durationMs / steps));
 
     await withVisibleNode(node, async (n) => {
