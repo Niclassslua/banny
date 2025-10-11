@@ -45,7 +45,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
     return (
         <div
             ref={previewRef}
-            className={selectedPattern.className ? `pattern-surface ${selectedPattern.className}` : "pattern-surface"}
+            className="pattern-surface"
             style={{
                 ...parseCSS(selectedPattern.style, patternScale, patternColor1, patternColor2),
                 position: "relative",

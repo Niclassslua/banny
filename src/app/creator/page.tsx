@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download, LayoutGrid, Sparkles } from "lucide-react";
+import { Download } from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
-import { animatedPatterns, patterns } from "@/constants/patterns";
+import { patterns } from "@/constants/patterns";
 import { Pattern, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
@@ -47,28 +47,9 @@ const CreatorPage = () => {
     const [patternColor2, setPatternColor2] = useState("#b3b3c4");
     const [patternScale, setPatternScale] = useState(14);
     const [visiblePicker, setVisiblePicker] = useState<string | null>(null);
-    const [patternCategory, setPatternCategory] = useState<"static" | "animated">(
-        "static",
-    );
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
-
-    useEffect(() => {
-        if (patternCategory === "static") {
-            const isStatic = patterns.some(
-                (pattern) => pattern.name === selectedPattern.name,
-            );
-            if (!isStatic) setSelectedPattern(patterns[0]);
-        } else {
-            const isAnimated = animatedPatterns.some(
-                (pattern) => pattern.name === selectedPattern.name,
-            );
-            if (!isAnimated && animatedPatterns.length > 0) {
-                setSelectedPattern(animatedPatterns[0]);
-            }
-        }
-    }, [patternCategory, selectedPattern.name]);
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -82,18 +63,11 @@ const CreatorPage = () => {
                 } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
             >
                 <div
-                    className={`relative h-20 w-full overflow-hidden rounded-lg border border-white/10 ${
-                        pattern.className ?? ""
-                    }`}
+                    className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
                     style={parseCSS(pattern.style, 14, patternColor1, patternColor2)}
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-white">{pattern.name}</span>
-                    {pattern.isAnimated && (
-                        <span className="rounded-full bg-[#A1E2F8]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A1E2F8]">
-              ∞ GIF
-            </span>
-                    )}
                 </div>
             </button>
         );
@@ -141,7 +115,6 @@ const CreatorPage = () => {
 
         try {
             await downloadBanner(previewRef.current, {
-                animated: Boolean(selectedPattern.isAnimated),
                 fileName: filenameBase,
             });
         } catch (error) {
@@ -150,8 +123,6 @@ const CreatorPage = () => {
             setIsDownloading(false);
         }
     };
-
-    const isAnimatedPattern = Boolean(selectedPattern.isAnimated);
 
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
@@ -197,11 +168,7 @@ const CreatorPage = () => {
                             className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Download className="h-4 w-4" />
-                            {isDownloading
-                                ? "Bereite Download vor…"
-                                : isAnimatedPattern
-                                    ? "Download GIF"
-                                    : "Download PNG"}
+                            {isDownloading ? "Bereite Download vor…" : "Download PNG"}
                         </button>
                     </div>
                 </header>
@@ -263,66 +230,14 @@ const CreatorPage = () => {
                                 <div className="rounded-3xl border border-[#A1E2F8]/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_16px_50px_-30px_rgba(192,230,244,0.45)]">
                                     <h2 className="text-lg font-semibold text-white">Pattern auswählen</h2>
                                     <p className="mt-2 text-sm text-white/60">
-                                        {patternCategory === "static"
-                                            ? "Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren."
-                                            : "Diese Hintergründe laufen dauerhaft in einer Endlosschleife und bringen Bewegung in deine Banner."}
+                                        Feine Texturen für lebendige Banner. Justiere Farben und
+                                        Skalierung, um deinen Look zu perfektionieren.
                                     </p>
-
-                                    {/* kompaktere Selector-Buttons */}
-                                    <div className="mt-4 flex flex-wrap gap-2.5">
-                                        {[
-                                            {
-                                                id: "static" as const,
-                                                label: "Statische Banner",
-                                                icon: LayoutGrid,
-                                                subline: "Ruhige Texturen",
-                                            },
-                                            {
-                                                id: "animated" as const,
-                                                label: "Animierte Banner",
-                                                icon: Sparkles,
-                                                subline: "Mit Bewegung",
-                                            },
-                                        ].map(({ id, label, icon: Icon, subline }) => {
-                                            const isActive = patternCategory === id;
-                                            return (
-                                                <button
-                                                    key={id}
-                                                    type="button"
-                                                    onClick={() => setPatternCategory(id)}
-                                                    aria-pressed={isActive}
-                                                    className={[
-                                                        "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#A1E2F8]/60",
-                                                        isActive
-                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white shadow-[0_8px_25px_-15px_rgba(161,226,248,0.7)]"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
-                                                    ].join(" ")}
-                                                >
-                                                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#A1E2F8]">
-                                                    <Icon className="h-4 w-4" />
-                                                  </span>
-                                                                                            <span className="flex flex-col leading-tight">
-                                                    <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
-                                                      {label}
-                                                    </span>
-                                                    <span className="text-[10px] text-white/60">{subline}</span>
-                                                  </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
 
                                     <div className="mt-5 max-h-[12rem] overflow-y-auto pr-2">
                                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                            {(patternCategory === "static" ? patterns : animatedPatterns).map((pattern) =>
-                                                renderPatternButton(pattern),
-                                            )}
+                                            {patterns.map((pattern) => renderPatternButton(pattern))}
                                         </div>
-                                        {patternCategory === "animated" && (
-                                            <p className="mt-4 text-xs text-[#A1E2F8]/80">
-                                                Animierte Banner nutzen CSS-Animationen und laufen in einer Endlosschleife.
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
 
