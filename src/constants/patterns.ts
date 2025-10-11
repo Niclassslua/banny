@@ -38,115 +38,207 @@ const addAlpha = (hex: string, alpha: string): string => {
 export const patterns: Pattern[] = [
     {
         name: "Crimson Depth",
-        style: `
-      background: radial-gradient(125% 125% at 50% 100%, #000000 40%, #2b0707 100%);
-      background-color: #000000;
-    `,
+        style: (scale: number, color1: string, color2: string) => {
+            const deepAccent = addAlpha(color1, "cc");
+            const glow = addAlpha(color1, "55");
+            const base = addAlpha(color2, "f0");
+            const transitionStop = Math.min(30 + scale * 1.8, 72);
+            const glowStop = Math.min(transitionStop + 12, 88);
+
+            return `
+      background:
+        radial-gradient(125% 125% at 50% 100%, ${deepAccent} ${transitionStop}%, ${glow} ${glowStop}%, ${base} 100%);
+      background-color: ${color2};
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Aurora Dream Corner Whispers",
-        style: `
+        style: (scale: number, color1: string, color2: string) => {
+            const accentStrong = addAlpha(color1, "80");
+            const accentSoft = addAlpha(color1, "40");
+            const baseGlow = addAlpha(color2, "75");
+            const baseSoft = addAlpha(color2, "55");
+            const falloff = Math.min(45 + scale * 1.5, 78);
+
+            return `
       background:
-        radial-gradient(ellipse 85% 65% at 8% 8%, rgba(175, 109, 255, 0.42), transparent 60%),
-        radial-gradient(ellipse 75% 60% at 75% 35%, rgba(255, 235, 170, 0.55), transparent 62%),
-        radial-gradient(ellipse 70% 60% at 15% 80%, rgba(255, 100, 180, 0.40), transparent 62%),
-        radial-gradient(ellipse 70% 60% at 92% 92%, rgba(120, 190, 255, 0.45), transparent 62%),
-        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
-      background-color: #fde2ea;
-    `,
+        radial-gradient(ellipse 85% 65% at 8% 8%, ${accentStrong}, transparent ${falloff}%),
+        radial-gradient(ellipse 75% 60% at 75% 35%, ${baseGlow}, transparent ${falloff + 4}%),
+        radial-gradient(ellipse 70% 60% at 15% 80%, ${accentSoft}, transparent ${falloff + 4}%),
+        radial-gradient(ellipse 70% 60% at 92% 92%, ${addAlpha(color1, "33")}, transparent ${falloff + 6}%),
+        linear-gradient(180deg, ${baseSoft} 0%, ${color2} 100%);
+      background-color: ${color2};
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Aurora Dream Soft Harmony",
-        style: `
+        style: (scale: number, color1: string, color2: string) => {
+            const accent = addAlpha(color1, "70");
+            const accentSoft = addAlpha(color1, "45");
+            const glow = addAlpha(color2, "70");
+            const haze = addAlpha(color2, "4d");
+            const falloff = Math.min(50 + scale * 1.4, 82);
+
+            return `
       background:
-        radial-gradient(ellipse 80% 60% at 60% 20%, rgba(175, 109, 255, 0.50), transparent 65%),
-        radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255, 100, 180, 0.45), transparent 65%),
-        radial-gradient(ellipse 60% 50% at 60% 65%, rgba(255, 235, 170, 0.43), transparent 62%),
-        radial-gradient(ellipse 65% 40% at 50% 60%, rgba(120, 190, 255, 0.48), transparent 68%),
-        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
-      background-color: #fde2ea;
-    `,
+        radial-gradient(ellipse 80% 60% at 60% 20%, ${accent}, transparent ${falloff}%),
+        radial-gradient(ellipse 70% 60% at 20% 80%, ${accentSoft}, transparent ${falloff}%),
+        radial-gradient(ellipse 60% 50% at 60% 65%, ${glow}, transparent ${falloff + 2}%),
+        radial-gradient(ellipse 65% 40% at 50% 60%, ${haze}, transparent ${falloff + 6}%),
+        linear-gradient(180deg, ${addAlpha(color2, "f0")} 0%, ${color2} 100%);
+      background-color: ${color2};
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Aurora Dream Vivid Bloom",
-        style: `
+        style: (scale: number, color1: string, color2: string) => {
+            const vibrant = addAlpha(color1, "d0");
+            const bold = addAlpha(color1, "a0");
+            const highlight = addAlpha(color2, "d0");
+            const glow = addAlpha(color2, "60");
+            const falloff = Math.max(58 - scale * 0.8, 42);
+
+            return `
       background:
-        radial-gradient(ellipse 80% 60% at 70% 20%, rgba(175, 109, 255, 0.85), transparent 68%),
-        radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255, 100, 180, 0.75), transparent 68%),
-        radial-gradient(ellipse 60% 50% at 60% 65%, rgba(255, 235, 170, 0.98), transparent 68%),
-        radial-gradient(ellipse 65% 40% at 50% 60%, rgba(120, 190, 255, 0.3), transparent 68%),
-        linear-gradient(180deg, #f7eaff 0%, #fde2ea 100%);
-      background-color: #fde2ea;
-    `,
+        radial-gradient(ellipse 80% 60% at 70% 20%, ${vibrant}, transparent ${falloff + 8}%),
+        radial-gradient(ellipse 70% 60% at 20% 80%, ${bold}, transparent ${falloff + 10}%),
+        radial-gradient(ellipse 60% 50% at 60% 65%, ${highlight}, transparent ${falloff + 10}%),
+        radial-gradient(ellipse 65% 40% at 50% 60%, ${glow}, transparent ${falloff + 14}%),
+        linear-gradient(180deg, ${addAlpha(color2, "f5")} 0%, ${color2} 100%);
+      background-color: ${color2};
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Diagonal Grid with Light",
-        style: `
-      background-color: #fafafa;
+        style: (scale: number, color1: string, color2: string) => {
+            const cell = Math.max(scale * 3, 18);
+            const stroke = Math.max(cell * 0.04, 1.2);
+            const line = addAlpha(color1, "38");
+            const glow = addAlpha(color1, "18");
+            const largeCell = cell * 2;
+
+            return `
+      background-color: ${color2};
       background-image:
-        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 20px);
-      background-size: 40px 40px;
-    `,
+        radial-gradient(circle at 0 0, ${glow} 0, transparent ${cell * 1.2}px),
+        repeating-linear-gradient(45deg, ${line} 0 ${stroke}px, transparent ${stroke}px ${cell}px),
+        repeating-linear-gradient(-45deg, ${line} 0 ${stroke}px, transparent ${stroke}px ${cell}px);
+      background-size: ${largeCell}px ${largeCell}px, ${cell}px ${cell}px, ${cell}px ${cell}px;
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Dark Grid with White Dots",
-        style: `
-      background: #0f172a;
+        style: (scale: number, color1: string, color2: string) => {
+            const cell = Math.max(scale * 2.2, 18);
+            const dot = Math.max(cell * 0.1, 2.5);
+            const grid = addAlpha(color1, "26");
+            const dotColor = addAlpha(color1, "b0");
+            const halfCell = cell / 2;
+
+            return `
+      background: ${color2};
       background-image:
-        linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px);
-      background-size: 20px 20px, 20px 20px, 20px 20px;
-      background-position: 0 0, 0 0, 0 0;
-    `,
+        linear-gradient(to right, ${grid} 1px, transparent 1px),
+        linear-gradient(to bottom, ${grid} 1px, transparent 1px),
+        radial-gradient(circle, ${dotColor} ${dot}px, transparent ${dot + 0.5}px);
+      background-size: ${cell}px ${cell}px, ${cell}px ${cell}px, ${cell}px ${cell}px;
+      background-position: 0 0, 0 0, ${halfCell}px ${halfCell}px;
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Gradient Diagonal Lines",
-        style: `
-      background-color: #000000;
+        style: (scale: number, color1: string, color2: string) => {
+            const spacing = Math.max(scale * 1.8, 12);
+            const lineWidth = Math.max(spacing * 0.08, 1);
+            const accent = addAlpha(color1, "33");
+            const accentSoft = addAlpha(color1, "1a");
+            const accentGlow = addAlpha(color1, "12");
+            const minorSpacing = Math.max(spacing * 0.35, 6);
+            const tile = Math.max(spacing * 0.5, 10);
+
+            return `
+      background-color: ${color2};
       background-image:
-        repeating-linear-gradient(45deg, rgba(0, 255, 65, 0.08) 0, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
-        repeating-linear-gradient(-45deg, rgba(0, 255, 65, 0.08) 0, rgba(0, 255, 65, 0.08) 1px, transparent 1px, transparent 12px),
-        repeating-linear-gradient(90deg, rgba(0, 255, 65, 0.03) 0, rgba(0, 255, 65, 0.03) 1px, transparent 1px, transparent 4px);
-      background-size: 24px 24px, 24px 24px, 8px 8px;
-    `,
+        repeating-linear-gradient(45deg, ${accent} 0 ${lineWidth}px, transparent ${lineWidth}px ${spacing}px),
+        repeating-linear-gradient(-45deg, ${accentSoft} 0 ${lineWidth}px, transparent ${lineWidth}px ${spacing}px),
+        repeating-linear-gradient(90deg, ${accentGlow} 0 ${lineWidth}px, transparent ${lineWidth}px ${minorSpacing}px);
+      background-size: ${spacing}px ${spacing}px, ${spacing}px ${spacing}px, ${tile}px ${tile}px;
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Dark Noise Colors",
-        style: `
-      background: #000000;
+        style: (scale: number, color1: string, color2: string) => {
+            const accentStrong = addAlpha(color1, "33");
+            const accentMedium = addAlpha(color1, "26");
+            const accentLight = addAlpha(color1, "1f");
+            const size1 = Math.max(scale * 1.6, 14);
+            const size2 = Math.max(scale * 2.4, 18);
+            const size3 = Math.max(scale * 2, 16);
+            const offset1 = size1 / 2;
+            const offset2x = size1 * 0.75;
+            const offset2y = size1 * 0.25;
+
+            return `
+      background: ${color2};
       background-image:
-        radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.2) 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.18) 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, rgba(236, 72, 153, 0.15) 1px, transparent 0);
-      background-size: 20px 20px, 30px 30px, 25px 25px;
-      background-position: 0 0, 10px 10px, 15px 5px;
-    `,
+        radial-gradient(circle at 1px 1px, ${accentStrong} 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, ${accentMedium} 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, ${accentLight} 1px, transparent 0);
+      background-size: ${size1}px ${size1}px, ${size2}px ${size2}px, ${size3}px ${size3}px;
+      background-position: 0 0, ${offset1}px ${offset1}px, ${offset2x}px ${offset2y}px;
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Top Glow Midnight",
-        style: `
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000;
-      background-color: #000000;
-    `,
+        style: (scale: number, color1: string, color2: string) => {
+            const glow = addAlpha(color1, "55");
+            const halo = addAlpha(color1, "22");
+            const fade = Math.min(40 + scale * 2.2, 95);
+
+            return `
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, ${glow}, ${halo} ${fade}%, transparent 100%), ${color2};
+      background-color: ${color2};
+      opacity: 1.0;
+    `;
+        },
     },
     {
         name: "Radial Cross",
         style: (scale: number, color1: string, color2: string) => {
-            // Original --s = 140 px → hier linear skaliert (scale 10 ≙ 140 px)
-            const s = scale * 14;
-            const g = `#0000 52%, ${color1} 54% 57%, #0000 59%`; // var(--_g)
+            const tile = Math.max(scale * 6, 48); // tile size reagiert direkt auf Slider
+            const arm = tile / 4.667;
+            const offset = tile / 2;
+            const accent = addAlpha(color1, "d0");
+            const accentSoft = addAlpha(color1, "9a");
+            const halo = addAlpha(color1, "22");
 
             return `
       background:
-        radial-gradient(farthest-side at -33.33% 50%,  ${g}) 0 ${s / 2}px,
-        radial-gradient(farthest-side at  50% 133.33%, ${g}) ${s / 2}px 0,
-        radial-gradient(farthest-side at 133.33% 50%,  ${g}),
-        radial-gradient(farthest-side at  50% -33.33%, ${g}),
-        ${color2};            /* Grundfarbe */
-      background-size: ${s / 4.667}px ${s}px, ${s}px ${s / 4.667}px;
+        radial-gradient(farthest-side at -33.33% 50%, #0000 52%, ${accent} 54% 57%, #0000 59%) 0 ${offset}px / ${arm}px ${tile}px,
+        radial-gradient(farthest-side at 50% 133.33%, #0000 52%, ${accent} 54% 57%, #0000 59%) ${offset}px 0 / ${tile}px ${arm}px,
+        radial-gradient(farthest-side at 133.33% 50%, #0000 52%, ${accentSoft} 54% 57%, #0000 59%) / ${arm}px ${tile}px,
+        radial-gradient(farthest-side at 50% -33.33%, #0000 52%, ${accentSoft} 54% 57%, #0000 59%) / ${tile}px ${arm}px,
+        radial-gradient(circle at 50% 50%, ${halo} 0, transparent 70%) ${offset}px ${offset}px / ${tile}px ${tile}px,
+        radial-gradient(circle at 50% 50%, ${halo} 0, transparent 70%) / ${tile}px ${tile}px,
+        ${color2};
       background-color: ${color2};
+      background-repeat: repeat;
       opacity: 1.0;
     `;
         },
@@ -165,7 +257,7 @@ export const patterns: Pattern[] = [
             const b1 = color2;
             const b2 = color2;
             const b3 = color2;
-            const b4 = color2 + "e0";   // 0xE0 ≈ 88 % Deckkraft
+            const b4 = addAlpha(color2, "e0");   // 0xE0 ≈ 88 % Deckkraft
 
             return `
       background:
@@ -211,7 +303,7 @@ export const patterns: Pattern[] = [
             const s = Math.max(scale * 8, 16);       // Original --s = 84px
             const c1 = color1;                       // hell
             const c2 = color2;                       // mittel
-            const c3 = color2 + "cc";               // dunkel ≈ 80 % Alpha
+            const c3 = addAlpha(color2, "cc");               // dunkel ≈ 80 % Alpha
 
             const _g = "0 120deg, transparent 0";
             return `
