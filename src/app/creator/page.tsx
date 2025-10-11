@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download, Upload } from "lucide-react";
+import { Check, Download, Loader2, Upload, X } from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
@@ -13,7 +13,12 @@ import ImageLayersPanel from "@/components/Settings/ImageLayersPanel";
 import { patterns } from "@/constants/patterns";
 import { ImageLayer, LayerPosition, CanvasPreset, CanvasSize, Pattern, TextLayer, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
-import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
+import {
+    downloadBanner,
+    sanitizeFileName,
+    type BannerExportVariant,
+    type BannerFormat,
+} from "@/utils/downloadBanner";
 
 const DEFAULT_TEXT_STYLES: TextStyles = {
     bold: true,
@@ -51,6 +56,12 @@ const createTextLayer = (overrides: LayerOverrides = {}): TextLayer => ({
     styles: { ...DEFAULT_TEXT_STYLES, ...(overrides.styles ?? {}) },
     position: { ...DEFAULT_LAYER_POSITION, ...(overrides.position ?? {}) },
 });
+
+const TOAST_STYLE_MAP: Record<"info" | "success" | "error", string> = {
+    info: "border-white/15 bg-white/10 text-white",
+    success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-100",
+    error: "border-red-500/40 bg-red-500/15 text-red-100",
+};
 
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
@@ -96,13 +107,33 @@ const CreatorPage = () => {
     const [visiblePicker, setVisiblePicker] = useState<string | null>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
-    const [isDownloading, setIsDownloading] = useState(false);
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [selectedFormats, setSelectedFormats] = useState<BannerFormat[]>(["png"]);
+    const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["2x"]);
+    const [lossyQuality, setLossyQuality] = useState(0.92);
+    const [exportProgress, setExportProgress] = useState({ total: 0, completed: 0, failed: 0 });
+    const [exportToast, setExportToast] = useState<
+        | {
+              type: "info" | "success" | "error";
+              message: string;
+          }
+        | null
+    >(null);
     const [imageLayers, setImageLayers] = useState<ImageLayer[]>([]);
-    const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
     const [isDragActive, setIsDragActive] = useState(false);
     const [isImportingLayers, setIsImportingLayers] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dragCounterRef = useRef(0);
+
+    useEffect(() => {
+        if (!exportToast) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => setExportToast(null), 4000);
+        return () => window.clearTimeout(timer);
+    }, [exportToast]);
 
     const generateLayerId = useCallback(() => {
         if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -520,16 +551,58 @@ const CreatorPage = () => {
     const togglePicker = (pickerId: string) =>
         setVisiblePicker((prev) => (prev === pickerId ? null : pickerId));
 
-    const navItems = useMemo(
-        () => [
-            { href: "/", label: "Landing" },
-            { href: "/creator", label: "Creator" },
-        ],
-        [],
-    );
+    const handleOpenExportDialog = () => setIsExportDialogOpen(true);
 
-    const handleDownload = async () => {
+    const handleCloseExportDialog = () => {
+        if (!isExporting) {
+            setIsExportDialogOpen(false);
+        }
+    };
+
+    const handleStartExport = async () => {
         if (!previewRef.current) {
+            return;
+        }
+
+        const activeFormats = formatOptions.filter((option) => selectedFormats.includes(option.value));
+        const activeResolutions = resolutionOptions.filter((option) =>
+            selectedResolutions.includes(option.id),
+        );
+
+        if (activeFormats.length === 0 || activeResolutions.length === 0) {
+            setExportToast({
+                type: "error",
+                message: "Bitte mindestens ein Format und eine Auflösung auswählen.",
+            });
+            return;
+        }
+
+        const variants: BannerExportVariant[] = [];
+        activeFormats.forEach((format) => {
+            activeResolutions.forEach((resolution) => {
+                const variant: BannerExportVariant = {
+                    format: format.value,
+                    suffix: resolution.suffix,
+                };
+
+                if (format.value !== "svg") {
+                    variant.pixelRatio = resolution.pixelRatio;
+                }
+
+                if (format.value === "jpg" || format.value === "jpeg" || format.value === "webp") {
+                    variant.quality = lossyQuality;
+                }
+
+                variants.push(variant);
+            });
+        });
+
+        const totalJobs = variants.length;
+        if (totalJobs === 0) {
+            setExportToast({
+                type: "error",
+                message: "Keine Export-Variante ausgewählt.",
+            });
             return;
         }
 
@@ -537,7 +610,12 @@ const CreatorPage = () => {
             activeLayer?.content.trim() || selectedPattern.name || "banny-banner",
         );
 
-        setIsDownloading(true);
+        setIsExporting(true);
+        setExportProgress({ total: totalJobs, completed: 0, failed: 0 });
+        setExportToast({
+            type: "info",
+            message: `Export läuft (0/${totalJobs})`,
+        });
 
         try {
             const parsedStyles = parseCSS(
@@ -563,20 +641,352 @@ const CreatorPage = () => {
                 }
             }
 
-            await downloadBanner(previewRef.current, {
+            const results = await downloadBanner(previewRef.current, {
                 fileName: filenameBase,
                 backgroundColor: exportBackground,
                 targetSize: canvasSize,
+                variants,
+                onProgress: (event) => {
+                    setExportProgress((prev) => ({
+                        total: event.total,
+                        completed: event.index + 1,
+                        failed: prev.failed + (event.success ? 0 : 1),
+                    }));
+                    setExportToast({
+                        type: event.success ? "info" : "error",
+                        message: event.success
+                            ? `Export läuft (${event.index + 1}/${event.total})`
+                            : `Export läuft (${event.index + 1}/${event.total}) – Fehler bei ${event.filename}`,
+                    });
+                },
             });
+
+            const failed = results.filter((result) => !result.success);
+
+            if (failed.length === 0) {
+                setExportToast({
+                    type: "success",
+                    message: `Export abgeschlossen (${results.length} Datei${results.length === 1 ? "" : "en"})`,
+                });
+                setIsExportDialogOpen(false);
+            } else if (failed.length === results.length) {
+                setExportToast({
+                    type: "error",
+                    message: "Export fehlgeschlagen. Bitte erneut versuchen.",
+                });
+            } else {
+                setExportToast({
+                    type: "error",
+                    message: `Export abgeschlossen mit ${failed.length} Fehler${failed.length === 1 ? "" : "n"}.`,
+                });
+            }
         } catch (error) {
-            console.error("Download fehlgeschlagen", error);
+            console.error("Export fehlgeschlagen", error);
+            setExportToast({
+                type: "error",
+                message: "Export konnte nicht gestartet werden.",
+            });
         } finally {
-            setIsDownloading(false);
+            setIsExporting(false);
         }
     };
 
+    const navItems = useMemo(
+        () => [
+            { href: "/", label: "Landing" },
+            { href: "/creator", label: "Creator" },
+        ],
+        [],
+    );
+
+    const formatOptions = useMemo(
+        () => [
+            {
+                value: "png" as BannerFormat,
+                label: "PNG",
+                description: "Verlustfrei mit Transparenz",
+            },
+            {
+                value: "jpg" as BannerFormat,
+                label: "JPG",
+                description: "Kompakt für universelle Nutzung",
+            },
+            {
+                value: "webp" as BannerFormat,
+                label: "WebP",
+                description: "Moderne Kompression mit Transparenz",
+            },
+            {
+                value: "svg" as BannerFormat,
+                label: "SVG",
+                description: "Vektor (Beta, experimentell)",
+            },
+        ],
+        [],
+    );
+
+    const resolutionOptions = useMemo(
+        () => [
+            {
+                id: "1x",
+                label: "1× Original",
+                description: "Standard-Auflösung",
+                pixelRatio: 1,
+                suffix: "1x",
+            },
+            {
+                id: "2x",
+                label: "2× Retina",
+                description: "Doppelte Auflösung",
+                pixelRatio: 2,
+                suffix: "2x",
+            },
+            {
+                id: "3x",
+                label: "3× Ultra",
+                description: "Maximale Schärfe",
+                pixelRatio: 3,
+                suffix: "3x",
+            },
+        ],
+        [],
+    );
+
+    const requiresQualityControls = useMemo(
+        () => selectedFormats.some((format) => format === "jpg" || format === "jpeg" || format === "webp"),
+        [selectedFormats],
+    );
+
+    const totalSelectedJobs = useMemo(
+        () => selectedFormats.length * selectedResolutions.length,
+        [selectedFormats, selectedResolutions],
+    );
+
+    const selectedFormatLabels = useMemo(
+        () =>
+            formatOptions
+                .filter((option) => selectedFormats.includes(option.value))
+                .map((option) => option.label)
+                .join(", "),
+        [formatOptions, selectedFormats],
+    );
+
+    const selectedResolutionLabels = useMemo(
+        () =>
+            resolutionOptions
+                .filter((option) => selectedResolutions.includes(option.id))
+                .map((option) => option.label)
+                .join(", "),
+        [resolutionOptions, selectedResolutions],
+    );
+
+    const exportFileNamePreview = useMemo(
+        () =>
+            sanitizeFileName(
+                (activeLayer?.content ?? "").trim() || selectedPattern.name || "banny-banner",
+            ),
+        [activeLayer?.content, selectedPattern.name],
+    );
+
+    const toggleFormat = (format: BannerFormat) => {
+        setSelectedFormats((prev) => {
+            if (prev.includes(format)) {
+                return prev.filter((item) => item !== format);
+            }
+            return [...prev, format];
+        });
+    };
+
+    const toggleResolution = (id: string) => {
+        setSelectedResolutions((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((item) => item !== id);
+            }
+            return [...prev, id];
+        });
+    };
+
+    const handleQualityChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setLossyQuality(Number(event.target.value));
+    };
+
+    
+
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
+            {isExportDialogOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={handleCloseExportDialog}
+                >
+                    <div
+                        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/95 shadow-[0_40px_120px_rgba(10,10,14,0.85)]"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={handleCloseExportDialog}
+                            disabled={isExporting}
+                            className="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label="Dialog schließen"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                        <div className="flex flex-col gap-6 p-6 sm:p-8">
+                            <div className="flex flex-col gap-2">
+                                <span className="text-xs uppercase tracking-[0.35em] text-[#A1E2F8]">Export</span>
+                                <h2 className="text-2xl font-semibold text-white sm:text-3xl">Banner exportieren</h2>
+                                <p className="text-sm text-white/60">
+                                    Wähle Formate und Auflösungen für deinen Download. Mehrere Varianten werden nacheinander exportiert.
+                                </p>
+                            </div>
+                            <div className="grid gap-6">
+                                <section className="grid gap-3">
+                                    <h3 className="text-sm font-semibold text-white">Format</h3>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        {formatOptions.map((option) => {
+                                            const isSelected = selectedFormats.includes(option.value);
+                                            return (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => toggleFormat(option.value)}
+                                                    disabled={isExporting}
+                                                    className={`group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition ${
+                                                        isSelected
+                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
+                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="text-base font-semibold">{option.label}</span>
+                                                        <span
+                                                            className={`flex h-5 w-5 items-center justify-center rounded-full border ${
+                                                                isSelected
+                                                                    ? "border-[#A1E2F8] bg-[#A1E2F8]/80"
+                                                                    : "border-white/20 bg-transparent"
+                                                            }`}
+                                                        >
+                                                            {isSelected && <Check className="h-3 w-3 text-zinc-950" />}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-white/60 group-hover:text-white/70">{option.description}</p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                                <section className="grid gap-3">
+                                    <h3 className="text-sm font-semibold text-white">Auflösung</h3>
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        {resolutionOptions.map((resolution) => {
+                                            const isSelected = selectedResolutions.includes(resolution.id);
+                                            return (
+                                                <button
+                                                    key={resolution.id}
+                                                    type="button"
+                                                    onClick={() => toggleResolution(resolution.id)}
+                                                    disabled={isExporting}
+                                                    className={`group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition ${
+                                                        isSelected
+                                                            ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
+                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                >
+                                                    <div className="text-base font-semibold">{resolution.label}</div>
+                                                    <p className="text-xs text-white/60 group-hover:text-white/70">{resolution.description}</p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                                {requiresQualityControls && (
+                                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-white">Qualität für JPG &amp; WebP</h3>
+                                                <p className="text-xs text-white/60">
+                                                    Höhere Werte bedeuten größere Dateien, niedrigere Werte sparen Speicher.
+                                                </p>
+                                            </div>
+                                            <span className="text-sm font-semibold text-[#A1E2F8]">{Math.round(lossyQuality * 100)}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min={0.5}
+                                            max={1}
+                                            step={0.05}
+                                            value={lossyQuality}
+                                            onChange={handleQualityChange}
+                                            disabled={isExporting}
+                                            className="mt-4 w-full accent-[#A1E2F8]"
+                                        />
+                                    </div>
+                                )}
+                                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-white/80">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="font-medium text-white">Geplante Exporte</span>
+                                        <span className="font-semibold text-[#A1E2F8]">{totalSelectedJobs}</span>
+                                    </div>
+                                    <p className="mt-2 text-xs text-white/60">
+                                        {selectedFormatLabels ? `Formate: ${selectedFormatLabels}.` : "Kein Format ausgewählt."}{" "}
+                                        {selectedResolutionLabels
+                                            ? `Auflösungen: ${selectedResolutionLabels}.`
+                                            : "Keine Auflösung ausgewählt."}
+                                    </p>
+                                    <p className="mt-1 text-xs text-white/60">
+                                        Dateiname-Basis: <span className="font-semibold text-white">{exportFileNamePreview}</span>
+                                    </p>
+                                    {isExporting && (
+                                        <div className="mt-3 flex items-center gap-2 text-xs text-[#A1E2F8]">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Fortschritt {exportProgress.completed}/{exportProgress.total}
+                                            {exportProgress.failed > 0 && (
+                                                <span className="text-red-300"> · Fehler {exportProgress.failed}</span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs text-white/50">
+                                    Tipp: Du kannst mehrere Varianten gleichzeitig exportieren. Die Dateien werden automatisch benannt.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseExportDialog}
+                                        disabled={isExporting}
+                                        className="inline-flex items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        Abbrechen
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleStartExport}
+                                        disabled={isExporting || totalSelectedJobs === 0}
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/20 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {isExporting ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Export läuft…
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="h-4 w-4" />
+                                                Export starten
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Orbs */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#A1E2F8]/25 blur-3xl" />
@@ -614,12 +1024,21 @@ const CreatorPage = () => {
                         </nav>
                         <button
                             type="button"
-                            onClick={handleDownload}
-                            disabled={isDownloading}
+                            onClick={handleOpenExportDialog}
+                            disabled={isExporting}
                             className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            <Download className="h-4 w-4" />
-                            {isDownloading ? "Bereite Download vor…" : "Download PNG"}
+                            {isExporting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Export läuft…
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="h-4 w-4" />
+                                    Exportieren
+                                </>
+                            )}
                         </button>
                     </div>
                 </header>
@@ -683,18 +1102,15 @@ const CreatorPage = () => {
                                         patternColor2={patternColor2}
                                         patternScale={patternScale}
                                         layers={layers}
-                                        selectedLayerId={activeLayer?.id ?? null}
+                                        selectedLayerId={selectedLayerId}
                                         previewRef={previewRef}
                                         onLayerContentChange={handleLayerContentChange}
                                         onLayerPositionChange={handleLayerPositionChange}
                                         onSelectLayer={handleSelectLayer}
-                                        onTextChange={setTextContent}
                                         imageLayers={imageLayers}
-                                        onLayerChange={handleLayerChange}
-                                        onSelectLayer={setSelectedLayerId}
-                                        selectedLayerId={selectedLayerId}
-                                        isDragActive={isDragActive}
+                                        onImageLayerChange={handleLayerChange}
                                         canvasSize={canvasSize}
+                                        isDragActive={isDragActive}
                                     />
                                     <input
                                         ref={fileInputRef}
@@ -780,6 +1196,24 @@ const CreatorPage = () => {
                     </div>
                 </motion.section>
             </div>
+            {exportToast && (
+                <div
+                    className={`fixed bottom-6 right-6 z-50 max-w-xs rounded-2xl border px-4 py-3 shadow-xl shadow-black/40 backdrop-blur ${TOAST_STYLE_MAP[exportToast.type]}`}
+                >
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/10">
+                            {exportToast.type === "success" ? (
+                                <Check className="h-4 w-4 text-emerald-300" />
+                            ) : exportToast.type === "error" ? (
+                                <X className="h-4 w-4 text-red-300" />
+                            ) : (
+                                <Loader2 className="h-4 w-4 animate-spin text-[#A1E2F8]" />
+                            )}
+                        </div>
+                        <p className="text-sm font-medium leading-snug">{exportToast.message}</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
