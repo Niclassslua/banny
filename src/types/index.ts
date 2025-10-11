@@ -29,6 +29,15 @@ export interface Pattern {
     style?: string | ((scale: number, color1: string, color2: string) => string);
 }
 
+export interface CanvasSize {
+    width: number;
+    height: number;
+}
+
+export interface CanvasPreset extends CanvasSize {
+    label: string;
+}
+
 export interface SettingsPanelProps {
     patternColor1: string;
     setPatternColor1: (color: string) => void;
@@ -39,4 +48,7 @@ export interface SettingsPanelProps {
     darkMode: boolean;
     visiblePicker: string | null;
     togglePicker: (pickerId: string) => void;
+    canvasSize: CanvasSize;
+    setCanvasSize: (size: CanvasSize) => void;
+    canvasPresets: CanvasPreset[];
 }
