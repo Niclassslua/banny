@@ -17,6 +17,35 @@ export interface Pattern {
     style?: string | ((scale: number, color1: string, color2: string) => string);
 }
 
+export interface CreatorElement {
+    id: string;
+    type: "text";
+    textContent: string;
+    textStyles: TextStyles;
+}
+
+export interface CreatorState {
+    schemaVersion: number;
+    textContent: string;
+    textStyles: TextStyles;
+    elements: CreatorElement[];
+    pattern: {
+        name: string;
+    };
+    patternColor1: string;
+    patternColor2: string;
+    patternScale: number;
+}
+
+export interface SavedTemplate {
+    id: string;
+    name: string;
+    createdAt: string;
+    state: CreatorState;
+}
+
+export type CreatorShareMode = "json" | "url";
+
 export interface SettingsPanelProps {
     patternColor1: string;
     setPatternColor1: (color: string) => void;
