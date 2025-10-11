@@ -2,9 +2,7 @@
 
 import type { Options as HtmlToImageOptions } from "html-to-image";
 import { toBlob, toCanvas, toSvg } from "html-to-image";
-// GIF-Encoder: klein & zuverlässig
-// npm i gifenc
-type GifFrame = { imageData: ImageData; delayMs: number };
+import CCapture from "ccapture.js";
 
 type DownloadBannerOptions = {
     animated: boolean;
@@ -13,50 +11,16 @@ type DownloadBannerOptions = {
     frameDelayMs?: number;
 };
 
-type GifPaletteEntry = [number, number, number] | [number, number, number, number];
-type GifPalette = GifPaletteEntry[];
-
-type GifEncoder = {
-    writeFrame: (
-        indexedPixels: Uint8Array,
-        width: number,
-        height: number,
-        options: {
-            palette: GifPalette;
-            delay: number;
-            transparent: number | null;
-            disposal: number;
-        },
-    ) => void;
-    finish: () => void;
-    bytesView: () => Uint8Array;
-    setRepeat?: (repeat: number) => void;
-    setLoops?: (loops: number) => void;
-};
-
-type GifencModule = {
-    GIFEncoder: (options?: { auto?: boolean }) => GifEncoder;
-    quantize: (pixels: Uint8Array, maxColors?: number) => GifPalette;
-    applyPalette: (
-        pixels: Uint8Array | Uint8ClampedArray,
-        palette: GifPalette,
-        format?: "rgb565" | "rgb444" | "rgba4444",
-    ) => Uint8Array;
-};
-
 const DEFAULT_DURATION = 2400;
-const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
-const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
-const MAX_FRAMES = 600;     // höheres Limit für längere/gleichmäßige Loops
-const MIN_FRAME_DELAY = 10; // GIF-Spezifikation: mindestens 1/100 Sekunde
+const DEFAULT_DELAY = 40;
+const MIN_FRAMES = 24;
+const MIN_FRAME_DELAY = 10;
 
 const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
     cacheBust: true,
-    backgroundColor: "#ffffff", // fester BG für saubere Quantisierung
+    backgroundColor: "#ffffff",
 };
-
-/* ───────── helpers ───────── */
 
 function triggerDownload(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
@@ -79,13 +43,20 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         width: node.style.width,
         height: node.style.height,
     };
+
     try {
         node.style.position = node.style.position || "relative";
         node.style.opacity = "1";
         node.style.transform = "none";
+
         const rect = node.getBoundingClientRect();
-        if (rect.width < 1) node.style.width = `${node.offsetWidth || 1}px`;
-        if (rect.height < 1) node.style.height = `${node.offsetHeight || 1}px`;
+        if (rect.width < 1) {
+            node.style.width = `${node.offsetWidth || 1}px`;
+        }
+        if (rect.height < 1) {
+            node.style.height = `${node.offsetHeight || 1}px`;
+        }
+
         return await fn(node);
     } finally {
         node.style.position = prev.position;
@@ -100,7 +71,7 @@ async function renderViaSvg(node: HTMLElement): Promise<HTMLCanvasElement> {
     const svg = await toSvg(node, RENDER_OPTIONS);
     const img = new Image();
     img.decoding = "sync";
-    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     await img.decode();
 
     const { width, height } = node.getBoundingClientRect();
@@ -110,22 +81,42 @@ async function renderViaSvg(node: HTMLElement): Promise<HTMLCanvasElement> {
     canvas.width = Math.max(1, Math.round((width || node.offsetWidth || 1) * ratio));
     canvas.height = Math.max(1, Math.round((height || node.offsetHeight || 1) * ratio));
 
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+        canvas.remove();
+        throw new Error("Canvas-Kontext konnte nicht erzeugt werden.");
+    }
+
     ctx.fillStyle = RENDER_OPTIONS.backgroundColor ?? "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
     return canvas;
 }
 
 async function safeRenderToCanvas(node: HTMLElement): Promise<HTMLCanvasElement | null> {
     try {
-        const c = await toCanvas(node, RENDER_OPTIONS);
-        if (c && c.width > 0 && c.height > 0) return c;
-    } catch {}
+        const canvas = await toCanvas(node, RENDER_OPTIONS);
+        if (canvas && canvas.width > 0 && canvas.height > 0) {
+            return canvas;
+        }
+    } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+            console.warn("render via toCanvas fehlgeschlagen", error);
+        }
+    }
+
     try {
-        const c = await renderViaSvg(node);
-        if (c && c.width > 0 && c.height > 0) return c;
-    } catch {}
+        const fallback = await renderViaSvg(node);
+        if (fallback && fallback.width > 0 && fallback.height > 0) {
+            return fallback;
+        }
+    } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+            console.warn("render via SVG fallback fehlgeschlagen", error);
+        }
+    }
+
     return null;
 }
 
@@ -133,183 +124,6 @@ export function sanitizeFileName(name: string) {
     const normalized = name.toLowerCase().replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "");
     return normalized || "banny-banner";
 }
-
-/* ───── Frame-Aufbereitung ───── */
-
-function msToCs(ms: number) { return Math.max(1, Math.round(ms / 10)); }
-
-function hardenAlpha(imageData: ImageData): ImageData {
-    const src = imageData.data;
-    const buf = new Uint8ClampedArray(src.length);
-    buf.set(src);
-    for (let i = 3; i < buf.length; i += 4) buf[i] = 255; // volle Deckkraft
-    return new ImageData(buf, imageData.width, imageData.height);
-}
-
-function normalizeToSize(img: ImageData, w: number, h: number): ImageData {
-    if (img.width === w && img.height === h) return img;
-    const cv = document.createElement("canvas");
-    cv.width = w; cv.height = h;
-    const c = cv.getContext("2d")!;
-    const temp = document.createElement("canvas");
-    temp.width = img.width; temp.height = img.height;
-    temp.getContext("2d")!.putImageData(img, 0, 0);
-    c.drawImage(temp, 0, 0, w, h);
-    const out = c.getImageData(0, 0, w, h);
-    cv.width = cv.height = 0; temp.width = temp.height = 0;
-    return out;
-}
-
-/* ───── GIF-Encoding via gifenc mit globaler Palette ───── */
-
-let gifencModulePromise: Promise<GifencModule | null> | null = null;
-
-function coerceGifencModule(candidate: unknown): GifencModule | null {
-    if (!candidate) return null;
-
-    const collected: Partial<GifencModule> = {};
-    const visited = new Set<unknown>();
-
-    const visit = (value: unknown) => {
-        if (!value || visited.has(value)) return;
-        visited.add(value);
-
-        if (typeof value === "function") {
-            collected.GIFEncoder = value as GifencModule["GIFEncoder"];
-            return;
-        }
-
-        if (typeof value !== "object") return;
-
-        const obj = value as Record<string, unknown>;
-
-        if (typeof obj.GIFEncoder === "function") {
-            collected.GIFEncoder = obj.GIFEncoder as GifencModule["GIFEncoder"];
-        }
-
-        if (typeof obj.quantize === "function") {
-            collected.quantize = obj.quantize as GifencModule["quantize"];
-        }
-
-        if (typeof obj.applyPalette === "function") {
-            collected.applyPalette = obj.applyPalette as GifencModule["applyPalette"];
-        }
-
-        if ("default" in obj) {
-            visit(obj.default);
-        }
-    };
-
-    visit(candidate);
-
-    return collected.GIFEncoder && collected.quantize && collected.applyPalette
-        ? (collected as GifencModule)
-        : null;
-}
-
-async function loadGifencFrom(loader: () => Promise<unknown>): Promise<GifencModule | null> {
-    const imported = await loader();
-    return coerceGifencModule(imported);
-}
-
-async function importGifenc(): Promise<GifencModule | null> {
-    if (!gifencModulePromise) {
-        gifencModulePromise = (async () => {
-            const loaders: Array<() => Promise<unknown>> = [
-                () => import("gifenc"),
-                () => import("gifenc/dist/gifenc.esm.js"),
-                () => import("gifenc/dist/gifenc.js"),
-            ];
-
-            let lastError: unknown;
-            for (const loader of loaders) {
-                try {
-                    const mod = await loadGifencFrom(loader);
-                    if (mod) {
-                        return mod;
-                    }
-                    lastError = new Error("gifenc module missing required exports");
-                } catch (error) {
-                    lastError = error;
-                }
-            }
-
-            if (process.env.NODE_ENV !== "production") {
-                console.error("Failed to load gifenc via dynamic import", lastError);
-            }
-
-            return null;
-        })();
-    }
-
-    const loaded = await gifencModulePromise;
-    if (!loaded) {
-        gifencModulePromise = null;
-    }
-    return loaded;
-}
-
-/** Baut eine globale Palette aus subsampelten Pixeln aller Frames → stabilere Farben */
-function buildGlobalPalette(frames: GifFrame[], quantize: GifencModule["quantize"], maxColors = 256): GifPalette {
-    // subsample: jedes n-te Pixel, um RAM/CPU zu schonen
-    const sampleStride = 4 * 8; // ~ jede 8. RGBA-Zelle
-    const buckets: number[] = [];
-    for (const f of frames) {
-        const d = f.imageData.data;
-        for (let i = 0; i < d.length; i += sampleStride) {
-            buckets.push(d[i], d[i + 1], d[i + 2], d[i + 3]);
-        }
-    }
-    return quantize(new Uint8Array(buckets), maxColors);
-}
-
-async function encodeGifWithGifenc(frames: GifFrame[], fileName: string): Promise<void> {
-    const mod = await importGifenc();
-    if (!mod) throw new Error("gifenc not available");
-
-    const { GIFEncoder, quantize, applyPalette } = mod;
-    const W = frames[0].imageData.width;
-    const H = frames[0].imageData.height;
-
-    // 1) globale Palette
-    const palette = buildGlobalPalette(frames, quantize, 256);
-
-    // 2) Encoder anlegen + Loop=∞ (repeat=0)
-    const encoder = GIFEncoder();
-    if (typeof encoder.setRepeat === "function") encoder.setRepeat(0); // endlos
-    // (manche Builds nutzen encoder.setLoops(0))
-    if (typeof encoder.setLoops === "function") encoder.setLoops(0);
-
-    // 3) Frames quantisieren (direkt mit RGBA-Daten für unverfälschte Farben)
-    for (const f of frames) {
-        const rgba = f.imageData.data;
-        // gifenc erwartet RGBA-Daten; der rgb565-Pfad verfälscht Farben.
-        const indexed = applyPalette(new Uint8Array(rgba), palette);
-        encoder.writeFrame(indexed, W, H, {
-            palette,
-            delay: msToCs(f.delayMs), // 1/100 s
-            transparent: null,        // explizit KEINE Transparenz
-            disposal: 1,              // 'none' → volle Frames ohne Ghosting
-        });
-    }
-
-    encoder.finish();
-    const out = encoder.bytesView();
-    triggerDownload(new Blob([out], { type: "image/gif" }), `${fileName}.gif`);
-}
-
-/* ───────── static ───────── */
-
-async function downloadStatic(node: HTMLElement, fileName: string) {
-    const blob = await withVisibleNode(node, async (n) => {
-        const b = await toBlob(n, RENDER_OPTIONS);
-        if (!b) throw new Error("Konnte kein Bild generieren (Blob null).");
-        return b;
-    });
-    triggerDownload(blob, `${fileName}.png`);
-}
-
-/* ───────── animated ───────── */
 
 type AnimationController = {
     seek: (offsetMs: number) => void;
@@ -371,6 +185,7 @@ function createAnimationController(root: HTMLElement): AnimationController {
                 if (typeof playbackRate === "number") {
                     animation.playbackRate = playbackRate;
                 }
+
                 if (playState === "running") {
                     animation.play();
                 } else if (playState === "finished") {
@@ -386,26 +201,20 @@ function createAnimationController(root: HTMLElement): AnimationController {
 }
 
 function buildFrameSchedule(durationMs: number, desiredDelay: number) {
-    const clampedDelay = Math.max(MIN_FRAME_DELAY, desiredDelay);
-    const minimumDuration = MIN_FRAME_DELAY * MIN_FRAMES;
-    const scheduledDuration = Math.max(durationMs, minimumDuration);
-    const provisionalCount = Math.max(MIN_FRAMES, Math.ceil(scheduledDuration / clampedDelay));
-    const frameCount = Math.min(MAX_FRAMES, provisionalCount);
-    const denominator = Math.max(1, frameCount - 1);
+    const delay = Math.max(MIN_FRAME_DELAY, desiredDelay);
+    const minimumDuration = Math.max(delay * MIN_FRAMES, durationMs);
+    const frameCount = Math.max(MIN_FRAMES, Math.round(minimumDuration / delay));
+    const step = minimumDuration / frameCount;
 
-    const offsets: number[] = [];
+    const unique = new Set<number>();
     for (let i = 0; i < frameCount; i += 1) {
-        if (i === frameCount - 1) {
-            offsets.push(scheduledDuration);
-        } else {
-            offsets.push(Math.round((scheduledDuration * i) / denominator));
-        }
+        unique.add(Math.round(i * step));
     }
 
-    return offsets;
+    return Array.from(unique).sort((a, b) => a - b);
 }
 
-async function downloadAnimated(
+async function captureAnimationWithCCapture(
     node: HTMLElement,
     fileName: string,
     durationMs: number,
@@ -413,179 +222,87 @@ async function downloadAnimated(
 ) {
     const desiredDelay = Math.max(MIN_FRAME_DELAY, frameDelayMs);
     const schedule = buildFrameSchedule(durationMs, desiredDelay);
-    const plannedDuration = schedule[schedule.length - 1] ?? durationMs;
-    const captured: Array<{ imageData: ImageData; offset: number }> = [];
+    if (!schedule.length) {
+        throw new Error("Kein gültiger Aufnahmeplan generiert.");
+    }
 
     await withVisibleNode(node, async (n) => {
         const controller = createAnimationController(n);
+        const fps = Math.max(1, Math.round(1000 / desiredDelay));
+        const capturer = new CCapture({
+            format: "gif",
+            framerate: fps,
+            quality: 100,
+            name: fileName,
+        });
 
-        const captureFrame = async (offset: number): Promise<boolean> => {
-            controller.seek(offset);
-            await new Promise((resolve) => requestAnimationFrame(resolve));
+        const rect = n.getBoundingClientRect();
+        const ratio = RENDER_OPTIONS.pixelRatio ?? 1;
+        const width = Math.max(1, Math.round((rect.width || n.offsetWidth || 1) * ratio));
+        const height = Math.max(1, Math.round((rect.height || n.offsetHeight || 1) * ratio));
 
-    await withVisibleNode(node, async (n) => {
-        const captureFrame = async (): Promise<boolean> => {
-            const canvas = await safeRenderToCanvas(n);
-            if (!canvas) return false;
-
-            const ctx = canvas.getContext("2d", { willReadFrequently: true });
-            if (!ctx) {
-                canvas.width = 0;
-                canvas.height = 0;
-                canvas.remove();
-                return false;
-            }
-
-            // stabiler Weiß-BG → keine Alpha-Artefakte bei der Quantisierung
-            ctx.save();
-            ctx.globalCompositeOperation = "destination-over";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
-
-            let imageData: ImageData;
-            try {
-                imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            } catch {
-                canvas.width = 0;
-                canvas.height = 0;
-                canvas.remove();
-                return false;
-            }
-
-            captured.push({ imageData, offset });
-
-            canvas.width = 0;
-            canvas.height = 0;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
             canvas.remove();
-            return true;
-        };
+            throw new Error("Konnte keinen Canvas-Kontext für die Aufnahme erzeugen.");
+        }
+
+        capturer.start();
 
         try {
             for (const offset of schedule) {
-                let attempts = 0;
-                let ok = false;
-                while (attempts < 3 && !ok) {
-                    ok = await captureFrame(offset);
-                    attempts += 1;
+                controller.seek(offset);
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+
+                const rendered = await safeRenderToCanvas(n);
+                if (!rendered) {
+                    continue;
                 }
-                if (!ok) continue;
+
+                ctx.save();
+                ctx.globalCompositeOperation = "source-over";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+                ctx.drawImage(rendered, 0, 0, width, height);
+
+                capturer.capture(canvas);
+
+                rendered.width = 0;
+                rendered.height = 0;
+                rendered.remove();
             }
         } finally {
             controller.restore();
-        }
-        if (!frames.length) return;
-
-        const start = performance.now();
-        let previousTimestamp = start;
-        let lastDelay = frames[frames.length - 1].delayMs;
-
-        while (frames.length < targetFrameCount) {
-            const timestamp = await nextFrame();
-            const delta = Math.max(
-                MIN_FRAME_DELAY,
-                Math.round(timestamp - previousTimestamp) || MIN_FRAME_DELAY,
-            );
-            previousTimestamp = timestamp;
-            lastDelay = delta;
-
-            frames[frames.length - 1].delayMs = delta;
-
-            const elapsed = timestamp - start;
-            if (elapsed >= durationMs && frames.length >= MIN_FRAMES) {
-                break;
-            }
-
-            const ok = await captureFrame();
-            if (!ok) {
-                break;
-            }
+            capturer.stop();
         }
 
-        frames[frames.length - 1].delayMs = Math.max(MIN_FRAME_DELAY, lastDelay);
+        const blob = await capturer.save();
+        if (!blob) {
+            throw new Error("GIF konnte nicht erzeugt werden.");
+        }
+
+        triggerDownload(blob, `${fileName}.gif`);
+
+        canvas.width = canvas.height = 0;
+        canvas.remove();
     });
-
-    if (!captured.length) throw new Error("Keine Frames für die Animation gesammelt.");
-
-    const targetDurationMs = Math.max(
-        durationMs,
-        plannedDuration,
-        captured.length * MIN_FRAME_DELAY,
-    );
-
-    const frames: GifFrame[] = captured.map((frame, index) => {
-        const nextOffset = captured[index + 1]?.offset ?? targetDurationMs;
-        const delta = Math.max(
-            MIN_FRAME_DELAY,
-            Math.round(nextOffset - frame.offset) || desiredDelay,
-        );
-        return {
-            imageData: frame.imageData,
-            delayMs: delta,
-        };
-    });
-
-    let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
-
-    if (totalDelayMs <= 0) {
-        const fallback = Math.max(MIN_FRAME_DELAY, Math.round(targetDurationMs / frames.length));
-        frames.forEach((frame) => {
-            frame.delayMs = fallback;
-        });
-        totalDelayMs = fallback * frames.length;
-    }
-
-    if (Math.abs(totalDelayMs - targetDurationMs) > MIN_FRAME_DELAY) {
-        const scale = targetDurationMs / totalDelayMs;
-        let accumulated = 0;
-        for (let i = 0; i < frames.length - 1; i += 1) {
-            const scaled = Math.max(MIN_FRAME_DELAY, Math.round(frames[i].delayMs * scale));
-            frames[i].delayMs = scaled;
-            accumulated += scaled;
-        }
-        frames[frames.length - 1].delayMs = Math.max(
-            MIN_FRAME_DELAY,
-            Math.round(targetDurationMs - accumulated),
-        );
-    }
-
-    const targetDurationMs = Math.max(durationMs, frames.length * MIN_FRAME_DELAY);
-    let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
-
-    if (totalDelayMs <= 0) {
-        const fallback = Math.max(MIN_FRAME_DELAY, Math.round(targetDurationMs / frames.length));
-        frames.forEach((frame) => {
-            frame.delayMs = fallback;
-        });
-        totalDelayMs = fallback * frames.length;
-    }
-
-    if (Math.abs(totalDelayMs - targetDurationMs) > MIN_FRAME_DELAY) {
-        const scale = targetDurationMs / totalDelayMs;
-        let accumulated = 0;
-        for (let i = 0; i < frames.length - 1; i += 1) {
-            const scaled = Math.max(MIN_FRAME_DELAY, Math.round(frames[i].delayMs * scale));
-            frames[i].delayMs = scaled;
-            accumulated += scaled;
-        }
-        frames[frames.length - 1].delayMs = Math.max(
-            MIN_FRAME_DELAY,
-            Math.round(targetDurationMs - accumulated),
-        );
-    }
-
-    // **einheitliche Größe + kein Alpha**
-    const W = frames[0].imageData.width;
-    const H = frames[0].imageData.height;
-    const normalized = frames.map((f) => ({
-        imageData: normalizeToSize(hardenAlpha(f.imageData), W, H),
-        delayMs: f.delayMs,
-    }));
-
-    await encodeGifWithGifenc(normalized, fileName);
 }
 
-/* ───────── public API ───────── */
+async function downloadStatic(node: HTMLElement, fileName: string) {
+    const blob = await withVisibleNode(node, async (n) => {
+        const generated = await toBlob(n, RENDER_OPTIONS);
+        if (!generated) {
+            throw new Error("Konnte kein PNG generieren.");
+        }
+        return generated;
+    });
+
+    triggerDownload(blob, `${fileName}.png`);
+}
 
 export async function downloadBanner(
     node: HTMLElement,
@@ -597,12 +314,14 @@ export async function downloadBanner(
     }: DownloadBannerOptions,
 ) {
     const active = document.activeElement as HTMLElement | null;
-    if (active && node.contains(active)) active.blur();
+    if (active && node.contains(active)) {
+        active.blur();
+    }
 
-    await new Promise((r) => requestAnimationFrame(r));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     if (animated) {
-        await downloadAnimated(node, fileName, durationMs, frameDelayMs);
+        await captureAnimationWithCCapture(node, fileName, durationMs, frameDelayMs);
     } else {
         await downloadStatic(node, fileName);
     }
