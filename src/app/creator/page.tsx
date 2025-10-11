@@ -64,7 +64,7 @@ const CreatorPage = () => {
             >
                 <div
                     className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
-                    style={parseCSS(pattern.style, 14, patternColor1, patternColor2)}
+                    style={parseCSS(pattern.style, 4, patternColor1, patternColor2)}
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-white">{pattern.name}</span>
