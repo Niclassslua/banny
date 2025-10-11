@@ -165,29 +165,60 @@ function normalizeToSize(img: ImageData, w: number, h: number): ImageData {
 
 /* ───── GIF-Encoding via gifenc mit globaler Palette ───── */
 
-type GifencImportShape = Partial<GifencModule> & { default?: Partial<GifencModule> };
-
 let gifencModulePromise: Promise<GifencModule | null> | null = null;
 
-async function loadGifencFrom(loader: () => Promise<GifencImportShape>): Promise<GifencModule | null> {
-    const imported = await loader();
-    const resolved = (imported.default ?? imported) as Partial<GifencModule>;
+function coerceGifencModule(candidate: unknown): GifencModule | null {
+    if (!candidate) return null;
 
-    if (!resolved.GIFEncoder || !resolved.quantize || !resolved.applyPalette) {
-        return null;
-    }
+    const collected: Partial<GifencModule> = {};
+    const visited = new Set<unknown>();
 
-    return {
-        GIFEncoder: resolved.GIFEncoder,
-        quantize: resolved.quantize,
-        applyPalette: resolved.applyPalette,
+    const visit = (value: unknown) => {
+        if (!value || visited.has(value)) return;
+        visited.add(value);
+
+        if (typeof value === "function") {
+            collected.GIFEncoder = value as GifencModule["GIFEncoder"];
+            return;
+        }
+
+        if (typeof value !== "object") return;
+
+        const obj = value as Record<string, unknown>;
+
+        if (typeof obj.GIFEncoder === "function") {
+            collected.GIFEncoder = obj.GIFEncoder as GifencModule["GIFEncoder"];
+        }
+
+        if (typeof obj.quantize === "function") {
+            collected.quantize = obj.quantize as GifencModule["quantize"];
+        }
+
+        if (typeof obj.applyPalette === "function") {
+            collected.applyPalette = obj.applyPalette as GifencModule["applyPalette"];
+        }
+
+        if ("default" in obj) {
+            visit(obj.default);
+        }
     };
+
+    visit(candidate);
+
+    return collected.GIFEncoder && collected.quantize && collected.applyPalette
+        ? (collected as GifencModule)
+        : null;
+}
+
+async function loadGifencFrom(loader: () => Promise<unknown>): Promise<GifencModule | null> {
+    const imported = await loader();
+    return coerceGifencModule(imported);
 }
 
 async function importGifenc(): Promise<GifencModule | null> {
     if (!gifencModulePromise) {
         gifencModulePromise = (async () => {
-            const loaders: Array<() => Promise<GifencImportShape>> = [
+            const loaders: Array<() => Promise<unknown>> = [
                 () => import("gifenc"),
                 () => import("gifenc/dist/gifenc.esm.js"),
                 () => import("gifenc/dist/gifenc.js"),
@@ -200,6 +231,7 @@ async function importGifenc(): Promise<GifencModule | null> {
                     if (mod) {
                         return mod;
                     }
+                    lastError = new Error("gifenc module missing required exports");
                 } catch (error) {
                     lastError = error;
                 }
