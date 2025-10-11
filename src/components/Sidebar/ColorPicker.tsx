@@ -43,20 +43,20 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                     <ColorPicker
                         style={{
                             body: {
-                                background: "transparent",
+                                backgroundColor: "transparent",
                                 boxShadow: "none",
                             },
                             rbgcpInputLabel: {
                                 color: "rgb(225, 233, 240)",
                             },
                             rbgcpControlBtnWrapper: {
-                                background: "rgba(255,255,255,0.04)",
+                                backgroundColor: "rgba(255,255,255,0.04)",
                                 borderRadius: "12px",
                             },
                             rbgcpInput: {
                                 border: "none",
                                 color: "white",
-                                background: "rgba(255,255,255,0.06)",
+                                backgroundColor: "rgba(255,255,255,0.06)",
                             },
                             rbgcpControlBtn: {
                                 color: "rgb(225, 233, 240)",
@@ -71,14 +71,14 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                                 color: "white",
                             },
                             rbgcpControlBtnSelected: {
-                                background: "rgba(161, 226, 248, 0.18)",
+                                backgroundColor: "rgba(161, 226, 248, 0.18)",
                                 color: "#A1E2F8",
                             },
                             rbgcpDegreeIcon: {
                                 color: "rgb(225, 233, 240)",
                             },
                             rbgcpColorModelDropdown: {
-                                background: "rgba(8,8,12,0.85)",
+                                backgroundColor: "rgba(8,8,12,0.85)",
                                 borderRadius: "12px",
                             },
                             rbgcpComparibleLabel: {
