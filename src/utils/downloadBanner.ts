@@ -44,10 +44,10 @@ type GifencModule = {
     ) => Uint8Array;
 };
 
-const DEFAULT_DURATION = 2400;
-const DEFAULT_DELAY = 40;   // ~25 FPS → flüssiger
-const MIN_FRAMES = 24;      // mehr Frames → weniger Ruckeln
-const MAX_FRAMES = 60;
+const DEFAULT_DURATION = 4800;
+const DEFAULT_DELAY = 10;   // ~25 FPS → flüssiger
+const MIN_FRAMES = 48;      // mehr Frames → weniger Ruckeln
+const MAX_FRAMES = 120;
 
 const RENDER_OPTIONS: HtmlToImageOptions = {
     pixelRatio: 2,
