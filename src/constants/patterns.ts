@@ -4,16 +4,14 @@ export const patterns: Pattern[] = [
     {
         name: "Crimson Depth",
         style: (scale: number, color1: string, color2: string) => {
-            const deepAccent = addAlpha(color1, "cc");
-            const glow = addAlpha(color1, "55");
-            const base = addAlpha(color2, "f0");
-            const transitionStop = Math.min(30 + scale * 1.8, 72);
-            const glowStop = Math.min(transitionStop + 12, 88);
+            const base = color2;
+            const shadow = addAlpha(color2, "dd");
+            const accent = addAlpha(color1, "f2");
+            const gradientSize = 110 + Math.max(scale - 10, 0) * 2.5;
 
             return `
-      background:
-        radial-gradient(125% 125% at 50% 100%, ${deepAccent} ${transitionStop}%, ${glow} ${glowStop}%, ${base} 100%);
-      background-color: ${color2};
+      background: radial-gradient(${gradientSize}% ${gradientSize}% at 50% 100%, ${shadow} 40%, ${accent} 100%);
+      background-color: ${base};
       opacity: 1.0;
     `;
         },
@@ -21,20 +19,23 @@ export const patterns: Pattern[] = [
     {
         name: "Aurora Dream Corner Whispers",
         style: (scale: number, color1: string, color2: string) => {
-            const accentStrong = addAlpha(color1, "80");
-            const accentSoft = addAlpha(color1, "40");
-            const baseGlow = addAlpha(color2, "75");
-            const baseSoft = addAlpha(color2, "55");
-            const falloff = Math.min(45 + scale * 1.5, 78);
+            const accentStrong = addAlpha(color1, "88");
+            const accentSoft = addAlpha(color1, "55");
+            const glow = addAlpha(color2, "70");
+            const glowSoft = addAlpha(color2, "45");
+            const base = color2;
+            const baseHighlight = addAlpha(color2, "35");
+            const ellipseX = 80 + Math.max(scale - 10, 0) * 1.2;
+            const ellipseY = 60 + Math.max(scale - 10, 0);
 
             return `
       background:
-        radial-gradient(ellipse 85% 65% at 8% 8%, ${accentStrong}, transparent ${falloff}%),
-        radial-gradient(ellipse 75% 60% at 75% 35%, ${baseGlow}, transparent ${falloff + 4}%),
-        radial-gradient(ellipse 70% 60% at 15% 80%, ${accentSoft}, transparent ${falloff + 4}%),
-        radial-gradient(ellipse 70% 60% at 92% 92%, ${addAlpha(color1, "33")}, transparent ${falloff + 6}%),
-        linear-gradient(180deg, ${baseSoft} 0%, ${color2} 100%);
-      background-color: ${color2};
+        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 8% 8%, ${accentSoft}, transparent 60%),
+        radial-gradient(ellipse ${ellipseX - 10}% ${ellipseY - 5}% at 75% 35%, ${glow}, transparent 62%),
+        radial-gradient(ellipse ${ellipseX - 15}% ${ellipseY - 5}% at 15% 80%, ${accentStrong}, transparent 62%),
+        radial-gradient(ellipse ${ellipseX - 5}% ${ellipseY - 5}% at 92% 92%, ${glowSoft}, transparent 62%),
+        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
+      background-color: ${base};
       opacity: 1.0;
     `;
         },
@@ -42,20 +43,23 @@ export const patterns: Pattern[] = [
     {
         name: "Aurora Dream Soft Harmony",
         style: (scale: number, color1: string, color2: string) => {
-            const accent = addAlpha(color1, "70");
-            const accentSoft = addAlpha(color1, "45");
+            const accentStrong = addAlpha(color1, "7f");
+            const accentSoft = addAlpha(color1, "55");
             const glow = addAlpha(color2, "70");
-            const haze = addAlpha(color2, "4d");
-            const falloff = Math.min(50 + scale * 1.4, 82);
+            const glowSoft = addAlpha(color2, "45");
+            const base = color2;
+            const baseHighlight = addAlpha(color2, "40");
+            const ellipseX = 75 + Math.max(scale - 10, 0) * 1.1;
+            const ellipseY = 58 + Math.max(scale - 10, 0) * 0.9;
 
             return `
       background:
-        radial-gradient(ellipse 80% 60% at 60% 20%, ${accent}, transparent ${falloff}%),
-        radial-gradient(ellipse 70% 60% at 20% 80%, ${accentSoft}, transparent ${falloff}%),
-        radial-gradient(ellipse 60% 50% at 60% 65%, ${glow}, transparent ${falloff + 2}%),
-        radial-gradient(ellipse 65% 40% at 50% 60%, ${haze}, transparent ${falloff + 6}%),
-        linear-gradient(180deg, ${addAlpha(color2, "f0")} 0%, ${color2} 100%);
-      background-color: ${color2};
+        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 60% 20%, ${accentStrong}, transparent 65%),
+        radial-gradient(ellipse ${ellipseX - 12}% ${ellipseY - 5}% at 20% 80%, ${accentSoft}, transparent 65%),
+        radial-gradient(ellipse ${ellipseX - 20}% ${ellipseY - 8}% at 60% 65%, ${glow}, transparent 62%),
+        radial-gradient(ellipse ${ellipseX - 15}% ${ellipseY - 10}% at 50% 60%, ${glowSoft}, transparent 68%),
+        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
+      background-color: ${base};
       opacity: 1.0;
     `;
         },
@@ -63,20 +67,23 @@ export const patterns: Pattern[] = [
     {
         name: "Aurora Dream Vivid Bloom",
         style: (scale: number, color1: string, color2: string) => {
-            const vibrant = addAlpha(color1, "d0");
-            const bold = addAlpha(color1, "a0");
-            const highlight = addAlpha(color2, "d0");
-            const glow = addAlpha(color2, "60");
-            const falloff = Math.max(58 - scale * 0.8, 42);
+            const accentStrong = addAlpha(color1, "c0");
+            const accent = addAlpha(color1, "90");
+            const glow = addAlpha(color2, "b0");
+            const glowSoft = addAlpha(color2, "55");
+            const base = color2;
+            const baseHighlight = addAlpha(color2, "50");
+            const ellipseX = 78 + Math.max(scale - 10, 0) * 1.1;
+            const ellipseY = 60 + Math.max(scale - 10, 0);
 
             return `
       background:
-        radial-gradient(ellipse 80% 60% at 70% 20%, ${vibrant}, transparent ${falloff + 8}%),
-        radial-gradient(ellipse 70% 60% at 20% 80%, ${bold}, transparent ${falloff + 10}%),
-        radial-gradient(ellipse 60% 50% at 60% 65%, ${highlight}, transparent ${falloff + 10}%),
-        radial-gradient(ellipse 65% 40% at 50% 60%, ${glow}, transparent ${falloff + 14}%),
-        linear-gradient(180deg, ${addAlpha(color2, "f5")} 0%, ${color2} 100%);
-      background-color: ${color2};
+        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 70% 20%, ${accentStrong}, transparent 68%),
+        radial-gradient(ellipse ${ellipseX - 10}% ${ellipseY - 4}% at 20% 80%, ${accent}, transparent 68%),
+        radial-gradient(ellipse ${ellipseX - 18}% ${ellipseY - 6}% at 60% 65%, ${glow}, transparent 68%),
+        radial-gradient(ellipse ${ellipseX - 12}% ${ellipseY - 8}% at 50% 60%, ${glowSoft}, transparent 68%),
+        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
+      background-color: ${base};
       opacity: 1.0;
     `;
         },
@@ -84,19 +91,16 @@ export const patterns: Pattern[] = [
     {
         name: "Diagonal Grid with Light",
         style: (scale: number, color1: string, color2: string) => {
-            const cell = Math.max(scale * 3, 18);
-            const stroke = Math.max(cell * 0.04, 1.2);
-            const line = addAlpha(color1, "38");
-            const glow = addAlpha(color1, "18");
-            const largeCell = cell * 2;
+            const lineColor = addAlpha(color1, "33");
+            const highlight = addAlpha(color1, "18");
+            const size = Math.max(scale * 3, 18);
 
             return `
       background-color: ${color2};
       background-image:
-        radial-gradient(circle at 0 0, ${glow} 0, transparent ${cell * 1.2}px),
-        repeating-linear-gradient(45deg, ${line} 0 ${stroke}px, transparent ${stroke}px ${cell}px),
-        repeating-linear-gradient(-45deg, ${line} 0 ${stroke}px, transparent ${stroke}px ${cell}px);
-      background-size: ${largeCell}px ${largeCell}px, ${cell}px ${cell}px, ${cell}px ${cell}px;
+        repeating-linear-gradient(45deg, ${lineColor} 0, ${lineColor} 1px, transparent 1px, transparent ${size}px),
+        repeating-linear-gradient(-45deg, ${highlight} 0, ${highlight} 1px, transparent 1px, transparent ${size}px);
+      background-size: ${size}px ${size}px;
       opacity: 1.0;
     `;
         },
@@ -104,20 +108,18 @@ export const patterns: Pattern[] = [
     {
         name: "Dark Grid with White Dots",
         style: (scale: number, color1: string, color2: string) => {
-            const cell = Math.max(scale * 2.2, 18);
-            const dot = Math.max(cell * 0.1, 2.5);
-            const grid = addAlpha(color1, "26");
-            const dotColor = addAlpha(color1, "b0");
-            const halfCell = cell / 2;
+            const grid = addAlpha(color1, "25");
+            const dots = addAlpha(color1, "80");
+            const size = Math.max(scale * 1.5, 16);
 
             return `
       background: ${color2};
       background-image:
         linear-gradient(to right, ${grid} 1px, transparent 1px),
         linear-gradient(to bottom, ${grid} 1px, transparent 1px),
-        radial-gradient(circle, ${dotColor} ${dot}px, transparent ${dot + 0.5}px);
-      background-size: ${cell}px ${cell}px, ${cell}px ${cell}px, ${cell}px ${cell}px;
-      background-position: 0 0, 0 0, ${halfCell}px ${halfCell}px;
+        radial-gradient(circle, ${dots} 1px, transparent 1px);
+      background-size: ${size}px ${size}px, ${size}px ${size}px, ${size}px ${size}px;
+      background-position: 0 0, 0 0, 0 0;
       opacity: 1.0;
     `;
         },
@@ -125,21 +127,18 @@ export const patterns: Pattern[] = [
     {
         name: "Gradient Diagonal Lines",
         style: (scale: number, color1: string, color2: string) => {
-            const spacing = Math.max(scale * 1.8, 12);
-            const lineWidth = Math.max(spacing * 0.08, 1);
-            const accent = addAlpha(color1, "33");
-            const accentSoft = addAlpha(color1, "1a");
-            const accentGlow = addAlpha(color1, "12");
-            const minorSpacing = Math.max(spacing * 0.35, 6);
-            const tile = Math.max(spacing * 0.5, 10);
+            const accent = addAlpha(color1, "40");
+            const accentSoft = addAlpha(color1, "25");
+            const spacing = Math.max(scale * 1.2, 10);
+            const fineSpacing = Math.max(spacing / 3, 4);
 
             return `
       background-color: ${color2};
       background-image:
-        repeating-linear-gradient(45deg, ${accent} 0 ${lineWidth}px, transparent ${lineWidth}px ${spacing}px),
-        repeating-linear-gradient(-45deg, ${accentSoft} 0 ${lineWidth}px, transparent ${lineWidth}px ${spacing}px),
-        repeating-linear-gradient(90deg, ${accentGlow} 0 ${lineWidth}px, transparent ${lineWidth}px ${minorSpacing}px);
-      background-size: ${spacing}px ${spacing}px, ${spacing}px ${spacing}px, ${tile}px ${tile}px;
+        repeating-linear-gradient(45deg, ${accent} 0, ${accent} 1px, transparent 1px, transparent ${spacing}px),
+        repeating-linear-gradient(-45deg, ${accentSoft} 0, ${accentSoft} 1px, transparent 1px, transparent ${spacing}px),
+        repeating-linear-gradient(90deg, ${addAlpha(color1, "12")} 0, ${addAlpha(color1, "12")} 1px, transparent 1px, transparent ${fineSpacing}px);
+      background-size: ${spacing * 2}px ${spacing * 2}px, ${spacing * 2}px ${spacing * 2}px, ${fineSpacing}px ${fineSpacing}px;
       opacity: 1.0;
     `;
         },
@@ -147,24 +146,22 @@ export const patterns: Pattern[] = [
     {
         name: "Dark Noise Colors",
         style: (scale: number, color1: string, color2: string) => {
-            const accentStrong = addAlpha(color1, "33");
-            const accentMedium = addAlpha(color1, "26");
-            const accentLight = addAlpha(color1, "1f");
-            const size1 = Math.max(scale * 1.6, 14);
-            const size2 = Math.max(scale * 2.4, 18);
-            const size3 = Math.max(scale * 2, 16);
-            const offset1 = size1 / 2;
-            const offset2x = size1 * 0.75;
-            const offset2y = size1 * 0.25;
+            const accentA = addAlpha(color1, "33");
+            const accentB = addAlpha(color1, "22");
+            const accentC = addAlpha(color2, "28");
+            const size = Math.max(scale * 1.4, 18);
+            const offset = Math.round(size / 2);
+            const offsetAltX = Math.round(size / 1.5);
+            const offsetAltY = Math.round(size / 3);
 
             return `
       background: ${color2};
       background-image:
-        radial-gradient(circle at 1px 1px, ${accentStrong} 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, ${accentMedium} 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, ${accentLight} 1px, transparent 0);
-      background-size: ${size1}px ${size1}px, ${size2}px ${size2}px, ${size3}px ${size3}px;
-      background-position: 0 0, ${offset1}px ${offset1}px, ${offset2x}px ${offset2y}px;
+        radial-gradient(circle at 1px 1px, ${accentA} 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, ${accentB} 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, ${accentC} 1px, transparent 0);
+      background-size: ${size}px ${size}px, ${size * 1.5}px ${size * 1.5}px, ${size * 1.25}px ${size * 1.25}px;
+      background-position: 0 0, ${offset}px ${offset}px, ${offsetAltX}px ${offsetAltY}px;
       opacity: 1.0;
     `;
         },
@@ -172,12 +169,11 @@ export const patterns: Pattern[] = [
     {
         name: "Top Glow Midnight",
         style: (scale: number, color1: string, color2: string) => {
-            const glow = addAlpha(color1, "55");
-            const halo = addAlpha(color1, "22");
-            const fade = Math.min(40 + scale * 2.2, 95);
+            const glow = addAlpha(color1, "40");
+            const spread = 70 + Math.max(scale - 10, 0) * 1.8;
 
             return `
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, ${glow}, ${halo} ${fade}%, transparent 100%), ${color2};
+      background: radial-gradient(ellipse 80% ${spread}% at 50% 0%, ${glow}, transparent 70%), ${color2};
       background-color: ${color2};
       opacity: 1.0;
     `;
@@ -186,22 +182,21 @@ export const patterns: Pattern[] = [
     {
         name: "Radial Cross",
         style: (scale: number, color1: string, color2: string) => {
-            const tile = Math.max(scale * 6, 48); // tile size reagiert direkt auf Slider
-            const arm = tile / 4.667;
-            const offset = tile / 2;
-            const accent = addAlpha(color1, "d0");
-            const accentSoft = addAlpha(color1, "9a");
-            const halo = addAlpha(color1, "22");
+            const normalizedScale = Math.max(scale, 8);
+            const tile = Math.max(Math.round(normalizedScale * 14), 80);
+            const stripe = Math.max(Math.round(tile / 4.6667), 18);
+            const offset = Math.round(tile / 2);
+            const accent = addAlpha(color1, "ff");
+            const g = `#0000 52%, ${accent} 54% 57%, #0000 59%`;
 
             return `
       background:
-        radial-gradient(farthest-side at -33.33% 50%, #0000 52%, ${accent} 54% 57%, #0000 59%) 0 ${offset}px / ${arm}px ${tile}px,
-        radial-gradient(farthest-side at 50% 133.33%, #0000 52%, ${accent} 54% 57%, #0000 59%) ${offset}px 0 / ${tile}px ${arm}px,
-        radial-gradient(farthest-side at 133.33% 50%, #0000 52%, ${accentSoft} 54% 57%, #0000 59%) / ${arm}px ${tile}px,
-        radial-gradient(farthest-side at 50% -33.33%, #0000 52%, ${accentSoft} 54% 57%, #0000 59%) / ${tile}px ${arm}px,
-        radial-gradient(circle at 50% 50%, ${halo} 0, transparent 70%) ${offset}px ${offset}px / ${tile}px ${tile}px,
-        radial-gradient(circle at 50% 50%, ${halo} 0, transparent 70%) / ${tile}px ${tile}px,
-        ${color2};
+        radial-gradient(farthest-side at -33.33% 50%,  ${g}) 0 ${offset}px,
+        radial-gradient(farthest-side at  50% 133.33%, ${g}) ${offset}px 0,
+        radial-gradient(farthest-side at 133.33% 50%,  ${g}),
+        radial-gradient(farthest-side at  50% -33.33%, ${g}),
+        ${color2};            /* Grundfarbe */
+      background-size: ${stripe}px ${tile}px, ${tile}px ${stripe}px;
       background-color: ${color2};
       background-repeat: repeat;
       opacity: 1.0;
