@@ -423,6 +423,8 @@ async function downloadAnimated(
             controller.seek(offset);
             await new Promise((resolve) => requestAnimationFrame(resolve));
 
+    await withVisibleNode(node, async (n) => {
+        const captureFrame = async (): Promise<boolean> => {
             const canvas = await safeRenderToCanvas(n);
             if (!canvas) return false;
 
@@ -472,6 +474,35 @@ async function downloadAnimated(
         } finally {
             controller.restore();
         }
+        if (!frames.length) return;
+
+        const start = performance.now();
+        let previousTimestamp = start;
+        let lastDelay = frames[frames.length - 1].delayMs;
+
+        while (frames.length < targetFrameCount) {
+            const timestamp = await nextFrame();
+            const delta = Math.max(
+                MIN_FRAME_DELAY,
+                Math.round(timestamp - previousTimestamp) || MIN_FRAME_DELAY,
+            );
+            previousTimestamp = timestamp;
+            lastDelay = delta;
+
+            frames[frames.length - 1].delayMs = delta;
+
+            const elapsed = timestamp - start;
+            if (elapsed >= durationMs && frames.length >= MIN_FRAMES) {
+                break;
+            }
+
+            const ok = await captureFrame();
+            if (!ok) {
+                break;
+            }
+        }
+
+        frames[frames.length - 1].delayMs = Math.max(MIN_FRAME_DELAY, lastDelay);
     });
 
     if (!captured.length) throw new Error("Keine Frames für die Animation gesammelt.");
@@ -494,6 +525,31 @@ async function downloadAnimated(
         };
     });
 
+    let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
+
+    if (totalDelayMs <= 0) {
+        const fallback = Math.max(MIN_FRAME_DELAY, Math.round(targetDurationMs / frames.length));
+        frames.forEach((frame) => {
+            frame.delayMs = fallback;
+        });
+        totalDelayMs = fallback * frames.length;
+    }
+
+    if (Math.abs(totalDelayMs - targetDurationMs) > MIN_FRAME_DELAY) {
+        const scale = targetDurationMs / totalDelayMs;
+        let accumulated = 0;
+        for (let i = 0; i < frames.length - 1; i += 1) {
+            const scaled = Math.max(MIN_FRAME_DELAY, Math.round(frames[i].delayMs * scale));
+            frames[i].delayMs = scaled;
+            accumulated += scaled;
+        }
+        frames[frames.length - 1].delayMs = Math.max(
+            MIN_FRAME_DELAY,
+            Math.round(targetDurationMs - accumulated),
+        );
+    }
+
+    const targetDurationMs = Math.max(durationMs, frames.length * MIN_FRAME_DELAY);
     let totalDelayMs = frames.reduce((sum, frame) => sum + frame.delayMs, 0);
 
     if (totalDelayMs <= 0) {
