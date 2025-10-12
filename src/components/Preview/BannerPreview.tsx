@@ -15,6 +15,9 @@ type ResizeHandle = "nw" | "ne" | "se" | "sw";
 
 const RESIZE_HANDLES: ResizeHandle[] = ["nw", "ne", "se", "sw"];
 
+const SNAP_POINTS: number[] = [0, 50, 100];
+const SNAP_THRESHOLD = 1.5;
+
 const HANDLE_STYLES: Record<ResizeHandle, React.CSSProperties> = {
   nw: { top: 0, left: 0, transform: "translate(-50%, -50%)" },
   ne: { top: 0, left: "100%", transform: "translate(-50%, -50%)" },
@@ -61,6 +64,9 @@ interface BannerPreviewProps {
 
   // Export-Modus blendet UI-Hilfen aus
   isExportMode?: boolean;
+
+  // Snap-to-guides
+  enableSnapping?: boolean;
 }
 
 type InteractionState = {
@@ -76,6 +82,31 @@ type InteractionState = {
 };
 
 const clampPercentage = (value: number) => Math.min(100, Math.max(0, value));
+
+const clampPositionWithinBounds = (value: number, size: number) =>
+  Math.min(100 - size, Math.max(0, value));
+
+const snapToGuides = (value: number) => {
+  let snappedValue = value;
+  let snapped = false;
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  SNAP_POINTS.forEach((point) => {
+    const distance = Math.abs(point - value);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      snappedValue = point;
+    }
+  });
+
+  if (closestDistance <= SNAP_THRESHOLD) {
+    snapped = true;
+  } else {
+    snappedValue = value;
+  }
+
+  return { value: snappedValue, snapped };
+};
 
 const BannerPreview: React.FC<BannerPreviewProps> = ({
   selectedPattern,
@@ -103,6 +134,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   canvasSize,
   isDragActive,
   isExportMode = false,
+  enableSnapping = true,
 }) => {
   const [displaySize, setDisplaySize] = useState<{ width: number; height: number }>(() => ({
     width: canvasSize?.width ?? 0,
@@ -114,7 +146,8 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
     if (!node) return;
 
     const updateSize = () => {
-      setDisplaySize({ width: node.clientWidth, height: node.clientHeight });
+      const rect = node.getBoundingClientRect();
+      setDisplaySize({ width: rect.width, height: rect.height });
     };
 
     updateSize();
@@ -131,8 +164,8 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
     };
   }, [previewRef, canvasSize?.width, canvasSize?.height]);
 
-  const previewWidth = displaySize.width || canvasSize?.width || 0;
-  const previewHeight = displaySize.height || canvasSize?.height || 0;
+  const previewWidth = displaySize.width > 0 ? displaySize.width : canvasSize?.width || 0;
+  const previewHeight = displaySize.height > 0 ? displaySize.height : canvasSize?.height || 0;
 
   // ----- Bild-Layer Interaktion (px)
   const interactionRef = useRef<InteractionState | null>(null);
@@ -140,6 +173,10 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   useEffect(() => {
     onImageLayerChangeRef.current = onImageLayerChange;
   }, [onImageLayerChange]);
+  const imageLayersRef = useRef(imageLayers);
+  useEffect(() => {
+    imageLayersRef.current = imageLayers;
+  }, [imageLayers]);
 
   const handleImagePointerMove = useCallback((event: PointerEvent) => {
     const interaction = interactionRef.current;
@@ -158,10 +195,33 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
     const deltaXPercent = (deltaX / width) * 100;
     const deltaYPercent = (deltaY / height) * 100;
 
+    const layers = imageLayersRef.current;
+    const activeLayer = layers.find((layer) => layer.id === interaction.id);
+    const layerWidth = activeLayer?.width ?? interaction.startWidth;
+    const layerHeight = activeLayer?.height ?? interaction.startHeight;
+
     if (interaction.type === "move") {
+      let newX = interaction.startX + deltaXPercent;
+      let newY = interaction.startY + deltaYPercent;
+
+      newX = clampPositionWithinBounds(newX, layerWidth);
+      newY = clampPositionWithinBounds(newY, layerHeight);
+
+      if (enableSnapping) {
+        const snappedX = snapToGuides(clampPercentage(newX + layerWidth / 2));
+        if (snappedX.snapped) {
+          newX = clampPositionWithinBounds(snappedX.value - layerWidth / 2, layerWidth);
+        }
+
+        const snappedY = snapToGuides(clampPercentage(newY + layerHeight / 2));
+        if (snappedY.snapped) {
+          newY = clampPositionWithinBounds(snappedY.value - layerHeight / 2, layerHeight);
+        }
+      }
+
       onImageLayerChangeRef.current?.(interaction.id, {
-        x: interaction.startX + deltaXPercent,
-        y: interaction.startY + deltaYPercent,
+        x: newX,
+        y: newY,
       });
       return;
     }
@@ -186,13 +246,31 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
       newY = interaction.startY + (interaction.startHeight - newHeight);
     }
 
+    newWidth = Math.min(100, Math.max(minWidthPercent, newWidth));
+    newHeight = Math.min(100, Math.max(minHeightPercent, newHeight));
+
+    newX = clampPositionWithinBounds(newX, newWidth);
+    newY = clampPositionWithinBounds(newY, newHeight);
+
+    if (enableSnapping) {
+      const snappedX = snapToGuides(clampPercentage(newX + newWidth / 2));
+      if (snappedX.snapped) {
+        newX = clampPositionWithinBounds(snappedX.value - newWidth / 2, newWidth);
+      }
+
+      const snappedY = snapToGuides(clampPercentage(newY + newHeight / 2));
+      if (snappedY.snapped) {
+        newY = clampPositionWithinBounds(snappedY.value - newHeight / 2, newHeight);
+      }
+    }
+
     onImageLayerChangeRef.current?.(interaction.id, {
       x: newX,
       y: newY,
       width: newWidth,
       height: newHeight,
     });
-  }, [previewRef]);
+  }, [enableSnapping, previewRef]);
 
   const endImageInteraction = useCallback(() => {
     interactionRef.current = null;
@@ -261,23 +339,31 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   // ----- Text-Layer Interaktion (%, relativ zum Container)
   const draggingTextRef = useRef<{ layerId: string; pointerId: number } | null>(null);
 
-  const updateTextPositionFromPointer = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!draggingTextRef.current || draggingTextRef.current.pointerId !== event.pointerId) return;
+  const updateTextPositionFromPointer = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!draggingTextRef.current || draggingTextRef.current.pointerId !== event.pointerId) return;
 
-    const container = previewRef.current;
-    if (!container) return;
+      const container = previewRef.current;
+      if (!container) return;
 
-    const rect = container.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
+      const rect = container.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
 
-    const relativeX = ((event.clientX - rect.left) / rect.width) * 100;
-    const relativeY = ((event.clientY - rect.top) / rect.height) * 100;
+      const relativeX = ((event.clientX - rect.left) / rect.width) * 100;
+      const relativeY = ((event.clientY - rect.top) / rect.height) * 100;
 
-    onLayerPositionChange(draggingTextRef.current.layerId, {
-      x: clampPercentage(relativeX),
-      y: clampPercentage(relativeY),
-    });
-  };
+      const clampedX = clampPercentage(relativeX);
+      const clampedY = clampPercentage(relativeY);
+      const snappedX = enableSnapping ? snapToGuides(clampedX).value : clampedX;
+      const snappedY = enableSnapping ? snapToGuides(clampedY).value : clampedY;
+
+      onLayerPositionChange(draggingTextRef.current.layerId, {
+        x: snappedX,
+        y: snappedY,
+      });
+    },
+    [enableSnapping, onLayerPositionChange, previewRef],
+  );
 
   const handleTextPointerDown = (layerId: string) => (event: React.PointerEvent<HTMLDivElement>) => {
     if (isExportMode) return;

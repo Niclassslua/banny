@@ -37,6 +37,8 @@ const DEFAULT_LAYER_POSITION: LayerPosition = {
     y: 50,
 };
 
+const clampPercentage = (value: number) => Math.min(100, Math.max(0, value));
+
 type LayerOverrides = Partial<Omit<TextLayer, "styles" | "position">> & {
     styles?: Partial<TextStyles>;
     position?: Partial<LayerPosition>;
@@ -110,6 +112,7 @@ const CreatorPage = () => {
     const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [isExportMode, setIsExportMode] = useState(false);
+    const [snappingEnabled, setSnappingEnabled] = useState(true);
     const [selectedFormats, setSelectedFormats] = useState<BannerFormat[]>(["png"]);
     const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["2x"]);
     const [lossyQuality, setLossyQuality] = useState(0.92);
@@ -537,6 +540,31 @@ const CreatorPage = () => {
         [selectedLayerId],
     );
 
+    const centerSelectedLayerHorizontally = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { ...layer.position, x: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const centerSelectedLayerVertically = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { ...layer.position, y: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const centerSelectedLayer = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { x: 50, y: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const toggleSnapping = useCallback(() => {
+        setSnappingEnabled((prev) => !prev);
+    }, []);
+
     const toggleStyle = (style: "bold" | "italic" | "underline" | "strikethrough") =>
         updateSelectedLayer((layer) => ({
             ...layer,
@@ -581,7 +609,17 @@ const CreatorPage = () => {
 
     const handleLayerPositionChange = (layerId: string, position: LayerPosition) => {
         setLayers((prevLayers) =>
-            prevLayers.map((layer) => (layer.id === layerId ? { ...layer, position } : layer)),
+            prevLayers.map((layer) =>
+                layer.id === layerId
+                    ? {
+                          ...layer,
+                          position: {
+                              x: clampPercentage(position.x),
+                              y: clampPercentage(position.y),
+                          },
+                      }
+                    : layer,
+            ),
         );
     };
 
@@ -1160,6 +1198,11 @@ const CreatorPage = () => {
                                 noWrap={activeLayer?.styles.noWrap ?? DEFAULT_TEXT_STYLES.noWrap}
                                 toggleNoWrap={toggleNoWrap}
                                 textStyles={activeLayer?.styles ?? DEFAULT_TEXT_STYLES}
+                                centerLayer={centerSelectedLayer}
+                                centerLayerHorizontally={centerSelectedLayerHorizontally}
+                                centerLayerVertically={centerSelectedLayerVertically}
+                                snappingEnabled={snappingEnabled}
+                                toggleSnapping={toggleSnapping}
                                 onAddLayer={handleAddLayer}
                                 onSelectLayer={handleSelectLayer}
                                 onDuplicateLayer={handleDuplicateLayer}
@@ -1202,6 +1245,7 @@ const CreatorPage = () => {
                                         canvasSize={canvasSize}
                                         isDragActive={isDragActive}
                                         isExportMode={isExportMode}
+                                        enableSnapping={snappingEnabled}
                                     />
                                     <input
                                         ref={fileInputRef}

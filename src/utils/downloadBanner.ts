@@ -276,6 +276,19 @@ export async function downloadBanner(node: HTMLElement, options: DownloadBannerO
 
     await waitForImages(node);
 
+    if (typeof document !== "undefined") {
+        const fontSet = (document as Document & {
+            fonts?: { ready?: Promise<void> };
+        }).fonts;
+        if (fontSet?.ready) {
+            try {
+                await fontSet.ready;
+            } catch {
+                // ignore font loading failures for export to continue
+            }
+        }
+    }
+
     const results: DownloadProgressEvent[] = [];
     const total = variants.length;
 
