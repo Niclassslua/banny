@@ -1,7 +1,9 @@
 import React from "react";
+import clsx from "clsx";
 import { ArrowDown, ArrowUp, Eye, EyeOff, RefreshCcw } from "lucide-react";
 
 import { CanvasSize, ImageLayer } from "@/types";
+import { buttonClass } from "@/utils/buttonStyles";
 
 interface ImageLayersPanelProps {
     layers: ImageLayer[];
@@ -81,7 +83,10 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                             event.stopPropagation();
                                             onToggleVisibility(layer.id);
                                         }}
-                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/80 transition hover:border-white/30 hover:bg-white/20"
+                                        className={clsx(
+                                            buttonClass("icon", "none", "h-9 w-9"),
+                                            !layer.visible && "opacity-70",
+                                        )}
                                         aria-label={layer.visible ? "Layer ausblenden" : "Layer einblenden"}
                                     >
                                         {layer.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -111,7 +116,7 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                                 onMoveLayer(layer.id, "up");
                                             }}
                                             disabled={index === layers.length - 1}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                            className={buttonClass("iconSmall")}
                                             aria-label="Layer nach vorne"
                                         >
                                             <ArrowUp className="h-4 w-4" />
@@ -123,7 +128,7 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                                 onMoveLayer(layer.id, "down");
                                             }}
                                             disabled={index === 0}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                            className={buttonClass("iconSmall")}
                                             aria-label="Layer nach hinten"
                                         >
                                             <ArrowDown className="h-4 w-4" />
@@ -133,7 +138,10 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                     <div className="ml-2 flex items-center">
                                         <label
                                             htmlFor={replaceInputId}
-                                            className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:border-[#A1E2F8]/40 hover:bg-[#A1E2F8]/20 hover:text-white"
+                                            className={clsx(
+                                                buttonClass("secondary", "sm", "cursor-pointer rounded-xl px-3 py-1.5 text-xs"),
+                                                "font-semibold",
+                                            )}
                                             onClick={(event) => event.stopPropagation()}
                                         >
                                             <RefreshCcw className="h-3.5 w-3.5" />

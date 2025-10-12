@@ -20,6 +20,63 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@layer base {
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  button::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+  }
+
+  button:focus {
+    outline: none;
+  }
+}
+
+@layer components {
+  .btn-base {
+    @apply inline-flex select-none items-center justify-center gap-2 font-semibold transition duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8] disabled:pointer-events-none disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn-base rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/20 px-4 py-2 text-sm text-[#A1E2F8] shadow-[0_16px_40px_-24px_rgba(161,226,248,0.6)] hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/35 hover:text-white;
+  }
+
+  .btn-secondary {
+    @apply btn-base rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 hover:border-white/30 hover:bg-white/20 hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply btn-base rounded-full border border-transparent bg-transparent px-4 py-2 text-sm text-white/75 hover:border-white/25 hover:bg-white/10 hover:text-white;
+  }
+
+  .btn-icon {
+    @apply btn-base h-10 w-10 rounded-xl border border-white/15 bg-white/10 p-0 text-white/80 hover:border-[#A1E2F8]/40 hover:bg-[#A1E2F8]/20 hover:text-white;
+  }
+
+  .btn-icon-sm {
+    @apply btn-base h-8 w-8 rounded-lg border border-white/12 bg-white/8 p-0 text-white/70 hover:border-[#A1E2F8]/40 hover:bg-[#A1E2F8]/15 hover:text-white;
+  }
+
+  .btn-danger {
+    @apply btn-base rounded-full border border-red-400/70 bg-red-500/10 px-4 py-2 text-sm text-red-200 hover:border-red-400 hover:bg-red-500/20;
+  }
+}
+
 .export-btn,
 .export-btn *,
 .export-btn * {

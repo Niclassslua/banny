@@ -1,9 +1,11 @@
 // src/components/Settings/SettingsPanel.tsx
 import React from "react";
+import clsx from "clsx";
 import { RangeSlider } from "@/components/atoms";
 import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 import { SettingsPanelProps } from "@/types";
 import { IconRefresh, IconArrowsShuffle } from "@tabler/icons-react";
+import { buttonClass } from "@/utils/buttonStyles";
 
 const randomHex = () =>
     "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
@@ -39,11 +41,21 @@ const ColorHeader: React.FC<{
         </h3>
         <div className="ml-auto flex gap-1">
             {!isDefault && (
-                <button onClick={onReset} className="icon-btn" title="Reset">
+                <button
+                    type="button"
+                    onClick={onReset}
+                    className={buttonClass("iconSmall")}
+                    title="Reset"
+                >
                     <IconRefresh size={16} stroke={1.5} />
                 </button>
             )}
-            <button onClick={onShuffle} className="icon-btn" title="Shuffle">
+            <button
+                type="button"
+                onClick={onShuffle}
+                className={buttonClass("iconSmall")}
+                title="Shuffle"
+            >
                 <IconArrowsShuffle size={16} stroke={1.5} />
             </button>
         </div>
@@ -187,11 +199,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                         height: preset.height,
                                     })
                                 }
-                                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+                                className={clsx(
+                                    buttonClass("ghost", "sm", "rounded-lg px-3 py-1.5 text-sm"),
                                     selected
                                         ? "border-[#A1E2F8] bg-[#A1E2F8]/10 text-white"
-                                        : "border-white/10 bg-white/5 text-foreground/80 hover:border-[#A1E2F8]/60"
-                                }`}
+                                        : "border-white/10 bg-white/5 text-foreground/80 hover:border-[#A1E2F8]/60 hover:text-white",
+                                )}
                             >
                                 <span className="font-medium">{preset.label}</span>
                                 <span className="ml-2 text-xs text-foreground/60">

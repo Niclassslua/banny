@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
+import clsx from "clsx";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Download, Loader2, Upload, X } from "lucide-react";
@@ -10,6 +11,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
 import ImageLayersPanel from "@/components/Settings/ImageLayersPanel";
+import { Modal } from "@/components/overlays/Modal";
 import { patterns } from "@/constants/patterns";
 import { ImageLayer, LayerPosition, CanvasPreset, CanvasSize, Pattern, TextLayer, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
@@ -19,6 +21,7 @@ import {
     type BannerExportVariant,
     type BannerFormat,
 } from "@/utils/downloadBanner";
+import { buttonClass } from "@/utils/buttonStyles";
 
 const DEFAULT_TEXT_STYLES: TextStyles = {
     bold: true,
@@ -942,35 +945,35 @@ const CreatorPage = () => {
 
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
-            {isExportDialogOpen && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm"
-                    role="dialog"
-                    aria-modal="true"
+            <Modal
+                isOpen={isExportDialogOpen}
+                onClose={handleCloseExportDialog}
+                labelledBy="export-dialog-title"
+                preventClose={isExporting}
+            >
+                <button
+                    type="button"
                     onClick={handleCloseExportDialog}
+                    disabled={isExporting}
+                    className={clsx(buttonClass("icon"), "absolute right-4 top-4")}
+                    aria-label="Dialog schließen"
                 >
-                    <div
-                        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/95 shadow-[0_40px_120px_rgba(10,10,14,0.85)]"
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            onClick={handleCloseExportDialog}
-                            disabled={isExporting}
-                            className="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Dialog schließen"
+                    <X className="h-4 w-4" />
+                </button>
+                <div className="flex flex-col gap-6 p-6 sm:p-8">
+                    <div className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-[0.35em] text-[#A1E2F8]">Export</span>
+                        <h2
+                            id="export-dialog-title"
+                            className="text-2xl font-semibold text-white sm:text-3xl"
                         >
-                            <X className="h-4 w-4" />
-                        </button>
-                        <div className="flex flex-col gap-6 p-6 sm:p-8">
-                            <div className="flex flex-col gap-2">
-                                <span className="text-xs uppercase tracking-[0.35em] text-[#A1E2F8]">Export</span>
-                                <h2 className="text-2xl font-semibold text-white sm:text-3xl">Banner exportieren</h2>
-                                <p className="text-sm text-white/60">
-                                    Wähle Formate und Auflösungen für deinen Download. Mehrere Varianten werden nacheinander exportiert.
-                                </p>
-                            </div>
-                            <div className="grid gap-6">
+                            Banner exportieren
+                        </h2>
+                        <p className="text-sm text-white/60">
+                            Wähle Formate und Auflösungen für deinen Download. Mehrere Varianten werden nacheinander exportiert.
+                        </p>
+                    </div>
+                    <div className="grid gap-6">
                                 <section className="grid gap-3">
                                     <h3 className="text-sm font-semibold text-white">Format</h3>
                                     <div className="grid gap-3 sm:grid-cols-2">
@@ -982,11 +985,13 @@ const CreatorPage = () => {
                                                     type="button"
                                                     onClick={() => toggleFormat(option.value)}
                                                     disabled={isExporting}
-                                                    className={`group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition ${
+                                                    className={clsx(
+                                                        "group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition",
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
-                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
+                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8] disabled:pointer-events-none disabled:opacity-50",
+                                                    )}
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
                                                         <span className="text-base font-semibold">{option.label}</span>
@@ -1017,11 +1022,13 @@ const CreatorPage = () => {
                                                     type="button"
                                                     onClick={() => toggleResolution(resolution.id)}
                                                     disabled={isExporting}
-                                                    className={`group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition ${
+                                                    className={clsx(
+                                                        "group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition",
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
-                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
-                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                            : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
+                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8] disabled:pointer-events-none disabled:opacity-50",
+                                                    )}
                                                 >
                                                     <div className="text-base font-semibold">{resolution.label}</div>
                                                     <p className="text-xs text-white/60 group-hover:text-white/70">{resolution.description}</p>
@@ -1087,7 +1094,7 @@ const CreatorPage = () => {
                                         type="button"
                                         onClick={handleCloseExportDialog}
                                         disabled={isExporting}
-                                        className="inline-flex items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                        className={buttonClass("secondary")}
                                     >
                                         Abbrechen
                                     </button>
@@ -1095,7 +1102,7 @@ const CreatorPage = () => {
                                         type="button"
                                         onClick={handleStartExport}
                                         disabled={isExporting || totalSelectedJobs === 0}
-                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/20 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                        className={buttonClass("primary")}
                                     >
                                         {isExporting ? (
                                             <>
@@ -1111,10 +1118,8 @@ const CreatorPage = () => {
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
                 </div>
-            )}
+            </Modal>
             {/* Orbs */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#A1E2F8]/25 blur-3xl" />
@@ -1154,7 +1159,7 @@ const CreatorPage = () => {
                             type="button"
                             onClick={handleOpenExportDialog}
                             disabled={isExporting}
-                            className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            className={buttonClass("primary")}
                         >
                             {isExporting ? (
                                 <>
