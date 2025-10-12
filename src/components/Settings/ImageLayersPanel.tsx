@@ -3,6 +3,9 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, RefreshCcw } from "lucide-react";
 
 import { CanvasSize, ImageLayer } from "@/types";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface ImageLayersPanelProps {
     layers: ImageLayer[];
     selectedLayerId: string | null;
@@ -81,7 +84,7 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                             event.stopPropagation();
                                             onToggleVisibility(layer.id);
                                         }}
-                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/80 transition hover:border-white/30 hover:bg-white/20"
+                                        className={`flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/80 transition hover:border-white/30 hover:bg-white/20 ${focusRingClass}`}
                                         aria-label={layer.visible ? "Layer ausblenden" : "Layer einblenden"}
                                     >
                                         {layer.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -106,28 +109,28 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                     <div className="flex flex-col items-center gap-1">
                                         <button
                                             type="button"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                onMoveLayer(layer.id, "up");
-                                            }}
-                                            disabled={index === layers.length - 1}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                                            aria-label="Layer nach vorne"
-                                        >
-                                            <ArrowUp className="h-4 w-4" />
-                                        </button>
-                                        <button
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            onMoveLayer(layer.id, "up");
+                                        }}
+                                        disabled={index === layers.length - 1}
+                                        className={`flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 ${focusRingClass}`}
+                                        aria-label="Layer nach vorne"
+                                    >
+                                        <ArrowUp className="h-4 w-4" />
+                                    </button>
+                                    <button
                                             type="button"
                                             onClick={(event) => {
-                                                event.stopPropagation();
-                                                onMoveLayer(layer.id, "down");
-                                            }}
-                                            disabled={index === 0}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                                            aria-label="Layer nach hinten"
-                                        >
-                                            <ArrowDown className="h-4 w-4" />
-                                        </button>
+                                            event.stopPropagation();
+                                            onMoveLayer(layer.id, "down");
+                                        }}
+                                        disabled={index === 0}
+                                        className={`flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition hover:border-[#A1E2F8]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 ${focusRingClass}`}
+                                        aria-label="Layer nach hinten"
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
+                                    </button>
                                     </div>
 
                                     <div className="ml-2 flex items-center">

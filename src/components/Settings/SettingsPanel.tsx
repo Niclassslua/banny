@@ -5,6 +5,9 @@ import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 import { SettingsPanelProps } from "@/types";
 import { IconRefresh, IconArrowsShuffle } from "@tabler/icons-react";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 const randomHex = () =>
     "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
 
@@ -39,11 +42,21 @@ const ColorHeader: React.FC<{
         </h3>
         <div className="ml-auto flex gap-1">
             {!isDefault && (
-                <button onClick={onReset} className="icon-btn" title="Reset">
+                <button
+                    type="button"
+                    onClick={onReset}
+                    className={`icon-btn ${focusRingClass}`}
+                    title="Reset"
+                >
                     <IconRefresh size={16} stroke={1.5} />
                 </button>
             )}
-            <button onClick={onShuffle} className="icon-btn" title="Shuffle">
+            <button
+                type="button"
+                onClick={onShuffle}
+                className={`icon-btn ${focusRingClass}`}
+                title="Shuffle"
+            >
                 <IconArrowsShuffle size={16} stroke={1.5} />
             </button>
         </div>
@@ -187,7 +200,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                         height: preset.height,
                                     })
                                 }
-                                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+                                className={`rounded-lg border px-3 py-1.5 text-sm transition ${focusRingClass} ${
                                     selected
                                         ? "border-[#A1E2F8] bg-[#A1E2F8]/10 text-white"
                                         : "border-white/10 bg-white/5 text-foreground/80 hover:border-[#A1E2F8]/60"

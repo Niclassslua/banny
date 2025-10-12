@@ -65,6 +65,9 @@ const TOAST_STYLE_MAP: Record<"info" | "success" | "error", string> = {
     error: "border-red-500/40 bg-red-500/15 text-red-100",
 };
 
+const BUTTON_FOCUS_RING =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
     const [isSafari, setIsSafari] = useState(false);
@@ -514,7 +517,7 @@ const CreatorPage = () => {
                 onClick={() => setSelectedPattern(pattern)}
                 className={`group relative overflow-hidden rounded-2xl border ${
                     isSelected ? "border-[#A1E2F8]" : "border-white/10"
-                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
+                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60 ${BUTTON_FOCUS_RING}`}
             >
                 <div
                     className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
@@ -944,20 +947,20 @@ const CreatorPage = () => {
         <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 text-white">
             {isExportDialogOpen && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm"
+                    className="export-modal__overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
                     role="dialog"
                     aria-modal="true"
                     onClick={handleCloseExportDialog}
                 >
                     <div
-                        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/95 shadow-[0_40px_120px_rgba(10,10,14,0.85)]"
+                        className="export-modal__dialog relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <button
                             type="button"
                             onClick={handleCloseExportDialog}
                             disabled={isExporting}
-                            className="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            className={`absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white transition hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50 ${BUTTON_FOCUS_RING}`}
                             aria-label="Dialog schließen"
                         >
                             <X className="h-4 w-4" />
@@ -986,7 +989,7 @@ const CreatorPage = () => {
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
                                                             : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
-                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                    } disabled:cursor-not-allowed disabled:opacity-50 ${BUTTON_FOCUS_RING}`}
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
                                                         <span className="text-base font-semibold">{option.label}</span>
@@ -1021,7 +1024,7 @@ const CreatorPage = () => {
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
                                                             : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
-                                                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                                                    } disabled:cursor-not-allowed disabled:opacity-50 ${BUTTON_FOCUS_RING}`}
                                                 >
                                                     <div className="text-base font-semibold">{resolution.label}</div>
                                                     <p className="text-xs text-white/60 group-hover:text-white/70">{resolution.description}</p>
@@ -1087,7 +1090,7 @@ const CreatorPage = () => {
                                         type="button"
                                         onClick={handleCloseExportDialog}
                                         disabled={isExporting}
-                                        className="inline-flex items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                        className={`inline-flex items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60 ${BUTTON_FOCUS_RING}`}
                                     >
                                         Abbrechen
                                     </button>
@@ -1095,7 +1098,7 @@ const CreatorPage = () => {
                                         type="button"
                                         onClick={handleStartExport}
                                         disabled={isExporting || totalSelectedJobs === 0}
-                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/20 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                        className={`inline-flex items-center justify-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/20 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 ${BUTTON_FOCUS_RING}`}
                                     >
                                         {isExporting ? (
                                             <>
@@ -1154,7 +1157,7 @@ const CreatorPage = () => {
                             type="button"
                             onClick={handleOpenExportDialog}
                             disabled={isExporting}
-                            className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            className={`inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 ${BUTTON_FOCUS_RING}`}
                         >
                             {isExporting ? (
                                 <>
@@ -1264,7 +1267,7 @@ const CreatorPage = () => {
                                         <button
                                             type="button"
                                             onClick={handleUploadClick}
-                                            className="inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white"
+                                            className={`inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white ${BUTTON_FOCUS_RING}`}
                                         >
                                             <Upload className="h-4 w-4" />
                                             Bilder hochladen
