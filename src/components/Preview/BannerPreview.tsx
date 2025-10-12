@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
 import {
@@ -136,6 +136,37 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   isExportMode = false,
   enableSnapping = true,
 }) => {
+  const [displaySize, setDisplaySize] = useState<{ width: number; height: number }>(() => ({
+    width: canvasSize?.width ?? 0,
+    height: canvasSize?.height ?? 0,
+  }));
+
+  useEffect(() => {
+    const node = previewRef.current;
+    if (!node) return;
+
+    const updateSize = () => {
+      const rect = node.getBoundingClientRect();
+      setDisplaySize({ width: rect.width, height: rect.height });
+    };
+
+    updateSize();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => updateSize());
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [previewRef, canvasSize?.width, canvasSize?.height]);
+
+  const previewWidth = displaySize.width > 0 ? displaySize.width : canvasSize?.width || 0;
+  const previewHeight = displaySize.height > 0 ? displaySize.height : canvasSize?.height || 0;
+
   // ----- Bild-Layer Interaktion (px)
   const interactionRef = useRef<InteractionState | null>(null);
   const onImageLayerChangeRef = useRef(onImageLayerChange);
