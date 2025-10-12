@@ -6,6 +6,9 @@ import ColorPicker from "react-best-gradient-color-picker";
 
 import { colors } from "@/constants/colors";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface ColorPickerProps {
     color: string;
     setColor: (color: string) => void;
@@ -32,7 +35,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         <div className="relative">
             <button
                 onClick={togglePicker}
-                className="h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60"
+                className={`h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60 ${focusRingClass}`}
                 style={{ background: color }}
                 aria-label="Toggle Color Picker"
             />

@@ -11,6 +11,9 @@ interface ColorSwatchProps {
     styleOverride?: React.CSSProperties;
 }
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 export const ColorSwatch: React.FC<ColorSwatchProps> = ({
                                                             color,
                                                             selected = false,
@@ -23,7 +26,8 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({
             onClick={onClick}
             type="button"
             className={clsx(
-                "relative flex items-center justify-center rounded-full transition duration-150",
+                "relative flex items-center justify-center rounded-full transition duration-150 appearance-none",
+                focusRingClass,
                 "ring-2 ring-white/20",
                 // Hover / Shadow
                 "shadow-sm hover:shadow-md",

@@ -6,6 +6,9 @@ import { Copy, Plus, Trash2 } from "lucide-react";
 
 import { TextLayer } from "@/types";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface LayerListProps {
     layers: TextLayer[];
     activeLayerId: string | null;
@@ -39,7 +42,10 @@ export const LayerList: React.FC<LayerListProps> = ({
                 <button
                     type="button"
                     onClick={onAddLayer}
-                    className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 transition hover:border-[#A1E2F8]/60 hover:text-white"
+                    className={clsx(
+                        "flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 transition hover:border-[#A1E2F8]/60 hover:text-white",
+                        focusRingClass,
+                    )}
                 >
                     <Plus className="h-3.5 w-3.5" />
                     Hinzufügen
@@ -79,7 +85,10 @@ export const LayerList: React.FC<LayerListProps> = ({
                                         event.stopPropagation();
                                         onDuplicateLayer(layer.id);
                                     }}
-                                    className="rounded-lg border border-white/10 bg-white/10 p-1.5 text-white/80 transition hover:border-[#A1E2F8]/60 hover:text-white"
+                                    className={clsx(
+                                        "rounded-lg border border-white/10 bg-white/10 p-1.5 text-white/80 transition hover:border-[#A1E2F8]/60 hover:text-white",
+                                        focusRingClass,
+                                    )}
                                     aria-label="Layer duplizieren"
                                 >
                                     <Copy className="h-4 w-4" />
@@ -90,7 +99,10 @@ export const LayerList: React.FC<LayerListProps> = ({
                                         event.stopPropagation();
                                         onDeleteLayer(layer.id);
                                     }}
-                                    className="rounded-lg border border-white/10 bg-white/10 p-1.5 text-white/80 transition hover:border-red-400/70 hover:text-red-200"
+                                    className={clsx(
+                                        "rounded-lg border border-white/10 bg-white/10 p-1.5 text-white/80 transition hover:border-red-400/70 hover:text-red-200",
+                                        focusRingClass,
+                                    )}
                                     aria-label="Layer löschen"
                                 >
                                     <Trash2 className="h-4 w-4" />
