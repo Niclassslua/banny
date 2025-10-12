@@ -182,7 +182,7 @@ const FontControls: React.FC<FontControlsProps> = ({
             </Section>
 
             <Section title="Positionierung">
-                <div className="grid gap-3 pt-6 pb-4 sm:grid-cols-2">
+                <div className="grid gap-3 pt-6 pb-4 sm:grid-cols-2 sm:safari-grid-cols-2">
                     <ControlButton
                         onClick={centerLayerHorizontally}
                         padding="10px 14px"
