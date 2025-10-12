@@ -34,8 +34,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
     return (
         <div className="relative">
             <button
+                type="button"
                 onClick={togglePicker}
-                className={`h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60 ${focusRingClass}`}
+                className="h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]"
                 style={{ background: color }}
                 aria-label="Toggle Color Picker"
             />
