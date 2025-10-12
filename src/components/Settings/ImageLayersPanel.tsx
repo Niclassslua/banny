@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowDown, ArrowUp, Eye, EyeOff, RefreshCcw } from "lucide-react";
 
-import { ImageLayer } from "@/types";
+import { CanvasSize, ImageLayer } from "@/types";
 
 interface ImageLayersPanelProps {
     layers: ImageLayer[];
@@ -10,6 +10,7 @@ interface ImageLayersPanelProps {
     onToggleVisibility: (layerId: string) => void;
     onMoveLayer: (layerId: string, direction: "up" | "down") => void;
     onReplaceLayer: (layerId: string, file: File) => void;
+    canvasSize: CanvasSize;
 }
 
 const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
@@ -19,6 +20,7 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                                               onToggleVisibility,
                                                               onMoveLayer,
                                                               onReplaceLayer,
+                                                              canvasSize,
                                                           }) => {
     const handleReplaceChange = (layerId: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -49,6 +51,8 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                         const index = layers.length - 1 - reversedIndex;
                         const isSelected = layer.id === selectedLayerId;
                         const replaceInputId = `replace-${layer.id}`;
+                        const widthPx = Math.round((layer.width / 100) * canvasSize.width);
+                        const heightPx = Math.round((layer.height / 100) * canvasSize.height);
 
                         return (
                             <li
@@ -95,7 +99,7 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                     <div className="flex min-w-0 flex-1 flex-col">
                                         <span className="truncate text-sm font-medium text-white">{layer.name}</span>
                                         <span className="text-xs text-white/50">
-                                            {Math.round(layer.width)} × {Math.round(layer.height)} px
+                                            {widthPx} × {heightPx} px
                                         </span>
                                     </div>
 

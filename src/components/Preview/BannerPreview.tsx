@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
 import {
@@ -58,6 +58,9 @@ interface BannerPreviewProps {
 
   // Drag&Drop Overlay für Uploads
   isDragActive?: boolean;
+
+  // Export-Modus blendet UI-Hilfen aus
+  isExportMode?: boolean;
 }
 
 type InteractionState = {
@@ -99,7 +102,38 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
 
   canvasSize,
   isDragActive,
+  isExportMode = false,
 }) => {
+  const [displaySize, setDisplaySize] = useState<{ width: number; height: number }>(() => ({
+    width: canvasSize?.width ?? 0,
+    height: canvasSize?.height ?? 0,
+  }));
+
+  useEffect(() => {
+    const node = previewRef.current;
+    if (!node) return;
+
+    const updateSize = () => {
+      setDisplaySize({ width: node.clientWidth, height: node.clientHeight });
+    };
+
+    updateSize();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => updateSize());
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [previewRef, canvasSize?.width, canvasSize?.height]);
+
+  const previewWidth = displaySize.width || canvasSize?.width || 0;
+  const previewHeight = displaySize.height || canvasSize?.height || 0;
+
   // ----- Bild-Layer Interaktion (px)
   const interactionRef = useRef<InteractionState | null>(null);
   const onImageLayerChangeRef = useRef(onImageLayerChange);
@@ -116,15 +150,24 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
     const deltaX = event.clientX - interaction.originX;
     const deltaY = event.clientY - interaction.originY;
 
+    const container = previewRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const width = rect.width || 1;
+    const height = rect.height || 1;
+    const deltaXPercent = (deltaX / width) * 100;
+    const deltaYPercent = (deltaY / height) * 100;
+
     if (interaction.type === "move") {
       onImageLayerChangeRef.current?.(interaction.id, {
-        x: interaction.startX + deltaX,
-        y: interaction.startY + deltaY,
+        x: interaction.startX + deltaXPercent,
+        y: interaction.startY + deltaYPercent,
       });
       return;
     }
 
-    const minSize = 32;
+    const minWidthPercent = (32 / width) * 100;
+    const minHeightPercent = (32 / height) * 100;
     let newX = interaction.startX;
     let newY = interaction.startY;
     let newWidth = interaction.startWidth;
@@ -132,14 +175,14 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
 
     const handle = interaction.handle ?? "se";
 
-    if (handle.includes("e")) newWidth = Math.max(minSize, interaction.startWidth + deltaX);
-    if (handle.includes("s")) newHeight = Math.max(minSize, interaction.startHeight + deltaY);
+    if (handle.includes("e")) newWidth = Math.max(minWidthPercent, interaction.startWidth + deltaXPercent);
+    if (handle.includes("s")) newHeight = Math.max(minHeightPercent, interaction.startHeight + deltaYPercent);
     if (handle.includes("w")) {
-      newWidth = Math.max(minSize, interaction.startWidth - deltaX);
+      newWidth = Math.max(minWidthPercent, interaction.startWidth - deltaXPercent);
       newX = interaction.startX + (interaction.startWidth - newWidth);
     }
     if (handle.includes("n")) {
-      newHeight = Math.max(minSize, interaction.startHeight - deltaY);
+      newHeight = Math.max(minHeightPercent, interaction.startHeight - deltaYPercent);
       newY = interaction.startY + (interaction.startHeight - newHeight);
     }
 
@@ -149,7 +192,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
       width: newWidth,
       height: newHeight,
     });
-  }, []);
+  }, [previewRef]);
 
   const endImageInteraction = useCallback(() => {
     interactionRef.current = null;
@@ -170,7 +213,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
 
   const handleImageLayerPointerDown = useCallback(
     (layer: ImageLayer) => (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || isExportMode) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -188,12 +231,12 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         startHeight: layer.height,
       });
     },
-    [onSelectLayer, startImageInteraction],
+    [isExportMode, onSelectLayer, startImageInteraction],
   );
 
   const handleResizePointerDown = useCallback(
     (layer: ImageLayer, handle: ResizeHandle) => (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || isExportMode) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -212,7 +255,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         startHeight: layer.height,
       });
     },
-    [onSelectLayer, startImageInteraction],
+    [isExportMode, onSelectLayer, startImageInteraction],
   );
 
   // ----- Text-Layer Interaktion (%, relativ zum Container)
@@ -237,6 +280,8 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   };
 
   const handleTextPointerDown = (layerId: string) => (event: React.PointerEvent<HTMLDivElement>) => {
+    if (isExportMode) return;
+
     onSelectLayer(layerId);
 
     const target = event.target as HTMLElement | null;
@@ -248,7 +293,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   };
 
   const handleTextPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!draggingTextRef.current) return;
+    if (!draggingTextRef.current || isExportMode) return;
     event.preventDefault();
     updateTextPositionFromPointer(event);
   };
@@ -288,7 +333,6 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
-      cursor: "text",
       outline: "none",
       whiteSpace: textStyles.noWrap ? "nowrap" : "normal",
       zIndex: 80,
@@ -300,9 +344,10 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
   // ----- Background Click: Auswahl aufheben
   const handleBackgroundPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (isExportMode) return;
       if (event.target === event.currentTarget) onSelectLayer(null);
     },
-    [onSelectLayer],
+    [isExportMode, onSelectLayer],
   );
 
   // ----- Container-Style
@@ -338,25 +383,35 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
       onPointerDown={handleBackgroundPointerDown}
       style={containerStyle}
     >
-      {/* Bild-Layer (px-basiert) */}
+      {/* Bild-Layer (prozentbasiert) */}
       {imageLayers.map((layer, index) => {
         if (!layer.visible) return null;
         const isSelected = layer.id === selectedLayerId;
+        const topPx = (layer.y / 100) * previewHeight;
+        const leftPx = (layer.x / 100) * previewWidth;
+        const widthPx = (layer.width / 100) * previewWidth;
+        const heightPx = (layer.height / 100) * previewHeight;
 
         return (
           <div
             key={layer.id}
-            className={`absolute rounded-xl cursor-move ${
-              isSelected ? "ring-2 ring-[#A1E2F8] bg-black/10" : "ring-1 ring-white/10 bg-black/5"
-            }`}
+            className={clsx(
+              "absolute rounded-xl",
+              !isExportMode && "cursor-move",
+              !isExportMode &&
+                (isSelected
+                  ? "ring-2 ring-[#A1E2F8] bg-black/10"
+                  : "ring-1 ring-white/10 bg-black/5"),
+            )}
             style={{
-              top: layer.y,
-              left: layer.x,
-              width: layer.width,
-              height: layer.height,
+              top: `${topPx}px`,
+              left: `${leftPx}px`,
+              width: `${widthPx}px`,
+              height: `${heightPx}px`,
               zIndex: 10 + index,
               touchAction: "none",
               userSelect: "none",
+              pointerEvents: isExportMode ? "none" : "auto",
             }}
             onPointerDown={handleImageLayerPointerDown(layer)}
           >
@@ -367,7 +422,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
               draggable={false}
             />
 
-            {isSelected &&
+            {isSelected && !isExportMode &&
               RESIZE_HANDLES.map((handle) => (
                 <div
                   key={handle}
@@ -393,11 +448,15 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         return (
           <div
             key={layer.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 cursor-grab"
+            className={clsx(
+              "absolute -translate-x-1/2 -translate-y-1/2",
+              !isExportMode && "cursor-grab",
+            )}
             style={{
               top: `${layer.position.y}%`,
               left: `${layer.position.x}%`,
               zIndex: isActive ? 60 : 50,
+              pointerEvents: isExportMode ? "none" : "auto",
             }}
             onPointerDown={handleTextPointerDown(layer.id)}
             onPointerMove={handleTextPointerMove}
@@ -407,21 +466,24 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
           >
             <div
               className={clsx(
-                "relative rounded-xl border px-4 py-3 shadow-sm transition",
-                isActive
-                  ? "border-[#A1E2F8]/80 bg-[#A1E2F8]/10 shadow-[0_0_0_1px_rgba(161,226,248,0.45)]"
-                  : "border-white/10 bg-black/40 hover:border-[#A1E2F8]/50",
+                !isExportMode &&
+                  "relative rounded-xl border px-4 py-3 shadow-sm transition",
+                !isExportMode &&
+                  (isActive
+                    ? "border-[#A1E2F8]/80 bg-[#A1E2F8]/10 shadow-[0_0_0_1px_rgba(161,226,248,0.45)]"
+                    : "border-white/10 bg-black/40 hover:border-[#A1E2F8]/50"),
               )}
               onClick={(e) => {
+                if (isExportMode) return;
                 e.stopPropagation();
                 onSelectLayer(layer.id);
               }}
             >
               <div
-                data-editable="true"
-                contentEditable
+                data-editable={!isExportMode}
+                contentEditable={!isExportMode}
                 suppressContentEditableWarning
-                className="outline-none"
+                className={clsx(!isExportMode && "outline-none")}
                 style={{
                   fontWeight: layer.styles.bold ? "bold" : "normal",
                   fontStyle: layer.styles.italic ? "italic" : "normal",
@@ -431,13 +493,14 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                   textAlign: layer.styles.alignment as React.CSSProperties["textAlign"],
                   whiteSpace: layer.styles.noWrap ? "nowrap" : "normal",
                   fontFamily: layer.styles.fontFamily,
-                  cursor: "text",
+                  cursor: isExportMode ? "default" : "text",
                   minWidth: "2ch",
                 }}
                 onInput={(event) =>
                   onLayerContentChange(layer.id, event.currentTarget.textContent || "")
                 }
                 onPaste={(event) => {
+                  if (isExportMode) return;
                   // Plain-text paste
                   event.preventDefault();
                   const text = event.clipboardData.getData("text/plain");
@@ -465,13 +528,21 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
           <style>{`.banner-text { font-family: ${textStyles.fontFamily} !important; }`}</style>
           <div
             className="banner-text"
-            style={freeTextStyle}
+            style={{
+              ...freeTextStyle,
+              cursor: isExportMode ? "default" : "text",
+              pointerEvents: isExportMode ? "none" : "auto",
+            }}
             ref={freeTextRef}
-            contentEditable
+            contentEditable={!isExportMode}
             suppressContentEditableWarning
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => {
+              if (isExportMode) return;
+              e.stopPropagation();
+            }}
             onInput={(e) => onTextChange(e.currentTarget.textContent || "")}
             onPaste={(event) => {
+              if (isExportMode) return;
               event.preventDefault();
               const text = event.clipboardData.getData("text/plain");
               if (document.queryCommandSupported("insertText")) {
@@ -491,7 +562,7 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
         </>
       )}
 
-      {isDragActive && (
+      {isDragActive && !isExportMode && (
         <div className="pointer-events-none absolute inset-0 z-[120] flex items-center justify-center rounded-2xl border-2 border-dashed border-[#A1E2F8]/80 bg-black/60 text-sm font-semibold text-[#A1E2F8]">
           Bild hier ablegen
         </div>
