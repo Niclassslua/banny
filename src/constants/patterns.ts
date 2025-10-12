@@ -256,11 +256,16 @@ export const patterns: Pattern[] = [
     {
         name: "Radial Cross",
         style: (scale: number, color1: string, color2: string) => {
-            const normalizedScale = Math.max(scale, 8);
-            const tile = Math.max(Math.round(normalizedScale * 14), 80);
-            const stripe = Math.max(Math.round(tile / 4.6667), 18);
+            const s = Math.max(scale, 8);
+            // squash growth for big scales: sqrt mapping
+            const sEff = Math.sqrt(s * 10); // smoothens large values
+
+            const tile   = Math.max(80, Math.round(sEff * 14));
+            const stripe = Math.max(18, Math.round(tile / 4.6667));
             const offset = Math.round(tile / 2);
+
             const accent = addAlpha(color1, "ff");
+            // keep your original % logic, but it's now tamed by sEff
             const g = `#0000 52%, ${accent} 54% 57%, #0000 59%`;
 
             return `
@@ -269,11 +274,11 @@ export const patterns: Pattern[] = [
         radial-gradient(farthest-side at  50% 133.33%, ${g}) ${offset}px 0,
         radial-gradient(farthest-side at 133.33% 50%,  ${g}),
         radial-gradient(farthest-side at  50% -33.33%, ${g}),
-        ${color2};            /* Grundfarbe */
+        ${color2};
       background-size: ${stripe}px ${tile}px, ${tile}px ${stripe}px;
       background-color: ${color2};
       background-repeat: repeat;
-      opacity: 1.0;
+      opacity: 1;
     `;
         },
     },

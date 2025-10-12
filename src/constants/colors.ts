@@ -19,11 +19,9 @@ export const colors = [
 
     // Magenta / Pink
     "#D38FA0", // gedämpftes Magenta
-    "#F7A8C4", // zartes Rosa
     "#E374D1", // kräftiges Magenta
 
     // Neutrale / Abschluss
-    "#C1C5CE", // kühles Hellgrau
     "#5A5F6A", // dunkles Grau
     "#0F111A", // fast schwarz mit Tiefe
     "#FFFFFF", // weiß
