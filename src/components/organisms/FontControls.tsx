@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter, Crosshair, Magnet } from "lucide-react";
 import {
     Roboto,
     Open_Sans,
@@ -21,7 +22,7 @@ import {
 } from "next/font/google";
 
 import { FontStyleControls, AlignmentControls, FontSizeControls, FontDropdown, ColorPalettePicker } from "../molecules";
-import { NoWrapToggle } from "../atoms";
+import { ControlButton } from "../atoms";
 
 import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
@@ -76,6 +77,11 @@ interface FontControlsProps {
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
+    centerLayer: () => void;
+    centerLayerHorizontally: () => void;
+    centerLayerVertically: () => void;
+    snappingEnabled: boolean;
+    toggleSnapping: () => void;
 }
 
 // ───────────────────────────────────────── component
@@ -89,6 +95,11 @@ const FontControls: React.FC<FontControlsProps> = ({
     noWrap,
     toggleNoWrap,
     textStyles,
+    centerLayer,
+    centerLayerHorizontally,
+    centerLayerVertically,
+    snappingEnabled,
+    toggleSnapping,
 }) => {
     const [selectedFontSize, setSelectedFontSize] = useState(currentFontSize);
     const [selectedFont, setSelectedFont] = useState(textStyles.fontFamily);
@@ -157,7 +168,12 @@ const FontControls: React.FC<FontControlsProps> = ({
         <div className="flex flex-col gap-10">
             {/* Stil */}
             <Section title="Schriftstil">
-                <FontStyleControls value={activeStyles} toggleStyle={handleToggleStyle} />
+                <FontStyleControls
+                    value={activeStyles}
+                    toggleStyle={handleToggleStyle}
+                    wrapActive={!noWrap}
+                    toggleWrap={toggleNoWrap}
+                />
             </Section>
 
             {/* Ausrichtung */}
@@ -165,11 +181,51 @@ const FontControls: React.FC<FontControlsProps> = ({
                 <AlignmentControls onChange={handleAlignmentChange} value={alignment} />
             </Section>
 
-            {/* Zeilenumbruch */}
-            <Section title="Zeilenumbruch">
-                <NoWrapToggle active={!noWrap} onToggle={toggleNoWrap} />
+            <Section title="Positionierung">
+                <div className="grid gap-3 pt-6 pb-4 sm:grid-cols-2">
+                    <ControlButton
+                        onClick={centerLayerHorizontally}
+                        padding="10px 14px"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <AlignHorizontalJustifyCenter className="h-5 w-5" />
+                            Horizontal
+                        </span>
+                    </ControlButton>
+                    <ControlButton
+                        onClick={centerLayerVertically}
+                        padding="10px 14px"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <AlignVerticalJustifyCenter className="h-5 w-5" />
+                            Vertikal
+                        </span>
+                    </ControlButton>
+                    <ControlButton
+                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        onClick={centerLayer}
+                        padding="10px 14px"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <Crosshair className="h-5 w-5" />
+                            Zentriert
+                        </span>
+                    </ControlButton>
+                    <ControlButton
+                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        active={snappingEnabled}
+                        onClick={toggleSnapping}
+                        padding="10px 14px"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <Magnet className="h-5 w-5" />
+                            Snapping
+                        </span>
+                    </ControlButton>
+                </div>
             </Section>
-
             {/* Größe */}
             <Section title="Schriftgröße">
                 <FontSizeControls value={selectedFontSize} onChange={setSize} />
@@ -191,17 +247,11 @@ const FontControls: React.FC<FontControlsProps> = ({
 export default FontControls;
 
 // ───────────────────────────────────────── small helper
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
-    const noPadding = ["Schriftart", "Textfarbe"].includes(title);
-
-    return (
-        <section className="flex flex-col gap-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
-                {title}
-            </h2>
-            <div className={noPadding ? "" : "pl-4"}>
-                {children}
-            </div>
-        </section>
-    );
-};
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <section className="flex flex-col gap-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
+            {title}
+        </h2>
+        <div>{children}</div>
+    </section>
+);

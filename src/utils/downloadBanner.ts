@@ -32,8 +32,8 @@ type DownloadBannerOptions = {
 };
 
 const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
-    pixelRatio: 2,
-    cacheBust: true,
+    pixelRatio: 1,
+    cacheBust: false,
 };
 
 const DEFAULT_JPEG_QUALITY = 0.92;
@@ -80,6 +80,7 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         height: node.style.height,
         maxWidth: node.style.maxWidth,
         maxHeight: node.style.maxHeight,
+        aspectRatio: node.style.getPropertyValue("aspect-ratio"),
     };
 
     try {
@@ -104,6 +105,11 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         node.style.height = prev.height;
         node.style.maxWidth = prev.maxWidth;
         node.style.maxHeight = prev.maxHeight;
+        if (prev.aspectRatio) {
+            node.style.setProperty("aspect-ratio", prev.aspectRatio);
+        } else {
+            node.style.removeProperty("aspect-ratio");
+        }
     }
 }
 
@@ -276,6 +282,19 @@ export async function downloadBanner(node: HTMLElement, options: DownloadBannerO
 
     await waitForImages(node);
 
+    if (typeof document !== "undefined") {
+        const fontSet = (document as Document & {
+            fonts?: { ready?: Promise<void> };
+        }).fonts;
+        if (fontSet?.ready) {
+            try {
+                await fontSet.ready;
+            } catch {
+                // ignore font loading failures for export to continue
+            }
+        }
+    }
+
     const results: DownloadProgressEvent[] = [];
     const total = variants.length;
 
@@ -285,6 +304,7 @@ export async function downloadBanner(node: HTMLElement, options: DownloadBannerO
             visibleNode.style.height = `${targetSize.height}px`;
             visibleNode.style.maxWidth = `${targetSize.width}px`;
             visibleNode.style.maxHeight = `${targetSize.height}px`;
+            visibleNode.style.setProperty("aspect-ratio", "auto");
         }
 
         for (let index = 0; index < variants.length; index += 1) {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GlassButton, RangeSlider } from "../atoms";
+
+import { ControlButton, RangeSlider } from "../atoms";
 
 interface Props {
     value: number;
@@ -24,11 +25,19 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
 
     return (
         <>
-            <div className="flex flex-wrap gap-x-16 gap-y-14 pt-6 pb-8">
+            <div className="grid gap-3 pt-6 pb-4 [grid-template-columns:repeat(auto-fit,minmax(3.25rem,1fr))]">
                 {PRESET.map((n) => (
-                    <GlassButton key={n} active={local === n} onClick={() => apply(n)} isText={true} padding={"7px 7px"}>
+                    <ControlButton
+                        key={n}
+                        className="w-full"
+                        active={local === n}
+                        onClick={() => apply(n)}
+                        isText
+                        padding="10px 0"
+                        textWidthClass="w-full"
+                    >
                         {n}
-                    </GlassButton>
+                    </ControlButton>
                 ))}
             </div>
 

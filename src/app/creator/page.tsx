@@ -37,6 +37,8 @@ const DEFAULT_LAYER_POSITION: LayerPosition = {
     y: 50,
 };
 
+const clampPercentage = (value: number) => Math.min(100, Math.max(0, value));
+
 type LayerOverrides = Partial<Omit<TextLayer, "styles" | "position">> & {
     styles?: Partial<TextStyles>;
     position?: Partial<LayerPosition>;
@@ -109,6 +111,8 @@ const CreatorPage = () => {
     const darkMode = true;
     const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportMode, setIsExportMode] = useState(false);
+    const [snappingEnabled, setSnappingEnabled] = useState(true);
     const [selectedFormats, setSelectedFormats] = useState<BannerFormat[]>(["png"]);
     const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["2x"]);
     const [lossyQuality, setLossyQuality] = useState(0.92);
@@ -125,6 +129,29 @@ const CreatorPage = () => {
     const [isImportingLayers, setIsImportingLayers] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dragCounterRef = useRef(0);
+
+    const canvasPresets = useMemo<CanvasPreset[]>(
+        () => [
+            { label: "Twitter Header", width: 1500, height: 500 },
+            { label: "LinkedIn Banner", width: 1584, height: 396 },
+            { label: "YouTube Banner", width: 2048, height: 1152 },
+        ],
+        [],
+    );
+
+    const [canvasSize, setCanvasSize] = useState<CanvasSize>(() => ({
+        width: canvasPresets[0].width,
+        height: canvasPresets[0].height,
+    }));
+
+    const getPreviewDimensions = useCallback(() => {
+        const width = previewRef.current?.clientWidth ?? canvasSize.width;
+        const height = previewRef.current?.clientHeight ?? canvasSize.height;
+        return {
+            width: Math.max(1, width),
+            height: Math.max(1, height),
+        };
+    }, [canvasSize.height, canvasSize.width]);
 
     useEffect(() => {
         if (!exportToast) {
@@ -187,30 +214,62 @@ const CreatorPage = () => {
     const createLayerFromFile = useCallback(
         async (file: File): Promise<ImageLayer> => {
             const { src, naturalWidth, aspectRatio } = await readFileAsImageData(file);
-            const previewWidth = previewRef.current?.clientWidth ?? 800;
-            const previewHeight = previewRef.current?.clientHeight ?? 320;
+            const { width: previewWidth, height: previewHeight } = getPreviewDimensions();
 
             const maxInitialWidth = Math.max(120, previewWidth * 0.65);
             const calculatedWidth = Math.min(naturalWidth || maxInitialWidth, maxInitialWidth);
-            const width = Math.max(48, calculatedWidth);
-            const height = width / (aspectRatio || 1);
+            const minDimension = 48;
 
-            const x = Math.max(0, (previewWidth - width) / 2);
-            const y = Math.max(0, (previewHeight - height) / 2);
+            let widthPx = Math.max(minDimension, Math.min(calculatedWidth, previewWidth));
+            const safeAspect = aspectRatio || 1;
+            let heightPx = Math.max(minDimension, widthPx / safeAspect);
+
+            if (heightPx > previewHeight) {
+                const scale = previewHeight / heightPx;
+                heightPx = previewHeight;
+                widthPx = Math.max(minDimension, widthPx * scale);
+            }
+
+            if (widthPx > previewWidth) {
+                const scale = previewWidth / widthPx;
+                widthPx = previewWidth;
+                heightPx = Math.max(minDimension, heightPx * scale);
+            }
+
+            const xPx = Math.max(0, (previewWidth - widthPx) / 2);
+            const yPx = Math.max(0, (previewHeight - heightPx) / 2);
+
+            const rawWidthPercent = (widthPx / previewWidth) * 100;
+            const rawHeightPercent = (heightPx / previewHeight) * 100;
+            const safeWidthPercent = Number.isFinite(rawWidthPercent)
+                ? Math.min(100, Math.max(0, rawWidthPercent))
+                : 100;
+            const safeHeightPercent = Number.isFinite(rawHeightPercent)
+                ? Math.min(100, Math.max(0, rawHeightPercent))
+                : 100;
+
+            const rawXPercent = (xPx / previewWidth) * 100;
+            const rawYPercent = (yPx / previewHeight) * 100;
+            const safeXPercent = Number.isFinite(rawXPercent)
+                ? Math.max(0, Math.min(100 - safeWidthPercent, rawXPercent))
+                : 0;
+            const safeYPercent = Number.isFinite(rawYPercent)
+                ? Math.max(0, Math.min(100 - safeHeightPercent, rawYPercent))
+                : 0;
 
             return {
                 id: generateLayerId(),
                 name: file.name,
                 src,
-                width,
-                height,
-                x,
-                y,
+                width: safeWidthPercent,
+                height: safeHeightPercent,
+                x: safeXPercent,
+                y: safeYPercent,
                 visible: true,
-                aspectRatio: aspectRatio || 1,
+                aspectRatio: safeAspect,
             };
         },
-        [generateLayerId, readFileAsImageData],
+        [generateLayerId, getPreviewDimensions, readFileAsImageData],
     );
 
     const handleAddFiles = useCallback(
@@ -286,38 +345,47 @@ const CreatorPage = () => {
         [handleAddFiles],
     );
 
-    const handleLayerChange = useCallback((layerId: string, updates: Partial<ImageLayer>) => {
-        setImageLayers((prev) =>
-            prev.map((layer) => {
-                if (layer.id !== layerId) {
-                    return layer;
-                }
+    const handleLayerChange = useCallback(
+        (layerId: string, updates: Partial<ImageLayer>) => {
+            const { width: previewWidth, height: previewHeight } = getPreviewDimensions();
+            const minWidthPercent = Math.min(100, (32 / previewWidth) * 100);
+            const minHeightPercent = Math.min(100, (32 / previewHeight) * 100);
 
-                const next: ImageLayer = {
-                    ...layer,
-                    ...updates,
-                };
+            setImageLayers((prev) =>
+                prev.map((layer) => {
+                    if (layer.id !== layerId) {
+                        return layer;
+                    }
 
-                if (!Number.isFinite(next.width)) {
-                    next.width = layer.width;
-                }
-                if (!Number.isFinite(next.height)) {
-                    next.height = layer.height;
-                }
-                if (!Number.isFinite(next.x)) {
-                    next.x = layer.x;
-                }
-                if (!Number.isFinite(next.y)) {
-                    next.y = layer.y;
-                }
+                    const next: ImageLayer = {
+                        ...layer,
+                        ...updates,
+                    };
 
-                next.width = Math.max(32, next.width);
-                next.height = Math.max(32, next.height);
+                    if (!Number.isFinite(next.width)) {
+                        next.width = layer.width;
+                    }
+                    if (!Number.isFinite(next.height)) {
+                        next.height = layer.height;
+                    }
+                    if (!Number.isFinite(next.x)) {
+                        next.x = layer.x;
+                    }
+                    if (!Number.isFinite(next.y)) {
+                        next.y = layer.y;
+                    }
 
-                return next;
-            }),
-        );
-    }, []);
+                    next.width = Math.max(minWidthPercent, Math.min(100, next.width));
+                    next.height = Math.max(minHeightPercent, Math.min(100, next.height));
+                    next.x = Math.max(0, Math.min(100 - next.width, next.x));
+                    next.y = Math.max(0, Math.min(100 - next.height, next.y));
+
+                    return next;
+                }),
+            );
+        },
+        [getPreviewDimensions],
+    );
 
     const handleMoveLayer = useCallback((layerId: string, direction: "up" | "down") => {
         setImageLayers((prev) => {
@@ -367,6 +435,10 @@ const CreatorPage = () => {
         async (layerId: string, file: File) => {
             try {
                 const data = await readFileAsImageData(file);
+                const { width: previewWidth, height: previewHeight } = getPreviewDimensions();
+                const minWidthPercent = Math.min(100, (32 / previewWidth) * 100);
+                const minHeightPercent = Math.min(100, (32 / previewHeight) * 100);
+
                 setImageLayers((prev) =>
                     prev.map((layer) => {
                         if (layer.id !== layerId) {
@@ -374,22 +446,53 @@ const CreatorPage = () => {
                         }
 
                         const aspectRatio = data.aspectRatio || 1;
-                        const centerX = layer.x + layer.width / 2;
-                        const centerY = layer.y + layer.height / 2;
-                        const width = Math.max(32, layer.width);
-                        const height = Math.max(32, width / aspectRatio);
-                        const x = Math.max(0, centerX - width / 2);
-                        const y = Math.max(0, centerY - height / 2);
+                        const centerXPercent = layer.x + layer.width / 2;
+                        const centerYPercent = layer.y + layer.height / 2;
+
+                        const currentWidthPx = (layer.width / 100) * previewWidth;
+                        const safeAspect = aspectRatio || 1;
+                        let widthPx = Math.max(32, currentWidthPx);
+                        let heightPx = Math.max(32, widthPx / safeAspect);
+
+                        if (heightPx > previewHeight) {
+                            const scale = previewHeight / heightPx;
+                            heightPx = previewHeight;
+                            widthPx = Math.max(32, widthPx * scale);
+                        }
+
+                        if (widthPx > previewWidth) {
+                            const scale = previewWidth / widthPx;
+                            widthPx = previewWidth;
+                            heightPx = Math.max(32, heightPx * scale);
+                        }
+
+                        const widthPercent = Math.max(
+                            minWidthPercent,
+                            Math.min(100, (widthPx / previewWidth) * 100),
+                        );
+                        const heightPercent = Math.max(
+                            minHeightPercent,
+                            Math.min(100, (heightPx / previewHeight) * 100),
+                        );
+
+                        const xPercent = Math.max(
+                            0,
+                            Math.min(100 - widthPercent, centerXPercent - widthPercent / 2),
+                        );
+                        const yPercent = Math.max(
+                            0,
+                            Math.min(100 - heightPercent, centerYPercent - heightPercent / 2),
+                        );
 
                         return {
                             ...layer,
                             src: data.src,
                             name: file.name,
-                            aspectRatio,
-                            width,
-                            height,
-                            x,
-                            y,
+                            aspectRatio: safeAspect,
+                            width: widthPercent,
+                            height: heightPercent,
+                            x: xPercent,
+                            y: yPercent,
                             visible: true,
                         };
                     }),
@@ -399,22 +502,8 @@ const CreatorPage = () => {
                 console.error("Layer konnte nicht ersetzt werden", error);
             }
         },
-        [readFileAsImageData],
+        [getPreviewDimensions, readFileAsImageData],
     );
-
-    const canvasPresets = useMemo<CanvasPreset[]>(
-        () => [
-            { label: "Twitter Header", width: 1500, height: 500 },
-            { label: "LinkedIn Banner", width: 1584, height: 396 },
-            { label: "YouTube Banner", width: 2048, height: 1152 },
-        ],
-        [],
-    );
-
-    const [canvasSize, setCanvasSize] = useState<CanvasSize>(() => ({
-        width: canvasPresets[0].width,
-        height: canvasPresets[0].height,
-    }));
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -450,6 +539,31 @@ const CreatorPage = () => {
         },
         [selectedLayerId],
     );
+
+    const centerSelectedLayerHorizontally = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { ...layer.position, x: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const centerSelectedLayerVertically = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { ...layer.position, y: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const centerSelectedLayer = useCallback(() => {
+        updateSelectedLayer((layer) => ({
+            ...layer,
+            position: { x: 50, y: 50 },
+        }));
+    }, [updateSelectedLayer]);
+
+    const toggleSnapping = useCallback(() => {
+        setSnappingEnabled((prev) => !prev);
+    }, []);
 
     const toggleStyle = (style: "bold" | "italic" | "underline" | "strikethrough") =>
         updateSelectedLayer((layer) => ({
@@ -495,7 +609,17 @@ const CreatorPage = () => {
 
     const handleLayerPositionChange = (layerId: string, position: LayerPosition) => {
         setLayers((prevLayers) =>
-            prevLayers.map((layer) => (layer.id === layerId ? { ...layer, position } : layer)),
+            prevLayers.map((layer) =>
+                layer.id === layerId
+                    ? {
+                          ...layer,
+                          position: {
+                              x: clampPercentage(position.x),
+                              y: clampPercentage(position.y),
+                          },
+                      }
+                    : layer,
+            ),
         );
     };
 
@@ -610,6 +734,9 @@ const CreatorPage = () => {
             activeLayer?.content.trim() || selectedPattern.name || "banny-banner",
         );
 
+        setIsExportMode(true);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
         setIsExporting(true);
         setExportProgress({ total: totalJobs, completed: 0, failed: 0 });
         setExportToast({
@@ -688,6 +815,7 @@ const CreatorPage = () => {
             });
         } finally {
             setIsExporting(false);
+            setIsExportMode(false);
         }
     };
 
@@ -1070,6 +1198,11 @@ const CreatorPage = () => {
                                 noWrap={activeLayer?.styles.noWrap ?? DEFAULT_TEXT_STYLES.noWrap}
                                 toggleNoWrap={toggleNoWrap}
                                 textStyles={activeLayer?.styles ?? DEFAULT_TEXT_STYLES}
+                                centerLayer={centerSelectedLayer}
+                                centerLayerHorizontally={centerSelectedLayerHorizontally}
+                                centerLayerVertically={centerSelectedLayerVertically}
+                                snappingEnabled={snappingEnabled}
+                                toggleSnapping={toggleSnapping}
                                 onAddLayer={handleAddLayer}
                                 onSelectLayer={handleSelectLayer}
                                 onDuplicateLayer={handleDuplicateLayer}
@@ -1111,6 +1244,8 @@ const CreatorPage = () => {
                                         onImageLayerChange={handleLayerChange}
                                         canvasSize={canvasSize}
                                         isDragActive={isDragActive}
+                                        isExportMode={isExportMode}
+                                        enableSnapping={snappingEnabled}
                                     />
                                     <input
                                         ref={fileInputRef}
@@ -1190,6 +1325,7 @@ const CreatorPage = () => {
                                     onToggleVisibility={handleToggleLayerVisibility}
                                     onMoveLayer={handleMoveLayer}
                                     onReplaceLayer={handleReplaceLayer}
+                                    canvasSize={canvasSize}
                                 />
                             </motion.div>
                         </div>
