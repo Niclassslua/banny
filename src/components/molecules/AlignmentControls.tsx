@@ -6,8 +6,9 @@ import {
     MdAlignHorizontalRight,
     MdFormatAlignJustify,
 } from "react-icons/md";
-import { GlassButton } from "../atoms";
 import { useEffect, useState } from "react";
+
+import { ControlButton } from "../atoms";
 
 type Align = "left" | "center" | "right" | "justify";
 
@@ -29,19 +30,43 @@ export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange, 
     };
 
     return (
-        <div className="flex flex-wrap gap-x-16 gap-y-8 pt-6 pb-6">
-            <GlassButton active={local === "left"} onClick={() => handle("left")} aria-label="Links" padding="14px 18px">
+        <div className="grid grid-cols-4 gap-2 pt-6 pb-4">
+            <ControlButton
+                className="w-full"
+                active={local === "left"}
+                onClick={() => handle("left")}
+                aria-label="Links"
+                padding="12px"
+            >
                 <MdAlignHorizontalLeft className="text-xl" />
-            </GlassButton>
-            <GlassButton active={local === "center"} onClick={() => handle("center")} aria-label="Zentriert" padding="14px 18px">
+            </ControlButton>
+            <ControlButton
+                className="w-full"
+                active={local === "center"}
+                onClick={() => handle("center")}
+                aria-label="Zentriert"
+                padding="12px"
+            >
                 <MdAlignHorizontalCenter className="text-xl" />
-            </GlassButton>
-            <GlassButton active={local === "right"} onClick={() => handle("right")} aria-label="Rechts" padding="14px 18px">
+            </ControlButton>
+            <ControlButton
+                className="w-full"
+                active={local === "right"}
+                onClick={() => handle("right")}
+                aria-label="Rechts"
+                padding="12px"
+            >
                 <MdAlignHorizontalRight className="text-xl" />
-            </GlassButton>
-            <GlassButton active={local === "justify"} onClick={() => handle("justify")} aria-label="Blocksatz" padding="14px 18px">
+            </ControlButton>
+            <ControlButton
+                className="w-full"
+                active={local === "justify"}
+                onClick={() => handle("justify")}
+                aria-label="Blocksatz"
+                padding="12px"
+            >
                 <MdFormatAlignJustify className="text-xl" />
-            </GlassButton>
+            </ControlButton>
         </div>
     );
 };

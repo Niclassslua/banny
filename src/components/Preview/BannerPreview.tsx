@@ -473,11 +473,6 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
       {imageLayers.map((layer, index) => {
         if (!layer.visible) return null;
         const isSelected = layer.id === selectedLayerId;
-        const topPx = (layer.y / 100) * previewHeight;
-        const leftPx = (layer.x / 100) * previewWidth;
-        const widthPx = (layer.width / 100) * previewWidth;
-        const heightPx = (layer.height / 100) * previewHeight;
-
         return (
           <div
             key={layer.id}
@@ -490,10 +485,10 @@ const BannerPreview: React.FC<BannerPreviewProps> = ({
                   : "ring-1 ring-white/10 bg-black/5"),
             )}
             style={{
-              top: `${topPx}px`,
-              left: `${leftPx}px`,
-              width: `${widthPx}px`,
-              height: `${heightPx}px`,
+              top: `${layer.y}%`,
+              left: `${layer.x}%`,
+              width: `${layer.width}%`,
+              height: `${layer.height}%`,
               zIndex: 10 + index,
               touchAction: "none",
               userSelect: "none",

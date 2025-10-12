@@ -22,7 +22,7 @@ import {
 } from "next/font/google";
 
 import { FontStyleControls, AlignmentControls, FontSizeControls, FontDropdown, ColorPalettePicker } from "../molecules";
-import { NoWrapToggle, GlassButton } from "../atoms";
+import { ControlButton } from "../atoms";
 
 import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
@@ -168,7 +168,12 @@ const FontControls: React.FC<FontControlsProps> = ({
         <div className="flex flex-col gap-10">
             {/* Stil */}
             <Section title="Schriftstil">
-                <FontStyleControls value={activeStyles} toggleStyle={handleToggleStyle} />
+                <FontStyleControls
+                    value={activeStyles}
+                    toggleStyle={handleToggleStyle}
+                    wrapActive={!noWrap}
+                    toggleWrap={toggleNoWrap}
+                />
             </Section>
 
             {/* Ausrichtung */}
@@ -177,39 +182,50 @@ const FontControls: React.FC<FontControlsProps> = ({
             </Section>
 
             <Section title="Positionierung">
-                <div className="flex flex-wrap gap-4 pt-6 pb-6">
-                    <GlassButton onClick={centerLayerHorizontally} padding="14px 18px">
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                            <AlignHorizontalJustifyCenter className="h-4 w-4" />
-                            Mitte X
+                <div className="grid gap-3 pt-6 pb-4 sm:grid-cols-2">
+                    <ControlButton
+                        onClick={centerLayerHorizontally}
+                        padding="10px 14px"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <AlignHorizontalJustifyCenter className="h-5 w-5" />
+                            Horizontal
                         </span>
-                    </GlassButton>
-                    <GlassButton onClick={centerLayerVertically} padding="14px 18px">
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                            <AlignVerticalJustifyCenter className="h-4 w-4" />
-                            Mitte Y
+                    </ControlButton>
+                    <ControlButton
+                        onClick={centerLayerVertically}
+                        padding="10px 14px"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <AlignVerticalJustifyCenter className="h-5 w-5" />
+                            Vertikal
                         </span>
-                    </GlassButton>
-                    <GlassButton onClick={centerLayer} padding="14px 18px">
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                            <Crosshair className="h-4 w-4" />
-                            Zentrieren
+                    </ControlButton>
+                    <ControlButton
+                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        onClick={centerLayer}
+                        padding="10px 14px"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <Crosshair className="h-5 w-5" />
+                            Zentriert
                         </span>
-                    </GlassButton>
-                    <GlassButton active={snappingEnabled} onClick={toggleSnapping} padding="14px 18px">
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-                            <Magnet className="h-4 w-4" />
+                    </ControlButton>
+                    <ControlButton
+                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        active={snappingEnabled}
+                        onClick={toggleSnapping}
+                        padding="10px 14px"
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <Magnet className="h-5 w-5" />
                             Snapping
                         </span>
-                    </GlassButton>
+                    </ControlButton>
                 </div>
             </Section>
-
-            {/* Zeilenumbruch */}
-            <Section title="Zeilenumbruch">
-                <NoWrapToggle active={!noWrap} onToggle={toggleNoWrap} />
-            </Section>
-
             {/* Größe */}
             <Section title="Schriftgröße">
                 <FontSizeControls value={selectedFontSize} onChange={setSize} />
@@ -231,17 +247,11 @@ const FontControls: React.FC<FontControlsProps> = ({
 export default FontControls;
 
 // ───────────────────────────────────────── small helper
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
-    const noPadding = ["Schriftart", "Textfarbe"].includes(title);
-
-    return (
-        <section className="flex flex-col gap-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
-                {title}
-            </h2>
-            <div className={noPadding ? "" : "pl-4"}>
-                {children}
-            </div>
-        </section>
-    );
-};
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <section className="flex flex-col gap-5">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
+            {title}
+        </h2>
+        <div>{children}</div>
+    </section>
+);

@@ -80,6 +80,7 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         height: node.style.height,
         maxWidth: node.style.maxWidth,
         maxHeight: node.style.maxHeight,
+        aspectRatio: node.style.getPropertyValue("aspect-ratio"),
     };
 
     try {
@@ -104,6 +105,11 @@ async function withVisibleNode<T>(node: HTMLElement, fn: (n: HTMLElement) => Pro
         node.style.height = prev.height;
         node.style.maxWidth = prev.maxWidth;
         node.style.maxHeight = prev.maxHeight;
+        if (prev.aspectRatio) {
+            node.style.setProperty("aspect-ratio", prev.aspectRatio);
+        } else {
+            node.style.removeProperty("aspect-ratio");
+        }
     }
 }
 
@@ -298,6 +304,7 @@ export async function downloadBanner(node: HTMLElement, options: DownloadBannerO
             visibleNode.style.height = `${targetSize.height}px`;
             visibleNode.style.maxWidth = `${targetSize.width}px`;
             visibleNode.style.maxHeight = `${targetSize.height}px`;
+            visibleNode.style.setProperty("aspect-ratio", "auto");
         }
 
         for (let index = 0; index < variants.length; index += 1) {
