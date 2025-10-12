@@ -21,7 +21,7 @@ import {
     type BannerExportVariant,
     type BannerFormat,
 } from "@/utils/downloadBanner";
-import { buttonClass } from "@/utils/buttonStyles";
+import { Button } from "@/components/ui/Button";
 
 const DEFAULT_TEXT_STYLES: TextStyles = {
     bold: true,
@@ -514,13 +514,16 @@ const CreatorPage = () => {
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
         return (
-            <button
+            <Button
                 key={pattern.name}
-                type="button"
+                variant="ghost"
+                size="lg"
                 onClick={() => setSelectedPattern(pattern)}
-                className={`group relative overflow-hidden rounded-2xl border ${
-                    isSelected ? "border-[#A1E2F8]" : "border-white/10"
-                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60 ${BUTTON_FOCUS_RING}`}
+                className={clsx(
+                    "group relative flex w-full flex-col overflow-hidden rounded-2xl border bg-white/5 p-2.5 text-left transition",
+                    isSelected ? "border-[#A1E2F8]" : "border-white/10 hover:border-[#A1E2F8]/60",
+                    BUTTON_FOCUS_RING,
+                )}
             >
                 <div
                     className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
@@ -529,7 +532,7 @@ const CreatorPage = () => {
                 <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-white">{pattern.name}</span>
                 </div>
-            </button>
+            </Button>
         );
     };
 
@@ -954,15 +957,16 @@ const CreatorPage = () => {
                 labelledBy="export-dialog-title"
                 preventClose={isExporting}
             >
-                <button
-                    type="button"
+                <Button
                     onClick={handleCloseExportDialog}
                     disabled={isExporting}
-                    className={clsx(buttonClass("icon"), "absolute right-4 top-4")}
+                    variant="icon"
+                    size="icon"
+                    className="absolute right-4 top-4"
                     aria-label="Dialog schließen"
                 >
                     <X className="h-4 w-4" />
-                </button>
+                </Button>
                 <div className="flex flex-col gap-6 p-6 sm:p-8">
                     <div className="flex flex-col gap-2">
                         <span className="text-xs uppercase tracking-[0.35em] text-[#A1E2F8]">Export</span>
@@ -983,17 +987,18 @@ const CreatorPage = () => {
                                         {formatOptions.map((option) => {
                                             const isSelected = selectedFormats.includes(option.value);
                                             return (
-                                                <button
+                                                <Button
                                                     key={option.value}
-                                                    type="button"
                                                     onClick={() => toggleFormat(option.value)}
                                                     disabled={isExporting}
+                                                    variant="ghost"
+                                                    size="lg"
                                                     className={clsx(
-                                                        "group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition",
+                                                        "group flex w-full flex-col items-start gap-2 rounded-2xl border px-4 py-3 text-left transition",
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
                                                             : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
-                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8] disabled:pointer-events-none disabled:opacity-50",
+                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]",
                                                     )}
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
@@ -1009,7 +1014,7 @@ const CreatorPage = () => {
                                                         </span>
                                                     </div>
                                                     <p className="text-xs text-white/60 group-hover:text-white/70">{option.description}</p>
-                                                </button>
+                                                </Button>
                                             );
                                         })}
                                     </div>
@@ -1020,22 +1025,23 @@ const CreatorPage = () => {
                                         {resolutionOptions.map((resolution) => {
                                             const isSelected = selectedResolutions.includes(resolution.id);
                                             return (
-                                                <button
+                                                <Button
                                                     key={resolution.id}
-                                                    type="button"
                                                     onClick={() => toggleResolution(resolution.id)}
                                                     disabled={isExporting}
+                                                    variant="ghost"
+                                                    size="lg"
                                                     className={clsx(
-                                                        "group flex flex-col gap-2 rounded-2xl border px-4 py-3 text-left transition",
+                                                        "group flex w-full flex-col items-start gap-2 rounded-2xl border px-4 py-3 text-left transition",
                                                         isSelected
                                                             ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
                                                             : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white",
-                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8] disabled:pointer-events-none disabled:opacity-50",
+                                                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]",
                                                     )}
                                                 >
                                                     <div className="text-base font-semibold">{resolution.label}</div>
                                                     <p className="text-xs text-white/60 group-hover:text-white/70">{resolution.description}</p>
-                                                </button>
+                                                </Button>
                                             );
                                         })}
                                     </div>
@@ -1093,19 +1099,17 @@ const CreatorPage = () => {
                                     Tipp: Du kannst mehrere Varianten gleichzeitig exportieren. Die Dateien werden automatisch benannt.
                                 </p>
                                 <div className="flex gap-3">
-                                    <button
-                                        type="button"
+                                    <Button
                                         onClick={handleCloseExportDialog}
                                         disabled={isExporting}
-                                        className={buttonClass("secondary")}
+                                        variant="secondary"
                                     >
                                         Abbrechen
-                                    </button>
-                                    <button
-                                        type="button"
+                                    </Button>
+                                    <Button
                                         onClick={handleStartExport}
                                         disabled={isExporting || totalSelectedJobs === 0}
-                                        className={buttonClass("primary")}
+                                        variant="primary"
                                     >
                                         {isExporting ? (
                                             <>
@@ -1118,7 +1122,7 @@ const CreatorPage = () => {
                                                 Export starten
                                             </>
                                         )}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                 </div>
@@ -1158,11 +1162,10 @@ const CreatorPage = () => {
                                 </Link>
                             ))}
                         </nav>
-                        <button
-                            type="button"
+                        <Button
                             onClick={handleOpenExportDialog}
                             disabled={isExporting}
-                            className={buttonClass("primary")}
+                            variant="primary"
                         >
                             {isExporting ? (
                                 <>
@@ -1175,7 +1178,7 @@ const CreatorPage = () => {
                                     Exportieren
                                 </>
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -1269,14 +1272,17 @@ const CreatorPage = () => {
                                         <span>
                                             Ziehe Bilder direkt in die Vorschau oder nutze den Upload-Button.
                                         </span>
-                                        <button
-                                            type="button"
+                                        <Button
                                             onClick={handleUploadClick}
-                                            className={`inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white ${BUTTON_FOCUS_RING}`}
+                                            variant="primary"
+                                            borderRadius="xl"
+                                            px={4}
+                                            py={2}
+                                            className={BUTTON_FOCUS_RING}
                                         >
                                             <Upload className="h-4 w-4" />
                                             Bilder hochladen
-                                        </button>
+                                        </Button>
                                     </div>
                                     {isImportingLayers && (
                                         <span className="text-xs text-[#A1E2F8]">Verarbeite Upload …</span>

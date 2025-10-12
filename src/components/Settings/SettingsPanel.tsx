@@ -1,3 +1,5 @@
+"use client";
+
 // src/components/Settings/SettingsPanel.tsx
 import React from "react";
 import clsx from "clsx";
@@ -5,10 +7,8 @@ import { RangeSlider } from "@/components/atoms";
 import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 import { SettingsPanelProps } from "@/types";
 import { IconRefresh, IconArrowsShuffle } from "@tabler/icons-react";
-import { buttonClass } from "@/utils/buttonStyles";
 
-const focusRingClass =
-    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+import { Button } from "@/components/ui/Button";
 
 const randomHex = () =>
     "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
@@ -44,23 +44,23 @@ const ColorHeader: React.FC<{
         </h3>
         <div className="ml-auto flex gap-1">
             {!isDefault && (
-                <button
-                    type="button"
+                <Button
                     onClick={onReset}
-                    className={buttonClass("iconSmall")}
+                    variant="iconSmall"
+                    size="iconSmall"
                     title="Reset"
                 >
                     <IconRefresh size={16} stroke={1.5} />
-                </button>
+                </Button>
             )}
-            <button
-                type="button"
+            <Button
                 onClick={onShuffle}
-                className={buttonClass("iconSmall")}
+                variant="iconSmall"
+                size="iconSmall"
                 title="Shuffle"
             >
                 <IconArrowsShuffle size={16} stroke={1.5} />
-            </button>
+            </Button>
         </div>
     </header>
 );
@@ -193,17 +193,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     {canvasPresets.map((preset) => {
                         const selected = isPresetSelected(preset);
                         return (
-                            <button
+                            <Button
                                 key={`${preset.label}-${preset.width}x${preset.height}`}
-                                type="button"
                                 onClick={() =>
                                     setCanvasSize({
                                         width: preset.width,
                                         height: preset.height,
                                     })
                                 }
+                                variant="ghost"
+                                size="sm"
                                 className={clsx(
-                                    buttonClass("ghost", "sm", "rounded-lg px-3 py-1.5 text-sm"),
+                                    "rounded-lg px-3 py-1.5 text-sm",
                                     selected
                                         ? "border-[#A1E2F8] bg-[#A1E2F8]/10 text-white"
                                         : "border-white/10 bg-white/5 text-foreground/80 hover:border-[#A1E2F8]/60 hover:text-white",
@@ -213,7 +214,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                 <span className="ml-2 text-xs text-foreground/60">
                                     {preset.width}×{preset.height}
                                 </span>
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>

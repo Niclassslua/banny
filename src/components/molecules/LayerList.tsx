@@ -5,10 +5,7 @@ import clsx from "clsx";
 import { Copy, Plus, Trash2 } from "lucide-react";
 
 import { TextLayer } from "@/types";
-import { buttonClass } from "@/utils/buttonStyles";
-
-const focusRingClass =
-    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+import { Button } from "@/components/ui/Button";
 
 interface LayerListProps {
     layers: TextLayer[];
@@ -40,18 +37,15 @@ export const LayerList: React.FC<LayerListProps> = ({
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
                     Text-Layer
                 </h2>
-                <button
-                    type="button"
+                <Button
                     onClick={onAddLayer}
-                    className={buttonClass(
-                        "secondary",
-                        "sm",
-                        "px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em]",
-                    )}
+                    variant="secondary"
+                    size="sm"
+                    className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em]"
                 >
                     <Plus className="h-3.5 w-3.5" />
                     Hinzufügen
-                </button>
+                </Button>
             </div>
 
             <div className="flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
@@ -81,28 +75,30 @@ export const LayerList: React.FC<LayerListProps> = ({
                                 </span>
                             </div>
                             <div className="flex flex-none items-center gap-1">
-                                <button
-                                    type="button"
+                                <Button
                                     onClick={(event) => {
                                         event.stopPropagation();
                                         onDuplicateLayer(layer.id);
                                     }}
-                                    className={buttonClass("iconSmall", "none", "p-1.5")}
+                                    variant="iconSmall"
+                                    size="iconSmall"
+                                    className="p-1.5"
                                     aria-label="Layer duplizieren"
                                 >
                                     <Copy className="h-4 w-4" />
-                                </button>
-                                <button
-                                    type="button"
+                                </Button>
+                                <Button
                                     onClick={(event) => {
                                         event.stopPropagation();
                                         onDeleteLayer(layer.id);
                                     }}
-                                    className={buttonClass("iconDanger", "none", "p-1.5")}
+                                    variant="iconDanger"
+                                    size="iconDanger"
+                                    className="p-1.5"
                                     aria-label="Layer löschen"
                                 >
                                     <Trash2 className="h-4 w-4" />
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     );

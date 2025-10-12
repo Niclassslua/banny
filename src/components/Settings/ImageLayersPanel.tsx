@@ -1,12 +1,12 @@
+"use client";
+
 import React from "react";
 import clsx from "clsx";
 import { ArrowDown, ArrowUp, Eye, EyeOff, RefreshCcw } from "lucide-react";
 
 import { CanvasSize, ImageLayer } from "@/types";
-import { buttonClass } from "@/utils/buttonStyles";
 
-const focusRingClass =
-    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+import { Button } from "@/components/ui/Button";
 
 interface ImageLayersPanelProps {
     layers: ImageLayer[];
@@ -80,20 +80,18 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                     }}
                                     className="flex w-full items-center gap-3 rounded-2xl p-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#A1E2F8]/60"
                                 >
-                                    <button
-                                        type="button"
+                                    <Button
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             onToggleVisibility(layer.id);
                                         }}
-                                        className={clsx(
-                                            buttonClass("icon", "none", "h-9 w-9"),
-                                            !layer.visible && "opacity-70",
-                                        )}
+                                        variant="icon"
+                                        size="icon"
+                                        className={clsx(!layer.visible && "opacity-70")}
                                         aria-label={layer.visible ? "Layer ausblenden" : "Layer einblenden"}
                                     >
                                         {layer.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                                    </button>
+                                    </Button>
 
                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/40">
                                         <img
@@ -112,44 +110,44 @@ const ImageLayersPanel: React.FC<ImageLayersPanelProps> = ({
                                     </div>
 
                                     <div className="flex flex-col items-center gap-1">
-                                        <button
-                                            type="button"
+                                        <Button
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 onMoveLayer(layer.id, "up");
                                             }}
                                             disabled={index === layers.length - 1}
-                                            className={buttonClass("iconSmall")}
+                                            variant="iconSmall"
+                                            size="iconSmall"
                                             aria-label="Layer nach vorne"
                                         >
                                             <ArrowUp className="h-4 w-4" />
-                                        </button>
-                                        <button
-                                            type="button"
+                                        </Button>
+                                        <Button
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 onMoveLayer(layer.id, "down");
                                             }}
                                             disabled={index === 0}
-                                            className={buttonClass("iconSmall")}
+                                            variant="iconSmall"
+                                            size="iconSmall"
                                             aria-label="Layer nach hinten"
                                         >
                                             <ArrowDown className="h-4 w-4" />
-                                        </button>
+                                        </Button>
                                     </div>
 
                                     <div className="ml-2 flex items-center">
-                                        <label
+                                        <Button
+                                            as="label"
                                             htmlFor={replaceInputId}
-                                            className={clsx(
-                                                buttonClass("secondary", "sm", "cursor-pointer rounded-xl px-3 py-1.5 text-xs"),
-                                                "font-semibold",
-                                            )}
                                             onClick={(event) => event.stopPropagation()}
+                                            variant="secondary"
+                                            size="sm"
+                                            className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold"
                                         >
                                             <RefreshCcw className="h-3.5 w-3.5" />
                                             Tauschen
-                                        </label>
+                                        </Button>
                                         <input
                                             id={replaceInputId}
                                             type="file"

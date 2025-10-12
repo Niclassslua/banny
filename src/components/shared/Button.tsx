@@ -1,12 +1,14 @@
+"use client";
+
 import React from "react";
 
-import { buttonClass } from "@/utils/buttonStyles";
+import { Button as UiButton } from "@/components/ui/Button";
 
 const Button: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => {
     return (
-        <button type="button" onClick={onClick} className={buttonClass("primary")}>
+        <UiButton variant="primary" onClick={onClick}>
             {label}
-        </button>
+        </UiButton>
     );
 };
 
