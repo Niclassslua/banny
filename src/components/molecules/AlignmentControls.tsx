@@ -30,7 +30,7 @@ export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange, 
     };
 
     return (
-        <div className="grid grid-cols-4 gap-2 pt-6 pb-4">
+        <div className="grid grid-cols-4 safari-grid-cols-4 gap-2 pt-6 pb-4">
             <ControlButton
                 className="w-full"
                 active={local === "left"}

@@ -25,7 +25,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
 
     return (
         <>
-            <div className="grid gap-3 pt-6 pb-4 [grid-template-columns:repeat(auto-fit,minmax(3.25rem,1fr))]">
+            <div className="grid gap-3 pt-6 pb-4 safari-grid-auto-tight [grid-template-columns:repeat(auto-fit,minmax(3.25rem,1fr))]">
                 {PRESET.map((n) => (
                     <ControlButton
                         key={n}

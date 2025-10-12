@@ -16,7 +16,7 @@ export const FontStyleControls: React.FC<Props> = ({ value, toggleStyle, wrapAct
     const isActive = (s: Style) => value.includes(s);
 
     return (
-        <div className="grid grid-cols-4 gap-2 pt-6 pb-4 sm:grid-cols-5">
+        <div className="grid grid-cols-4 safari-grid-cols-4 gap-2 pt-6 pb-4 sm:grid-cols-5 sm:safari-grid-cols-5">
             <ControlButton
                 active={isActive("bold")}
                 onClick={() => toggleStyle("bold")}

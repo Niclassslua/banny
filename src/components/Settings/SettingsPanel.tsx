@@ -202,7 +202,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     })}
                 </div>
 
-                <div className="mt-4 grid w-full gap-3 sm:grid-cols-2">
+                <div className="mt-4 grid w-full gap-3 sm:grid-cols-2 sm:safari-grid-cols-2">
                     <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-foreground/60">
                         Width (px)
                         <input
