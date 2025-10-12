@@ -1,5 +1,79 @@
 import { Pattern } from "@/types";
 
+export function addAlpha(color: string, alpha: number | string): string {
+    const aHex = typeof alpha === "number" ? alphaToHex(alpha) : normalizeHexAlpha(alpha);
+    const aDec = hexAlphaToDecimal(aHex); // 0..1
+
+    if (!color) return color;
+
+    const c = color.trim();
+
+    // 1) CSS variable: use color-mix to keep it composable
+    if (c.startsWith("var(")) {
+        const pct = Math.round(aDec * 100);
+        // "pct% of color, rest transparent" approximates alpha blending
+        return `color-mix(in srgb, ${c} ${pct}%, transparent)`;
+    }
+
+    // 2) Hex colors
+    if (c.startsWith("#")) {
+        const hex = c.slice(1);
+        if (hex.length === 3 || hex.length === 4) {
+            const [r, g, b, a] = hex.split("");
+            const rr = r + r, gg = g + g, bb = b + b;
+            // replace alpha if provided in 4-digit form
+            return `#${rr}${gg}${bb}${aHex}`;
+        }
+        if (hex.length === 6) return `#${hex}${aHex}`;
+        if (hex.length === 8) return `#${hex.slice(0, 6)}${aHex}`;
+        // Fallback: leave untouched
+        return c;
+    }
+
+    // 3) rgb()/rgba()
+    const rgb = c.match(/^rgba?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+    if (rgb) {
+        const [, r, g, b] = rgb;
+        return `rgba(${clamp255(+r)}, ${clamp255(+g)}, ${clamp255(+b)}, ${round2(aDec)})`;
+    }
+
+    // 4) hsl()/hsla()
+    const hsl = c.match(/^hsla?\s*\(\s*([\d.]+)(deg|rad|turn)?\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%(?:\s*,\s*([\d.]+))?\s*\)$/i);
+    if (hsl) {
+        const [, h, unit = "deg", s, l] = hsl;
+        return `hsla(${h}${unit}, ${clampPct(+s)}%, ${clampPct(+l)}%, ${round2(aDec)})`;
+    }
+
+    // 5) Named colors or anything else → use color-mix as generic fallback
+    const pct = Math.round(aDec * 100);
+    return `color-mix(in srgb, ${c} ${pct}%, transparent)`;
+}
+
+// ───────────────────────── helpers
+function alphaToHex(a: number): string {
+    const v = Math.round(clamp01(a) * 255);
+    return v.toString(16).padStart(2, "0");
+}
+function normalizeHexAlpha(a: string): string {
+    const s = a.trim().replace(/^#/,"");
+    if (/^[0-9a-fA-F]{2}$/.test(s)) return s.toLowerCase();
+    // allow "f" or "F" shorthand
+    if (/^[0-9a-fA-F]{1}$/.test(s)) return (s + s).toLowerCase();
+    // if it's a percentage like "70%" → convert
+    const pct = s.endsWith("%") ? parseFloat(s) : NaN;
+    if (!Number.isNaN(pct)) return alphaToHex(pct / 100);
+    // fallback: assume 1 (opaque)
+    return "ff";
+}
+function hexAlphaToDecimal(hex: string): number {
+    const v = parseInt(hex, 16);
+    return isFinite(v) ? clamp01(v / 255) : 1;
+}
+function clamp01(x: number) { return Math.max(0, Math.min(1, x)); }
+function clamp255(x: number) { return Math.max(0, Math.min(255, Math.round(x))); }
+function clampPct(x: number) { return Math.max(0, Math.min(100, Math.round(x))); }
+function round2(x: number) { return Math.round(x * 100) / 100; }
+
 export const patterns: Pattern[] = [
     {
         name: "Crimson Depth",
