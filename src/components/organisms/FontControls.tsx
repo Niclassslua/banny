@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter, Crosshair, Magnet } from "lucide-react";
 import {
     Roboto,
     Open_Sans,
@@ -21,7 +22,7 @@ import {
 } from "next/font/google";
 
 import { FontStyleControls, AlignmentControls, FontSizeControls, FontDropdown, ColorPalettePicker } from "../molecules";
-import { NoWrapToggle } from "../atoms";
+import { NoWrapToggle, GlassButton } from "../atoms";
 
 import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
@@ -76,6 +77,11 @@ interface FontControlsProps {
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
+    centerLayer: () => void;
+    centerLayerHorizontally: () => void;
+    centerLayerVertically: () => void;
+    snappingEnabled: boolean;
+    toggleSnapping: () => void;
 }
 
 // ───────────────────────────────────────── component
@@ -89,6 +95,11 @@ const FontControls: React.FC<FontControlsProps> = ({
     noWrap,
     toggleNoWrap,
     textStyles,
+    centerLayer,
+    centerLayerHorizontally,
+    centerLayerVertically,
+    snappingEnabled,
+    toggleSnapping,
 }) => {
     const [selectedFontSize, setSelectedFontSize] = useState(currentFontSize);
     const [selectedFont, setSelectedFont] = useState(textStyles.fontFamily);
@@ -163,6 +174,35 @@ const FontControls: React.FC<FontControlsProps> = ({
             {/* Ausrichtung */}
             <Section title="Ausrichtung">
                 <AlignmentControls onChange={handleAlignmentChange} value={alignment} />
+            </Section>
+
+            <Section title="Positionierung">
+                <div className="flex flex-wrap gap-4 pt-6 pb-6">
+                    <GlassButton onClick={centerLayerHorizontally} padding="14px 18px">
+                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                            <AlignHorizontalJustifyCenter className="h-4 w-4" />
+                            Mitte X
+                        </span>
+                    </GlassButton>
+                    <GlassButton onClick={centerLayerVertically} padding="14px 18px">
+                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                            <AlignVerticalJustifyCenter className="h-4 w-4" />
+                            Mitte Y
+                        </span>
+                    </GlassButton>
+                    <GlassButton onClick={centerLayer} padding="14px 18px">
+                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                            <Crosshair className="h-4 w-4" />
+                            Zentrieren
+                        </span>
+                    </GlassButton>
+                    <GlassButton active={snappingEnabled} onClick={toggleSnapping} padding="14px 18px">
+                        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                            <Magnet className="h-4 w-4" />
+                            Snapping
+                        </span>
+                    </GlassButton>
+                </div>
             </Section>
 
             {/* Zeilenumbruch */}

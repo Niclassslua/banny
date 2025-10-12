@@ -32,8 +32,8 @@ type DownloadBannerOptions = {
 };
 
 const BASE_RENDER_OPTIONS: HtmlToImageOptions = {
-    pixelRatio: 2,
-    cacheBust: true,
+    pixelRatio: 1,
+    cacheBust: false,
 };
 
 const DEFAULT_JPEG_QUALITY = 0.92;
@@ -275,6 +275,19 @@ export async function downloadBanner(node: HTMLElement, options: DownloadBannerO
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     await waitForImages(node);
+
+    if (typeof document !== "undefined") {
+        const fontSet = (document as Document & {
+            fonts?: { ready?: Promise<void> };
+        }).fonts;
+        if (fontSet?.ready) {
+            try {
+                await fontSet.ready;
+            } catch {
+                // ignore font loading failures for export to continue
+            }
+        }
+    }
 
     const results: DownloadProgressEvent[] = [];
     const total = variants.length;

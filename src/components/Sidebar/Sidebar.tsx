@@ -21,6 +21,11 @@ interface SidebarProps {
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
+    centerLayer: () => void;
+    centerLayerHorizontally: () => void;
+    centerLayerVertically: () => void;
+    snappingEnabled: boolean;
+    toggleSnapping: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -39,6 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              noWrap,
                                              toggleNoWrap,
                                              textStyles,
+                                             centerLayer,
+                                             centerLayerHorizontally,
+                                             centerLayerVertically,
+                                             snappingEnabled,
+                                             toggleSnapping,
                                          }) => {
     return (
         <aside
@@ -65,6 +75,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                     noWrap={noWrap}
                     toggleNoWrap={toggleNoWrap}
                     textStyles={textStyles}
+                    centerLayer={centerLayer}
+                    centerLayerHorizontally={centerLayerHorizontally}
+                    centerLayerVertically={centerLayerVertically}
+                    snappingEnabled={snappingEnabled}
+                    toggleSnapping={toggleSnapping}
                 />
             </div>
         </aside>
