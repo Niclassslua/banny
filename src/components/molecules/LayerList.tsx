@@ -7,6 +7,9 @@ import { Copy, Plus, Trash2 } from "lucide-react";
 import { TextLayer } from "@/types";
 import { buttonClass } from "@/utils/buttonStyles";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface LayerListProps {
     layers: TextLayer[];
     activeLayerId: string | null;

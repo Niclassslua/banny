@@ -8,6 +8,9 @@ interface ControlButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     textWidthClass?: string;
 }
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 export const ControlButton: React.FC<ControlButtonProps> = ({
     active = false,
     isText = false,

@@ -1,6 +1,9 @@
 // src/components/molecules/FontDropdown.tsx
 import React, { useState } from "react";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface FontDesc {
     name: string;
     style: string;     // z. B. "'Roboto', sans-serif"
@@ -25,7 +28,7 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
             {/* Trigger‑Button */}
             <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
+                className={`flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white ${focusRingClass}`}
                 onClick={() => setIsOpen((prev) => !prev)}
                 style={{ fontFamily: selectedFontFamily }}
             >

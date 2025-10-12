@@ -7,6 +7,9 @@ import { SettingsPanelProps } from "@/types";
 import { IconRefresh, IconArrowsShuffle } from "@tabler/icons-react";
 import { buttonClass } from "@/utils/buttonStyles";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 const randomHex = () =>
     "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
 

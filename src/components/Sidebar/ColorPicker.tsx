@@ -6,6 +6,9 @@ import ColorPicker from "react-best-gradient-color-picker";
 
 import { colors } from "@/constants/colors";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface ColorPickerProps {
     color: string;
     setColor: (color: string) => void;

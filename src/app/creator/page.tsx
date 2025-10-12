@@ -68,6 +68,9 @@ const TOAST_STYLE_MAP: Record<"info" | "success" | "error", string> = {
     error: "border-red-500/40 bg-red-500/15 text-red-100",
 };
 
+const BUTTON_FOCUS_RING =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
     const [isSafari, setIsSafari] = useState(false);
@@ -517,7 +520,7 @@ const CreatorPage = () => {
                 onClick={() => setSelectedPattern(pattern)}
                 className={`group relative overflow-hidden rounded-2xl border ${
                     isSelected ? "border-[#A1E2F8]" : "border-white/10"
-                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
+                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60 ${BUTTON_FOCUS_RING}`}
             >
                 <div
                     className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
@@ -1269,7 +1272,7 @@ const CreatorPage = () => {
                                         <button
                                             type="button"
                                             onClick={handleUploadClick}
-                                            className="inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white"
+                                            className={`inline-flex items-center gap-2 rounded-xl border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 text-sm font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white ${BUTTON_FOCUS_RING}`}
                                         >
                                             <Upload className="h-4 w-4" />
                                             Bilder hochladen

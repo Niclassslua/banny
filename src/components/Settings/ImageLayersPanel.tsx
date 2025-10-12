@@ -5,6 +5,9 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, RefreshCcw } from "lucide-react";
 import { CanvasSize, ImageLayer } from "@/types";
 import { buttonClass } from "@/utils/buttonStyles";
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 interface ImageLayersPanelProps {
     layers: ImageLayer[];
     selectedLayerId: string | null;

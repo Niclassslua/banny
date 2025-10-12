@@ -6,6 +6,9 @@ interface IconButtonProps
     isActive?: boolean;            // z. B. Bold aktiv
 }
 
+const focusRingClass =
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A1E2F8]";
+
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     ({ className, isActive, ...rest }, ref) => (
         <button
