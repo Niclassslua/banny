@@ -8,7 +8,7 @@ import {
 } from "react-icons/md";
 import { useEffect, useState } from "react";
 
-import { ControlButton } from "../atoms";
+import { ControlButton, ControlGrid } from "../atoms";
 
 type Align = "left" | "center" | "right" | "justify";
 
@@ -30,7 +30,7 @@ export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange, 
     };
 
     return (
-        <div className="grid grid-cols-4 safari-grid-cols-4 gap-2 pt-6 pb-4">
+        <ControlGrid columns={4} gap="0.5rem" className="pt-6 pb-4">
             <ControlButton
                 className="w-full"
                 active={local === "left"}
@@ -67,6 +67,6 @@ export const AlignmentControls: React.FC<AlignmentControlsProps> = ({ onChange, 
             >
                 <MdFormatAlignJustify className="text-xl" />
             </ControlButton>
-        </div>
+        </ControlGrid>
     );
 };

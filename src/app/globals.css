@@ -202,3 +202,103 @@ body {
         }
     }
 }
+
+/* --- Grid-Layout für Steuerbuttons --- */
+.control-grid {
+  display: grid;
+  gap: var(--grid-gap, 0.5rem);
+}
+
+.control-grid:not([data-auto-fit="true"]) {
+  grid-template-columns: repeat(var(--grid-columns, 1), minmax(0, 1fr));
+}
+
+.control-grid[data-auto-fit="true"] {
+  grid-template-columns: repeat(auto-fit, minmax(var(--grid-min-item, 3rem), 1fr));
+}
+
+.control-grid > [data-span="full"] {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .control-grid:not([data-auto-fit="true"]) {
+    grid-template-columns: repeat(
+      var(--grid-columns-sm, var(--grid-columns, 1)),
+      minmax(0, 1fr)
+    );
+  }
+}
+
+@media (min-width: 768px) {
+  .control-grid:not([data-auto-fit="true"]) {
+    grid-template-columns: repeat(
+      var(--grid-columns-md, var(--grid-columns-sm, var(--grid-columns, 1))),
+      minmax(0, 1fr)
+    );
+  }
+}
+
+@media (min-width: 1024px) {
+  .control-grid:not([data-auto-fit="true"]) {
+    grid-template-columns: repeat(
+      var(--grid-columns-lg, var(--grid-columns-md, var(--grid-columns-sm, var(--grid-columns, 1)))),
+      minmax(0, 1fr)
+    );
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .control-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--grid-gap, 0.5rem);
+  }
+
+  .control-grid:not([data-auto-fit="true"]) {
+    --grid-active-columns: var(--grid-columns, 1);
+  }
+
+  .control-grid:not([data-auto-fit="true"]) > * {
+    flex: 0 0 calc(
+      (100% - (var(--grid-active-columns) - 1) * var(--grid-gap, 0.5rem)) /
+        var(--grid-active-columns)
+    );
+  }
+
+  .control-grid[data-auto-fit="true"] > * {
+    flex: 1 1 var(--grid-min-item, 3rem);
+    min-width: var(--grid-min-item, 3rem);
+  }
+
+  .control-grid > [data-span="full"] {
+    flex-basis: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .control-grid:not([data-auto-fit="true"]) {
+      --grid-active-columns: var(
+        --grid-columns-sm,
+        var(--grid-active-columns)
+      );
+    }
+  }
+
+  @media (min-width: 768px) {
+    .control-grid:not([data-auto-fit="true"]) {
+      --grid-active-columns: var(
+        --grid-columns-md,
+        var(--grid-active-columns)
+      );
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .control-grid:not([data-auto-fit="true"]) {
+      --grid-active-columns: var(
+        --grid-columns-lg,
+        var(--grid-active-columns)
+      );
+    }
+  }
+}
