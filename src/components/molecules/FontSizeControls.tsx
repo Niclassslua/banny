@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { ControlButton, RangeSlider } from "../atoms";
+import { ControlButton, ControlGrid, RangeSlider } from "../atoms";
 
 interface Props {
     value: number;
@@ -25,7 +25,12 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
 
     return (
         <>
-            <div className="grid gap-3 pt-6 pb-4 [grid-template-columns:repeat(auto-fit,minmax(3.25rem,1fr))]">
+            <ControlGrid
+                autoFit
+                gap="0.75rem"
+                minItemWidth="3.25rem"
+                className="pt-6 pb-4"
+            >
                 {PRESET.map((n) => (
                     <ControlButton
                         key={n}
@@ -39,7 +44,7 @@ export const FontSizeControls: React.FC<Props> = ({ value, onChange }) => {
                         {n}
                     </ControlButton>
                 ))}
-            </div>
+            </ControlGrid>
 
             <div className="mt-4">
                 <RangeSlider

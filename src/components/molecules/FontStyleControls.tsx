@@ -2,7 +2,7 @@
 
 import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdStrikethroughS, MdWrapText } from "react-icons/md";
 
-import { ControlButton } from "../atoms";
+import { ControlButton, ControlGrid } from "../atoms";
 import { Style } from "@/types/Style";
 
 interface Props {
@@ -16,7 +16,7 @@ export const FontStyleControls: React.FC<Props> = ({ value, toggleStyle, wrapAct
     const isActive = (s: Style) => value.includes(s);
 
     return (
-        <div className="grid grid-cols-4 gap-2 pt-6 pb-4 sm:grid-cols-5">
+        <ControlGrid columns={4} smColumns={5} gap="0.5rem" className="pt-6 pb-4">
             <ControlButton
                 active={isActive("bold")}
                 onClick={() => toggleStyle("bold")}
@@ -67,6 +67,6 @@ export const FontStyleControls: React.FC<Props> = ({ value, toggleStyle, wrapAct
                     </span>
                 </div>
             </ControlButton>
-        </div>
+        </ControlGrid>
     );
 };

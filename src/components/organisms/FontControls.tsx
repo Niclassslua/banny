@@ -22,7 +22,7 @@ import {
 } from "next/font/google";
 
 import { FontStyleControls, AlignmentControls, FontSizeControls, FontDropdown, ColorPalettePicker } from "../molecules";
-import { ControlButton } from "../atoms";
+import { ControlButton, ControlGrid } from "../atoms";
 
 import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
@@ -182,7 +182,7 @@ const FontControls: React.FC<FontControlsProps> = ({
             </Section>
 
             <Section title="Positionierung">
-                <div className="grid gap-3 pt-6 pb-4 sm:grid-cols-2">
+                <ControlGrid columns={1} smColumns={2} gap="0.75rem" className="pt-6 pb-4">
                     <ControlButton
                         onClick={centerLayerHorizontally}
                         padding="10px 14px"
@@ -204,9 +204,10 @@ const FontControls: React.FC<FontControlsProps> = ({
                         </span>
                     </ControlButton>
                     <ControlButton
-                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
                         onClick={centerLayer}
                         padding="10px 14px"
+                        data-span="full"
                     >
                         <span className="inline-flex items-center gap-2">
                             <Crosshair className="h-5 w-5" />
@@ -214,17 +215,18 @@ const FontControls: React.FC<FontControlsProps> = ({
                         </span>
                     </ControlButton>
                     <ControlButton
-                        className="w-full normal-case text-xs font-medium tracking-normal sm:col-span-2"
+                        className="w-full normal-case text-xs font-medium tracking-normal"
                         active={snappingEnabled}
                         onClick={toggleSnapping}
                         padding="10px 14px"
+                        data-span="full"
                     >
                         <span className="inline-flex items-center gap-2">
                             <Magnet className="h-5 w-5" />
                             Snapping
                         </span>
                     </ControlButton>
-                </div>
+                </ControlGrid>
             </Section>
             {/* Größe */}
             <Section title="Schriftgröße">
