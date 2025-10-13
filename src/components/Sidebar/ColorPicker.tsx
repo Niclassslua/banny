@@ -39,6 +39,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         { left: number; top: number; transform?: string } | null
     >(null);
 
+    const PICKER_WIDTH = 288; // matches w-[18rem]
+    const VIEWPORT_MARGIN = 16;
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
