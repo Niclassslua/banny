@@ -1105,35 +1105,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Arabesque",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 3.5714, 16.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --t: calc(var(--s)/10);
-        --_c: #0000 calc(98% - var(--t)),var(--c1) calc(100% - var(--t)) 98%,#0000;
-        --_s: calc(2*var(--s)) calc(5*var(--s)/2);
-        --_r0: /var(--_s) radial-gradient(calc(var(--s)/2) at 0    20%,var(--_c));
-        --_r1: /var(--_s) radial-gradient(calc(var(--s)/2) at 100% 20%,var(--_c));
-        background:
-          0 0 var(--_r0),calc(-1*var(--s)) calc(5*var(--s)/4) var(--_r0),
-          var(--s) 0 var(--_r1),0 calc(5*var(--s)/4) var(--_r1),
-          conic-gradient(at var(--t) calc(20% + 2*var(--t)),#0000 75%,var(--c1) 0)
-          calc(var(--t)/-2) calc(var(--s) - var(--t))/var(--s) calc(5*var(--s)/4),
-          repeating-conic-gradient(var(--c2) 0 25%,#0000 0 50%)
-          var(--s) calc(var(--s)/-8)/var(--_s),
-          conic-gradient(from 90deg at var(--t) var(--t),var(--c2) 25%,var(--c1) 0)
-          calc((var(--s) - var(--t))/2) calc((var(--s) - var(--t))/2)/var(--s) calc(5*var(--s)/4);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Quarter Circles",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
@@ -1380,30 +1351,6 @@ export const patterns: Pattern[] = [
           var(--g4) calc(3*var(--s)) 0,
           repeating-linear-gradient(var(--c1) 0 25%,var(--c2) 0 50%);
         background-size: calc(4*var(--s)) calc(12*var(--s));
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Chevron Stripes",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 4.6429, 21.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --g: calc(var(--s)/5);
-        --_l: #0000 calc(33% - .866*var(--g)),var(--c1) calc(33.2% - .866*var(--g)) 33%,#0000 34%;
-        background:
-          repeating-linear-gradient(var(--c1) 0 var(--g), #0000 0 50%)
-           0 calc(.866*var(--s) - var(--g)/2),
-          conic-gradient(from -150deg at var(--g) 50%,var(--c1) 120deg,#0000 0),
-          linear-gradient(-120deg,var(--_l)),linear-gradient( -60deg,var(--_l))
-          var(--c2);
-        background-size: var(--s) calc(3.466*var(--s))
       background-color: ${palette.base};
       opacity: 1.0;
     `;
