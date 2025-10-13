@@ -49,15 +49,15 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
             >
                 {isSwatch && (
                     <Palette
-                        size={15}
-                        className="text-white mix-blend-difference drop-shadow-sm"
+                        size={14}
+                        className="text-white mix-blend-difference drop-shadow"
                         strokeWidth={1.75}
                     />
                 )}
             </button>
             {isVisible && (
                 <div
-                    className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-[200] w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
+                    className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-[120] w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
                 >
                     <ColorPicker
                         style={{
