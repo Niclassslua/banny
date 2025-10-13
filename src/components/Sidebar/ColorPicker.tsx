@@ -35,7 +35,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
     const isSwatch = variant === "swatch";
     const triggerRef = useRef<HTMLButtonElement>(null);
     const [isMounted, setIsMounted] = useState(false);
-    const [pickerPosition, setPickerPosition] = useState<{ left: number; top: number } | null>(null);
+    const [pickerPosition, setPickerPosition] = useState<
+        { left: number; top: number; transform?: string } | null
+    >(null);
 
     const PICKER_WIDTH = 288; // matches w-[18rem]
     const VIEWPORT_MARGIN = 16;
@@ -54,16 +56,28 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         const updatePosition = () => {
             if (!triggerRef.current) return;
             const rect = triggerRef.current.getBoundingClientRect();
+            const pickerWidth = 288; // 18rem in pixels
             const viewportWidth = window.innerWidth;
-            const halfWidth = PICKER_WIDTH / 2;
-            const minCenter = VIEWPORT_MARGIN + halfWidth;
-            const maxCenter = Math.max(minCenter, viewportWidth - VIEWPORT_MARGIN - halfWidth);
-            const rawCenter = rect.left + rect.width / 2;
-            const clampedCenter = Math.min(Math.max(rawCenter, minCenter), maxCenter);
+            const horizontalPadding = 16;
+
+            let left = rect.left + rect.width / 2;
+            let transformX = "-50%";
+
+            const minLeft = horizontalPadding + pickerWidth / 2;
+            const maxLeft = viewportWidth - horizontalPadding - pickerWidth / 2;
+
+            if (left < minLeft) {
+                left = minLeft;
+                transformX = "-100%";
+            } else if (left > maxLeft) {
+                left = maxLeft;
+                transformX = "0%";
+            }
 
             setPickerPosition({
-                left: clampedCenter,
+                left,
                 top: rect.top,
+                transform: `translate(${transformX}, calc(-100% - 12px))`,
             });
         };
 
@@ -87,7 +101,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         ? {
               left: pickerPosition.left,
               top: pickerPosition.top,
-              transform: "translate(-50%, calc(-100% - 12px))",
+              transform: pickerPosition.transform ?? "translate(-50%, calc(-100% - 12px))",
           }
         : undefined;
 
