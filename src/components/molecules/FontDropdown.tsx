@@ -25,7 +25,7 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
             {/* Trigger‑Button */}
             <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-base text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
                 onClick={() => setIsOpen((prev) => !prev)}
                 style={{ fontFamily: selectedFontFamily }}
             >
@@ -50,7 +50,7 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
                     {fonts.map((font) => (
                         <div
                             key={font.name}
-                            className={`cursor-pointer rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
+                            className={`cursor-pointer rounded-lg px-3 py-2 text-base text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
                             onClick={() => {
                                 onFontChange(font.style); // gibt die CSS‑font-family zurück
                                 setIsOpen(false);

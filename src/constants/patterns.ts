@@ -504,35 +504,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Curved Lines",
-        category: "organic",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 7.1429, 33.33);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-      --c3: ${palette.baseAccentBlend};
-        --_g: 50%,#0000 37%,var(--c1) 39% 70%,#0000 72%;
-        --_t: 50%,var(--c2) 40deg,var(--c3) 0 140deg,var(--c2) 0 180deg,#0000 0;
-        --_s: 47% 50% at;
-        background:
-          radial-gradient(var(--_s) -10% var(--_g)) 0 calc(var(--s)/2),
-          radial-gradient(var(--_s) -10% var(--_g)) calc(var(--s)/2) 0,
-          radial-gradient(var(--_s) 110% var(--_g)),
-          radial-gradient(var(--_s) 110% var(--_g)) calc(var(--s)/2) calc(var(--s)/2),
-          conic-gradient(from   0deg at 55% var(--_t)) calc(var(--s)/4) 0,
-          conic-gradient(from 180deg at 45% var(--_t)) calc(var(--s)/4) 0,
-          var(--c2);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Overlapping Circles",
         category: "radial",
         style: (scale: number, color1: string, color2: string) => {
@@ -767,29 +738,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Mosaic Parallelograms",
-        category: "angular",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 8.9286, 41.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g: var(--c1) 90deg,var(--c2) 0 135deg,#0000 0;
-        background:
-          conic-gradient(from  -45deg at calc(100%/3)   calc(100%/3)  ,var(--c1) 90deg,#0000 0 ),
-          conic-gradient(from -135deg at calc(100%/3)   calc(2*100%/3),var(--_g)),
-          conic-gradient(from  135deg at calc(2*100%/3) calc(2*100%/3),var(--_g)),
-          conic-gradient(from   45deg at calc(2*100%/3) calc(100%/3)  ,var(--_g),var(--c1) 0 225deg,var(--c2) 0);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Meander",
         category: "playful",
         style: (scale: number, color1: string, color2: string) => {
@@ -842,26 +790,6 @@ export const patterns: Pattern[] = [
           var(--_g2) calc(4*var(--s)) calc(1*var(--s)),
           var(--c2);
         background-size: calc(5*var(--s)) calc(5*var(--s));
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Squares",
-        category: "geometric",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 3.5714, 16.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        background:
-          conic-gradient(at 25% 25%,#0000 75%,var(--c1) 0) var(--s) var(--s),
-          repeating-conic-gradient(at 25% 25%,var(--c1) 0 25%,var(--c2) 0 50%);
-        background-size: calc(2*var(--s)) calc(2*var(--s));
       background-color: ${palette.base};
       opacity: 1.0;
     `;
@@ -973,30 +901,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Loop Circles",
-        category: "radial",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 10.7143, 50.0);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g: var(--c1)        6.1%,var(--c2)  6.4% 18.6%,var(--c1) 18.9% 31.1%,
-              var(--c2) 31.4% 43.6%,var(--c1) 43.9% 56.1%,var(--c2) 56.4% 68.6%,#0000 68.9%;
-        background:
-          radial-gradient(var(--s) at 100% 0   ,var(--_g)),
-          radial-gradient(var(--s) at 0    0   ,var(--_g)),
-          radial-gradient(var(--s) at 0    100%,var(--_g)),
-          radial-gradient(var(--s) at 100% 100%,var(--_g)) var(--c1);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Rotated squares",
         category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
@@ -1010,55 +914,6 @@ export const patterns: Pattern[] = [
         background:
           conic-gradient(from 116.56deg at calc(100%/3) 0   ,var(--_g)),
           conic-gradient(from -63.44deg at calc(200%/3) 100%,var(--_g))
-          var(--c2);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Stairs pattern",
-        category: "geometric",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 3.5714, 16.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-      --c3: ${palette.baseAccentBlend};
-        --_g: conic-gradient(at 50% 25%,#0000 75%,var(--c1) 0);
-        background:
-          var(--_g),var(--_g) var(--s) var(--s),
-          var(--_g) calc(2*var(--s)) calc(2*var(--s)),
-          var(--_g) calc(3*var(--s)) calc(3*var(--s)),
-          repeating-linear-gradient(135deg,var(--c2) 0 12.5%,var(--c3) 0 25%);
-        background-size: calc(4*var(--s)) calc(4*var(--s))
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Circles & squares",
-        category: "radial",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 7.1429, 33.33);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g: var(--c1) 0 100%,#0000 102%;
-        background:
-          conic-gradient(#0000 75%,var(--_g)) calc(var(--s)/4) calc(var(--s)/4),
-          radial-gradient(65% 65% at 50% -50%,var(--_g)),
-          radial-gradient(65% 65% at -50% 50%,var(--_g)),
-          radial-gradient(65% 65% at 50% 150%,var(--_g)),
-          radial-gradient(65% 65% at 150% 50%,var(--_g))
           var(--c2);
         background-size: var(--s) var(--s);
       background-color: ${palette.base};
@@ -1092,29 +947,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Flower petals",
-        category: "radial",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 4.2857, 20.0);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g: radial-gradient(25% 25% at 25% 25%,var(--c1) 99%,#0000 101%);
-        background:
-         var(--_g) var(--s) var(--s)/calc(2*var(--s)) calc(2*var(--s)),
-         var(--_g) 0 0/calc(2*var(--s)) calc(2*var(--s)),
-         radial-gradient(50% 50%,var(--c2) 98%,#0000) 0 0/var(--s) var(--s),
-         repeating-conic-gradient(var(--c2) 0 25%,var(--c1) 0 50%)
-           calc(.5*var(--s)) 0/calc(2*var(--s)) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Circles & Curved lines",
         category: "radial",
         style: (scale: number, color1: string, color2: string) => {
@@ -1138,30 +970,6 @@ export const patterns: Pattern[] = [
     },
 
     {
-        name: "Wavy Pattern",
-        category: "organic",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 7.1429, 33.33);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g:
-           var(--c2) 6%  14%,var(--c1) 16% 24%,var(--c2) 26% 34%,var(--c1) 36% 44%,
-           var(--c2) 46% 54%,var(--c1) 56% 64%,var(--c2) 66% 74%,var(--c1) 76% 84%,var(--c2) 86% 94%;
-        background:
-          radial-gradient(100% 100% at 100% 0,var(--c1) 4%,var(--_g),#0008 96%,#0000),
-          radial-gradient(100% 100% at 0 100%,#0000, #0008 4%,var(--_g),var(--c1) 96%)
-          var(--c1);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
         name: "Quarter Circles",
         category: "radial",
         style: (scale: number, color1: string, color2: string) => {
@@ -1177,32 +985,6 @@ export const patterns: Pattern[] = [
           radial-gradient(at 0    0   , var(--_g))
           var(--c2);
         background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Nested Rhombus",
-        category: "angular",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 5.7143, 26.67);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        --_g:
-          #0000 calc(-650%/13) calc(50%/13),var(--c1) 0 calc(100%/13),
-          #0000 0 calc(150%/13),var(--c1) 0 calc(200%/13),
-          #0000 0 calc(250%/13),var(--c1) 0 calc(300%/13);
-        --_g0: repeating-linear-gradient( 45deg,var(--_g));
-        --_g1: repeating-linear-gradient(-45deg,var(--_g));
-        background:
-          var(--_g0),var(--_g0) var(--s) var(--s),
-          var(--_g1),var(--_g1) var(--s) var(--s) var(--c2);
-        background-size: calc(2*var(--s)) calc(2*var(--s));
       background-color: ${palette.base};
       opacity: 1.0;
     `;
@@ -1666,29 +1448,6 @@ export const patterns: Pattern[] = [
           conic-gradient(at 25% 25%,var(--c1) 25%,#0000 0 75%,var(--c2) 0)
            calc(var(--s)/4) calc(var(--s)/-4),
           conic-gradient(from -90deg at 75% 25%,var(--c2) 75%,var(--c1) 0);
-        background-size: var(--s) var(--s);
-      background-color: ${palette.base};
-      opacity: 1.0;
-    `;
-        },
-    },
-
-    {
-        name: "Connected Squares",
-        category: "geometric",
-        style: (scale: number, color1: string, color2: string) => {
-            const palette = createPalette(color1, color2);
-            const size = Math.max(scale * 11.4286, 53.33);
-            return `
-      --s: ${size}px;
-      --c1: ${palette.accent};
-      --c2: ${palette.base};
-        background:
-          conic-gradient(at 25% 25%,#0000 75%,var(--c1) 0)
-           0 calc(3*var(--s)/4),
-          conic-gradient(#0000 75%,var(--c2) 0)
-           calc(var(--s)/-8) calc(5*var(--s)/8),
-          conic-gradient(at 25% 75%,var(--c1) 25%,var(--c2) 0);
         background-size: var(--s) var(--s);
       background-color: ${palette.base};
       opacity: 1.0;
