@@ -1,4 +1,13 @@
-import { Pattern } from "@/types";
+import { Pattern, PatternCategoryId } from "@/types";
+
+export const patternCategoryLabels: Record<PatternCategoryId, string> = {
+    atmospheric: "Atmospheric Glow",
+    radial: "Radial & Circular",
+    geometric: "Geometric Grids",
+    angular: "Angles & Edges",
+    organic: "Flow & Waves",
+    playful: "Playful & Retro",
+};
 
 export function addAlpha(color: string, alpha: number | string): string {
     const aHex = typeof alpha === "number" ? alphaToHex(alpha) : normalizeHexAlpha(alpha);
@@ -122,6 +131,7 @@ function createPalette(color1: string, color2: string) {
 export const patterns: Pattern[] = [
     {
         name: "Crimson Depth",
+        category: "atmospheric",
         style: (scale: number, color1: string, color2: string) => {
             const base = color2;
             const shadow = addAlpha(color2, "dd");
@@ -137,6 +147,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Radial Cross",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const s = Math.max(scale, 8);
             // squash growth for big scales: sqrt mapping
@@ -166,6 +177,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Dark Frame",
+        category: "atmospheric",
         style: (scale: number, color1: string, color2: string) => {
             // Original --sz = 4px  → hier linear skalieren
             const sz = Math.max(scale, 2);                 // Basiseinheit
@@ -220,6 +232,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Hex Flower",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const s = Math.max(scale * 8, 16);       // Original --s = 84px
             const c1 = color1;                       // hell
@@ -244,6 +257,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Retro Dots",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const sz  = Math.max(scale * 1.5, 6);           // Original --sz = 15px
             const ts  = `50% / ${sz * 8}px ${sz * 16}px`;   // --ts
@@ -279,6 +293,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Concentric Grid",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const s = scale * 6; // 10 → 60 px (wie im Original‐Snippet)
             return `
@@ -295,6 +310,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Origami Tiles",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             // Original-Snippet arbeitet mit --u = 5px → wir skalieren:
             const u = Math.max(scale, 2);           // Basiseinheit
@@ -320,6 +336,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Radial Diamonds",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const s = Math.max(scale * 10, 20);          // --s aus Vorlage (100px) → skaliert
             const g = `
@@ -339,6 +356,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Diamond Checker",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const size = scale * 9;           // Original 90px → scale-abhängig
             const offset = (size * 1.5).toFixed(2);
@@ -355,6 +373,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Wavy",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -363,6 +382,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Rhombus",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -376,6 +396,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "ZigZag",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -387,6 +408,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "ZigZag 3D",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -397,6 +419,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Moon",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -405,6 +428,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -414,6 +438,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Diagonal",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -421,6 +446,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Diagonal V2",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -428,6 +454,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Triangle",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -436,6 +463,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Triangle v2",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -444,6 +472,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Rectangles",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
        opacity: 1.0; 
@@ -454,6 +483,7 @@ export const patterns: Pattern[] = [
     },
     {
         name: "Cubes Illusion",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 14.2857, 66.67);
@@ -475,6 +505,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Curved Lines",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -503,6 +534,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Overlapping Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 10.7143, 50.0);
@@ -529,6 +561,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Triangles 3D Effect",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.5, 35.0);
@@ -553,6 +586,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Parallelograms",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -571,6 +605,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Diagonal squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -592,6 +627,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Hearts",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 8.5714, 40.0);
@@ -614,6 +650,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Stars",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 6.4286, 30.0);
@@ -638,6 +675,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Equal Sign",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 14.2857, 66.67);
@@ -661,6 +699,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Triangles & Chevrons",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.5714, 21.33);
@@ -682,6 +721,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Rhombus & Stripes",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.5714, 21.33);
@@ -702,6 +742,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Mosaic Triangles",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.5714, 12.0);
@@ -727,6 +768,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Mosaic Parallelograms",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 8.9286, 41.67);
@@ -749,6 +791,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Meander",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 8.5714, 40.0);
@@ -775,6 +818,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Plus Sign",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.8571, 13.33);
@@ -806,6 +850,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 3.5714, 16.67);
@@ -825,6 +870,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Nested Rhombus",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -855,6 +901,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Linked Squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -880,6 +927,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Z Shape",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.5714, 35.33);
@@ -902,6 +950,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Quatrefoils",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.2857, 20.0);
@@ -925,6 +974,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Loop Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 10.7143, 50.0);
@@ -948,6 +998,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Rotated squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 10.7143, 50.0);
@@ -969,6 +1020,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Stairs pattern",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 3.5714, 16.67);
@@ -992,6 +1044,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Circles & squares",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1016,6 +1069,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Striped circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.4286, 25.33);
@@ -1039,6 +1093,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Flower petals",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.2857, 20.0);
@@ -1061,6 +1116,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Circles & Curved lines",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.0, 23.33);
@@ -1083,6 +1139,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Wavy Pattern",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1106,6 +1163,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Quarter Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.5714, 21.33);
@@ -1127,6 +1185,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Nested Rhombus",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.7143, 26.67);
@@ -1152,6 +1211,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Lollipop",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.0, 18.67);
@@ -1192,6 +1252,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Semi circles & full circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 3.5714, 16.67);
@@ -1214,6 +1275,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Diagonal rectangles",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 10.7143, 50.0);
@@ -1233,6 +1295,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Rhombus & Octagons",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 8.5714, 40.0);
@@ -1255,6 +1318,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Pill Shapes",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.4286, 12.0);
@@ -1276,6 +1340,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Half Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.0714, 23.67);
@@ -1302,6 +1367,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Curved Segments",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.2857, 20.0);
@@ -1327,6 +1393,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Waves",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.1429, 12.0);
@@ -1359,6 +1426,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Arrows",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1378,6 +1446,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Irregular Zig-Zag",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 4.7143, 22.0);
@@ -1402,6 +1471,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Outline Circles",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 15.7143, 73.33);
@@ -1426,6 +1496,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Zig-Zag & Rectangles",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1454,6 +1525,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Right Triangles",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.0, 23.33);
@@ -1475,6 +1547,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Thick Wavy Lines",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 3.5714, 16.67);
@@ -1498,6 +1571,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Diagonal Wavy Lines",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1523,6 +1597,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Outline Ovals",
+        category: "radial",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.0714, 12.0);
@@ -1552,6 +1627,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Wave & Circles",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 11.4286, 53.33);
@@ -1576,6 +1652,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Tetris Style",
+        category: "playful",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 7.1429, 33.33);
@@ -1598,6 +1675,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Connected Squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 11.4286, 53.33);
@@ -1620,6 +1698,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Honeycomb",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 2.6429, 12.33);
@@ -1645,6 +1724,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Hexagons",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 5.4286, 25.33);
@@ -1667,6 +1747,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Intersecting Wavy Lines",
+        category: "organic",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 0.4286, 12.0);
@@ -1693,6 +1774,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Diagonal Lines",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 6.1429, 28.67);
@@ -1713,6 +1795,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Octagons & Squares",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 1.4286, 12.0);
@@ -1739,6 +1822,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Outline Triangles",
+        category: "angular",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 8.0, 37.33);
@@ -1760,6 +1844,7 @@ export const patterns: Pattern[] = [
 
     {
         name: "Herringbone",
+        category: "geometric",
         style: (scale: number, color1: string, color2: string) => {
             const palette = createPalette(color1, color2);
             const size = Math.max(scale * 3.5714, 16.67);

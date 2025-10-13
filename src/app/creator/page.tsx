@@ -3,15 +3,58 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+    CircleDotDashed,
+    Download,
+    Grid3X3,
+    PartyPopper,
+    Rows3,
+    Sparkles,
+    Triangle,
+    Waves,
+} from "lucide-react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import BannerPreview from "@/components/Preview/BannerPreview";
 import SettingsPanel from "@/components/Settings/SettingsPanel";
-import { patterns } from "@/constants/patterns";
-import { Pattern, TextStyles } from "@/types";
+import { patternCategoryLabels, patterns } from "@/constants/patterns";
+import { Pattern, PatternCategoryId, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
+
+type CategoryFilter = {
+    id: "all" | PatternCategoryId;
+    label: string;
+    icon: LucideIcon;
+};
+
+const CATEGORY_FILTERS: CategoryFilter[] = [
+    { id: "all", label: "Alle Patterns", icon: Rows3 },
+    { id: "atmospheric", label: patternCategoryLabels.atmospheric, icon: Sparkles },
+    { id: "radial", label: patternCategoryLabels.radial, icon: CircleDotDashed },
+    { id: "geometric", label: patternCategoryLabels.geometric, icon: Grid3X3 },
+    { id: "angular", label: patternCategoryLabels.angular, icon: Triangle },
+    { id: "organic", label: patternCategoryLabels.organic, icon: Waves },
+    { id: "playful", label: patternCategoryLabels.playful, icon: PartyPopper },
+];
+
+const CATEGORY_COUNT_BASE: Record<PatternCategoryId, number> = {
+    atmospheric: 0,
+    radial: 0,
+    geometric: 0,
+    angular: 0,
+    organic: 0,
+    playful: 0,
+};
+
+const PATTERN_CATEGORY_COUNTS = patterns.reduce<Record<PatternCategoryId, number>>(
+    (acc, pattern) => {
+        acc[pattern.category] += 1;
+        return acc;
+    },
+    { ...CATEGORY_COUNT_BASE },
+);
 
 const CreatorPage = () => {
     // --- Safari detection (für sticky/transform-Fix)
@@ -43,6 +86,7 @@ const CreatorPage = () => {
     });
 
     const [selectedPattern, setSelectedPattern] = useState(() => patterns[0]);
+    const [selectedCategory, setSelectedCategory] = useState<"all" | PatternCategoryId>("all");
     const [patternColor1, setPatternColor1] = useState("#131313");
     const [patternColor2, setPatternColor2] = useState("#b3b3c4");
     const [patternScale, setPatternScale] = useState(14);
@@ -51,23 +95,51 @@ const CreatorPage = () => {
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
 
+    const filteredPatterns = useMemo(() => {
+        if (selectedCategory === "all") {
+            return patterns;
+        }
+
+        return patterns.filter((pattern) => pattern.category === selectedCategory);
+    }, [selectedCategory]);
+
+    const selectedPatternCategory = selectedPattern.category;
+
+    useEffect(() => {
+        if (selectedCategory === "all" || selectedPatternCategory === selectedCategory) {
+            return;
+        }
+
+        const fallback = filteredPatterns[0];
+        if (fallback) {
+            setSelectedPattern(fallback);
+        }
+    }, [filteredPatterns, selectedCategory, selectedPatternCategory]);
+
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
+        const categoryLabel = patternCategoryLabels[pattern.category];
         return (
             <button
                 key={pattern.name}
                 type="button"
                 onClick={() => setSelectedPattern(pattern)}
+                aria-pressed={isSelected}
                 className={`group relative overflow-hidden rounded-2xl border ${
-                    isSelected ? "border-[#A1E2F8]" : "border-white/10"
-                } bg-white/5 p-2.5 text-left transition hover:border-[#A1E2F8]/60`}
+                    isSelected
+                        ? "border-[#A1E2F8] bg-[#A1E2F8]/10 shadow-[0_0_0_1px_rgba(161,226,248,0.4)]"
+                        : "border-white/10 bg-white/5 hover:border-[#A1E2F8]/40 hover:bg-white/10"
+                } p-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A1E2F8]/80`}
             >
                 <div
                     className="relative h-20 w-full overflow-hidden rounded-lg border border-white/10"
                     style={parseCSS(pattern.style, 4, patternColor1, patternColor2)}
                 />
-                <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="mt-3 flex items-start justify-between gap-2">
                     <span className="text-sm font-medium text-white">{pattern.name}</span>
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-white/60">
+                        {categoryLabel}
+                    </span>
                 </div>
             </button>
         );
@@ -258,9 +330,52 @@ const CreatorPage = () => {
                                         Skalierung, um deinen Look zu perfektionieren.
                                     </p>
 
-                                    <div className="mt-5 max-h-[12rem] overflow-y-auto pr-2">
-                                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                            {patterns.map((pattern) => renderPatternButton(pattern))}
+                                    <div className="mt-5 flex flex-col gap-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {CATEGORY_FILTERS.map(({ id, label, icon: Icon }) => {
+                                                const isActive = selectedCategory === id;
+                                                const count =
+                                                    id === "all"
+                                                        ? patterns.length
+                                                        : PATTERN_CATEGORY_COUNTS[id];
+
+                                                return (
+                                                    <button
+                                                        key={id}
+                                                        type="button"
+                                                        onClick={() => setSelectedCategory(id)}
+                                                        aria-pressed={isActive}
+                                                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A1E2F8]/80 ${
+                                                            isActive
+                                                                ? "border-[#A1E2F8] bg-[#A1E2F8]/15 text-white"
+                                                                : "border-white/10 bg-white/5 text-white/70 hover:border-[#A1E2F8]/40 hover:text-white"
+                                                        }`}
+                                                    >
+                                                        <Icon className="h-4 w-4" />
+                                                        <span className="whitespace-nowrap">{label}</span>
+                                                        <span
+                                                            className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${
+                                                                isActive
+                                                                    ? "bg-[#A1E2F8]/40 text-white"
+                                                                    : "bg-white/10 text-white/60"
+                                                            }`}
+                                                        >
+                                                            {count}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="max-h-[12rem] overflow-y-auto pr-2">
+                                            {filteredPatterns.length === 0 ? (
+                                                <div className="flex min-h-[7rem] items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-white/60">
+                                                    Keine Patterns für diese Kategorie.
+                                                </div>
+                                            ) : (
+                                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                                    {filteredPatterns.map((pattern) => renderPatternButton(pattern))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

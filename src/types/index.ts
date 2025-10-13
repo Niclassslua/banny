@@ -12,8 +12,17 @@ export interface TextStyles {
     fontFamily: string;
 }
 
+export type PatternCategoryId =
+    | "atmospheric"
+    | "radial"
+    | "geometric"
+    | "angular"
+    | "organic"
+    | "playful";
+
 export interface Pattern {
     name: string;
+    category: PatternCategoryId;
     style?: string | ((scale: number, color1: string, color2: string) => string);
 }
 
