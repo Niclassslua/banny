@@ -20,8 +20,15 @@ import {
     Lobster,
 } from "next/font/google";
 
-import { FontStyleControls, AlignmentControls, FontSizeControls, FontDropdown, ColorPalettePicker } from "../molecules";
+import {
+    FontStyleControls,
+    AlignmentControls,
+    FontSizeControls,
+    FontDropdown,
+    ColorPalettePicker,
+} from "../molecules";
 import { NoWrapToggle } from "../atoms";
+import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 
 import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
@@ -94,6 +101,7 @@ const FontControls: React.FC<FontControlsProps> = ({
     const [selectedFont, setSelectedFont] = useState(textStyles.fontFamily);
     const [selectedColor, setSelectedColor] = useState(textStyles.textColor);
     const [alignment, setAlignment] = useState(textStyles.alignment);
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
     const setSize = (n: number) => {
         setSelectedFontSize(n);
@@ -108,6 +116,10 @@ const FontControls: React.FC<FontControlsProps> = ({
     const handleColorChange = (color: string) => {
         setSelectedColor(color);
         changeTextColor(color);
+    };
+
+    const toggleColorPicker = () => {
+        setIsColorPickerVisible((prev) => !prev);
     };
 
     const handleAlignmentChange = (value: "left" | "center" | "right" | "justify") => {
@@ -182,7 +194,20 @@ const FontControls: React.FC<FontControlsProps> = ({
 
             {/* Farbe */}
             <Section title="Textfarbe">
-                <ColorPalettePicker colors={colors} onChange={handleColorChange} selectedColor={selectedColor} />
+                <ColorPalettePicker
+                    colors={colors}
+                    onChange={handleColorChange}
+                    selectedColor={selectedColor}
+                >
+                    <ColorPickerComponent
+                        color={selectedColor}
+                        setColor={handleColorChange}
+                        darkMode
+                        isVisible={isColorPickerVisible}
+                        togglePicker={toggleColorPicker}
+                        variant="swatch"
+                    />
+                </ColorPalettePicker>
             </Section>
         </div>
     );
