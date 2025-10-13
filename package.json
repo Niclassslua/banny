@@ -15,6 +15,7 @@
     "@emotion/styled": "^11.14.0",
     "@next/font": "^14.2.15",
     "@nkzw/liquid-glass": "^1.3.0",
+    "@popperjs/core": "^2.11.8",
     "@tabler/icons-react": "^3.34.1",
     "clsx": "^2.1.1",
     "dom-to-image-more": "^3.5.0",
