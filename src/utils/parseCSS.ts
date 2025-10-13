@@ -12,13 +12,21 @@ export function parseCSS(
         styleInput = styleInput(scale, color1, color2);
     }
     styleInput.split(";").forEach((style) => {
-        const [key, value] = style.split(":").map((s) => s.trim());
-        if (key && value) {
-            const camelCaseKey = key.replace(/-([a-z])/g, (_, char) =>
-                char.toUpperCase()
-            );
-            styles[camelCaseKey] = value;
+        const [rawKey, rawValue] = style.split(":").map((s) => s.trim());
+        if (!rawKey || !rawValue) {
+            return;
         }
+
+        if (rawKey.startsWith("--")) {
+            styles[rawKey] = rawValue;
+            return;
+        }
+
+        const camelCaseKey = rawKey.replace(/-([a-z])/g, (_, char) =>
+            char.toUpperCase()
+        );
+
+        styles[camelCaseKey] = rawValue;
     });
     return styles;
 }
