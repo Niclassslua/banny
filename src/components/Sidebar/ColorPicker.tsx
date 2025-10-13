@@ -34,6 +34,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
 }) => {
     const isSwatch = variant === "swatch";
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const overlayRef = useRef<HTMLDivElement | null>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [pickerPosition, setPickerPosition] = useState<
         { left: number; top: number; transform?: string } | null
@@ -93,6 +94,44 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
           }
         : undefined;
 
+    useEffect(() => {
+        if (!isVisible) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node | null;
+            if (!target) {
+                togglePicker();
+                return;
+            }
+            const overlayNode = overlayRef.current;
+            const triggerNode = triggerRef.current;
+
+            if (overlayNode?.contains(target) || triggerNode?.contains(target)) {
+                return;
+            }
+
+            togglePicker();
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                togglePicker();
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("touchstart", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("touchstart", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isVisible, togglePicker]);
+
     return (
         <div className="relative">
             <button
@@ -124,6 +163,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                     <div
                         className="fixed z-[10000] w-[18rem] rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
                         style={pickerStyles}
+                        ref={(node) => {
+                            overlayRef.current = node;
+                        }}
                     >
                         <ColorPicker
                             style={{

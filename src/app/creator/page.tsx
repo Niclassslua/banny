@@ -23,6 +23,81 @@ import { Pattern, PatternCategoryId, TextStyles } from "@/types";
 import { parseCSS } from "@/utils/parseCSS";
 import { downloadBanner, sanitizeFileName } from "@/utils/downloadBanner";
 
+const STORAGE_KEY = "BANNY_WORKSPACE_STATE";
+
+type WorkspaceState = {
+    textContent: string;
+    textStyles: TextStyles;
+    selectedPatternName: string;
+    patternColor1: string;
+    patternColor2: string;
+    patternScale: number;
+};
+
+const DEFAULT_TEXT_CONTENT = "Text";
+const DEFAULT_TEXT_STYLES: TextStyles = {
+    bold: true,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    noWrap: false,
+    fontSize: 72,
+    alignment: "center",
+    textColor: "#FFFFFF",
+    fontFamily: "Arial, sans-serif",
+};
+
+const DEFAULT_PATTERN: Pattern =
+    patterns[0] ?? { name: "Default Pattern", category: "geometric" };
+const DEFAULT_PATTERN_COLOR_1 = "#131313";
+const DEFAULT_PATTERN_COLOR_2 = "#b3b3c4";
+const DEFAULT_PATTERN_SCALE = 14;
+const WORKSPACE_PERSIST_DELAY = 300;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isValidAlignment = (
+    value: unknown,
+): value is TextStyles["alignment"] =>
+    value === "left" ||
+    value === "center" ||
+    value === "right" ||
+    value === "justify";
+
+const isValidTextStyles = (value: unknown): value is TextStyles => {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return (
+        typeof value.bold === "boolean" &&
+        typeof value.italic === "boolean" &&
+        typeof value.underline === "boolean" &&
+        typeof value.strikethrough === "boolean" &&
+        typeof value.noWrap === "boolean" &&
+        typeof value.fontSize === "number" &&
+        isValidAlignment(value.alignment) &&
+        typeof value.textColor === "string" &&
+        typeof value.fontFamily === "string"
+    );
+};
+
+const isValidWorkspaceState = (value: unknown): value is WorkspaceState => {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return (
+        typeof value.textContent === "string" &&
+        isValidTextStyles(value.textStyles) &&
+        typeof value.selectedPatternName === "string" &&
+        typeof value.patternColor1 === "string" &&
+        typeof value.patternColor2 === "string" &&
+        typeof value.patternScale === "number"
+    );
+};
+
 type CategoryFilter = {
     id: "all" | PatternCategoryId;
     label: string;
@@ -72,7 +147,7 @@ const CreatorPage = () => {
         setIsSafari(detectedSafari);
     }, []);
 
-    const [textContent, setTextContent] = useState("Text");
+    const [textContent, setTextContent] = useState(DEFAULT_TEXT_CONTENT);
     const [textStyles, setTextStyles] = useState<TextStyles>({
         bold: true,
         italic: false,
@@ -87,15 +162,19 @@ const CreatorPage = () => {
         letterSpacing: 0,
     });
 
-    const [selectedPattern, setSelectedPattern] = useState(() => patterns[0]);
+    const [selectedPattern, setSelectedPattern] = useState<Pattern>(
+        () => DEFAULT_PATTERN,
+    );
     const [selectedCategory, setSelectedCategory] = useState<"all" | PatternCategoryId>("all");
-    const [patternColor1, setPatternColor1] = useState("#131313");
-    const [patternColor2, setPatternColor2] = useState("#b3b3c4");
-    const [patternScale, setPatternScale] = useState(14);
+    const [patternColor1, setPatternColor1] = useState(DEFAULT_PATTERN_COLOR_1);
+    const [patternColor2, setPatternColor2] = useState(DEFAULT_PATTERN_COLOR_2);
+    const [patternScale, setPatternScale] = useState(DEFAULT_PATTERN_SCALE);
     const [visiblePicker, setVisiblePicker] = useState<string | null>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const darkMode = true;
     const [isDownloading, setIsDownloading] = useState(false);
+    const [hasHydrated, setHasHydrated] = useState(false);
+    const skipNextPersistRef = useRef(false);
 
     const filteredPatterns = useMemo(() => {
         if (selectedCategory === "all") {
@@ -117,6 +196,87 @@ const CreatorPage = () => {
             setSelectedPattern(fallback);
         }
     }, [filteredPatterns, selectedCategory, selectedPatternCategory]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const storedState = window.localStorage.getItem(STORAGE_KEY);
+
+        if (storedState) {
+            try {
+                const parsedState: unknown = JSON.parse(storedState);
+
+                if (isValidWorkspaceState(parsedState)) {
+                    setTextContent(parsedState.textContent);
+                    setTextStyles({ ...parsedState.textStyles });
+
+                    const persistedPattern =
+                        patterns.find(
+                            (pattern) => pattern.name === parsedState.selectedPatternName,
+                        ) ?? DEFAULT_PATTERN;
+
+                    if (persistedPattern) {
+                        setSelectedPattern(persistedPattern);
+                    }
+
+                    setPatternColor1(parsedState.patternColor1);
+                    setPatternColor2(parsedState.patternColor2);
+                    setPatternScale(parsedState.patternScale);
+                }
+            } catch (error) {
+                console.error("Fehler beim Laden des Workspace-States", error);
+            }
+        }
+
+        setHasHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (
+            !hasHydrated ||
+            typeof window === "undefined" ||
+            skipNextPersistRef.current
+        ) {
+            if (skipNextPersistRef.current) {
+                skipNextPersistRef.current = false;
+            }
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            const stateToPersist: WorkspaceState = {
+                textContent,
+                textStyles: { ...textStyles },
+                selectedPatternName: selectedPattern.name,
+                patternColor1,
+                patternColor2,
+                patternScale,
+            };
+
+            try {
+                window.localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(stateToPersist),
+                );
+            } catch (error) {
+                console.error("Fehler beim Speichern des Workspace-States", error);
+            }
+        }, WORKSPACE_PERSIST_DELAY);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [
+        hasHydrated,
+        textContent,
+        textStyles,
+        selectedPattern,
+        patternColor1,
+        patternColor2,
+        patternScale,
+    ]);
 
     const renderPatternButton = (pattern: Pattern) => {
         const isSelected = pattern.name === selectedPattern.name;
@@ -184,6 +344,24 @@ const CreatorPage = () => {
         ],
         [],
     );
+
+    const handleResetWorkspace = () => {
+        if (typeof window !== "undefined") {
+            window.localStorage.removeItem(STORAGE_KEY);
+        }
+
+        skipNextPersistRef.current = true;
+
+        setTextContent(DEFAULT_TEXT_CONTENT);
+        setTextStyles({ ...DEFAULT_TEXT_STYLES });
+        setSelectedPattern(DEFAULT_PATTERN);
+
+        setSelectedCategory("all");
+        setPatternColor1(DEFAULT_PATTERN_COLOR_1);
+        setPatternColor2(DEFAULT_PATTERN_COLOR_2);
+        setPatternScale(DEFAULT_PATTERN_SCALE);
+        setVisiblePicker(null);
+    };
 
     const handleDownload = async () => {
         if (!previewRef.current) {
@@ -268,15 +446,24 @@ const CreatorPage = () => {
                                 </Link>
                             ))}
                         </nav>
-                        <button
-                            type="button"
-                            onClick={handleDownload}
-                            disabled={isDownloading}
-                            className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <Download className="h-4 w-4" />
-                            {isDownloading ? "Bereite Download vor…" : "Download PNG"}
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={handleResetWorkspace}
+                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
+                            >
+                                Reset Workspace
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDownload}
+                                disabled={isDownloading}
+                                className="inline-flex items-center gap-2 rounded-full border border-[#A1E2F8]/60 bg-[#A1E2F8]/15 px-4 py-2 font-semibold text-[#A1E2F8] transition hover:border-[#A1E2F8] hover:bg-[#A1E2F8]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <Download className="h-4 w-4" />
+                                {isDownloading ? "Bereite Download vor…" : "Download PNG"}
+                            </button>
+                        </div>
                     </div>
                 </header>
 
