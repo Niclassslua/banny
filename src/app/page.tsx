@@ -12,9 +12,9 @@ const features = [
         icon: Ruler,
     },
     {
-        title: "15+ Schriftarten",
+        title: "24+ Schriftarten",
         description:
-            "Entdecke ausgewählte Fonts, die jedem Design Charakter verleihen.",
+            "Entdecke charakterstarke Fonts – von klaren Sans bis verspielten Scripts.",
         icon: Type,
     },
     {
