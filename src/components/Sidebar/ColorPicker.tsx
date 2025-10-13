@@ -3,7 +3,7 @@
 
 import React from "react";
 import ColorPicker from "react-best-gradient-color-picker";
-import { Pipette } from "lucide-react";
+import { Palette } from "lucide-react";
 
 import { colors } from "@/constants/colors";
 
@@ -47,11 +47,17 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                 aria-label="Toggle Color Picker"
                 {...ariaPressed}
             >
-                {isSwatch && <Pipette size={14} className="text-white drop-shadow" strokeWidth={1.75} />}
+                {isSwatch && (
+                    <Palette
+                        size={15}
+                        className="text-white mix-blend-difference drop-shadow-sm"
+                        strokeWidth={1.75}
+                    />
+                )}
             </button>
             {isVisible && (
                 <div
-                    className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-50 w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
+                    className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-[200] w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
                 >
                     <ColorPicker
                         style={{
