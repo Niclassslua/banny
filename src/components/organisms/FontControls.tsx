@@ -27,7 +27,7 @@ import {
     FontDropdown,
     ColorPalettePicker,
 } from "../molecules";
-import { NoWrapToggle } from "../atoms";
+import { GlassButton, NoWrapToggle, RangeSlider } from "../atoms";
 import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
 
 import { Style } from "@/types/Style";
@@ -72,6 +72,13 @@ const FONTS = [
     { name: "Lobster", style: lobster.style.fontFamily, className: lobster.className },
 ];
 
+const TEXT_SHADOW_PRESETS: { label: string; value?: string }[] = [
+    { label: "Aus", value: undefined },
+    { label: "Weich", value: "0 6px 20px rgba(0,0,0,0.35)" },
+    { label: "Kontrast", value: "0 4px 24px rgba(0,0,0,0.55)" },
+    { label: "Glow", value: "0 0 28px rgba(161,226,248,0.65)" },
+];
+
 // ───────────────────────────────────────── props
 interface FontControlsProps {
     toggleStyle: (s: "bold" | "italic" | "underline" | "strikethrough") => void;
@@ -80,6 +87,9 @@ interface FontControlsProps {
     currentFontSize: number;
     changeTextColor: (c: string) => void;
     changeFontFamily: (f: string) => void;
+    changeLineHeight: (n: number) => void;
+    changeLetterSpacing: (n: number) => void;
+    changeTextShadow: (value?: string) => void;
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
@@ -93,6 +103,9 @@ const FontControls: React.FC<FontControlsProps> = ({
     currentFontSize,
     changeTextColor,
     changeFontFamily,
+    changeLineHeight,
+    changeLetterSpacing,
+    changeTextShadow,
     noWrap,
     toggleNoWrap,
     textStyles,
@@ -102,6 +115,9 @@ const FontControls: React.FC<FontControlsProps> = ({
     const [selectedColor, setSelectedColor] = useState(textStyles.textColor);
     const [alignment, setAlignment] = useState(textStyles.alignment);
     const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+    const [lineHeight, setLineHeight] = useState(textStyles.lineHeight);
+    const [letterSpacing, setLetterSpacing] = useState(textStyles.letterSpacing);
+    const [shadowPreset, setShadowPreset] = useState<string | undefined>(textStyles.textShadow);
 
     const setSize = (n: number) => {
         setSelectedFontSize(n);
@@ -125,6 +141,21 @@ const FontControls: React.FC<FontControlsProps> = ({
     const handleAlignmentChange = (value: "left" | "center" | "right" | "justify") => {
         setAlignment(value);
         changeAlignment(value);
+    };
+
+    const applyLineHeight = (value: number) => {
+        setLineHeight(value);
+        changeLineHeight(value);
+    };
+
+    const applyLetterSpacing = (value: number) => {
+        setLetterSpacing(value);
+        changeLetterSpacing(value);
+    };
+
+    const applyTextShadow = (value?: string) => {
+        setShadowPreset(value);
+        changeTextShadow(value);
     };
 
     const derivedActiveStyles = useMemo<Style[]>(() => {
@@ -165,6 +196,18 @@ const FontControls: React.FC<FontControlsProps> = ({
         setAlignment(textStyles.alignment);
     }, [textStyles.alignment]);
 
+    useEffect(() => {
+        setLineHeight(textStyles.lineHeight);
+    }, [textStyles.lineHeight]);
+
+    useEffect(() => {
+        setLetterSpacing(textStyles.letterSpacing);
+    }, [textStyles.letterSpacing]);
+
+    useEffect(() => {
+        setShadowPreset(textStyles.textShadow);
+    }, [textStyles.textShadow]);
+
     return (
         <div className="flex flex-col gap-10">
             {/* Stil */}
@@ -185,6 +228,42 @@ const FontControls: React.FC<FontControlsProps> = ({
             {/* Größe */}
             <Section title="Schriftgröße">
                 <FontSizeControls value={selectedFontSize} onChange={setSize} />
+            </Section>
+
+            {/* Zeilenhöhe */}
+            <Section title="Zeilenhöhe">
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/70">
+                        <span>Zeilenhöhe</span>
+                        <span>{lineHeight.toFixed(2)}</span>
+                    </div>
+                    <RangeSlider
+                        min={0.8}
+                        max={2}
+                        step={0.05}
+                        value={lineHeight}
+                        onChange={applyLineHeight}
+                        ariaLabel="Zeilenhöhe"
+                    />
+                </div>
+            </Section>
+
+            {/* Laufweite */}
+            <Section title="Laufweite">
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/70">
+                        <span>Laufweite</span>
+                        <span>{`${letterSpacing >= 0 ? "+" : ""}${letterSpacing.toFixed(1)}px`}</span>
+                    </div>
+                    <RangeSlider
+                        min={-5}
+                        max={20}
+                        step={0.5}
+                        value={letterSpacing}
+                        onChange={applyLetterSpacing}
+                        ariaLabel="Laufweite"
+                    />
+                </div>
             </Section>
 
             {/* Font‑Family */}
@@ -208,6 +287,25 @@ const FontControls: React.FC<FontControlsProps> = ({
                         variant="swatch"
                     />
                 </ColorPalettePicker>
+            </Section>
+
+            {/* Textschatten */}
+            <Section title="Textschatten">
+                <div className="flex flex-wrap gap-x-3 gap-y-4 pt-2">
+                    {TEXT_SHADOW_PRESETS.map(({ label, value }) => {
+                        const isActive = value === shadowPreset || (!value && !shadowPreset);
+                        return (
+                            <GlassButton
+                                key={label}
+                                active={isActive}
+                                onClick={() => applyTextShadow(value)}
+                                padding="10px 16px"
+                            >
+                                {label}
+                            </GlassButton>
+                        );
+                    })}
+                </div>
             </Section>
         </div>
     );

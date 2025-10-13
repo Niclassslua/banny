@@ -11,6 +11,9 @@ interface SidebarProps {
     currentFontSize: number;
     changeTextColor: (c: string) => void;
     changeFontFamily: (f: string) => void;
+    changeLineHeight: (n: number) => void;
+    changeLetterSpacing: (n: number) => void;
+    changeTextShadow: (value?: string) => void;
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
@@ -23,6 +26,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              currentFontSize,
                                              changeTextColor,
                                              changeFontFamily,
+                                             changeLineHeight,
+                                             changeLetterSpacing,
+                                             changeTextShadow,
                                              noWrap,
                                              toggleNoWrap,
                                              textStyles,
@@ -39,6 +45,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 currentFontSize={currentFontSize}
                 changeTextColor={changeTextColor}
                 changeFontFamily={changeFontFamily}
+                changeLineHeight={changeLineHeight}
+                changeLetterSpacing={changeLetterSpacing}
+                changeTextShadow={changeTextShadow}
                 noWrap={noWrap}
                 toggleNoWrap={toggleNoWrap}
                 textStyles={textStyles}

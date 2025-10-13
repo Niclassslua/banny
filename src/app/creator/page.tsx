@@ -83,6 +83,8 @@ const CreatorPage = () => {
         alignment: "center",
         textColor: "#FFFFFF",
         fontFamily: "Arial, sans-serif",
+        lineHeight: 1.2,
+        letterSpacing: 0,
     });
 
     const [selectedPattern, setSelectedPattern] = useState(() => patterns[0]);
@@ -159,6 +161,15 @@ const CreatorPage = () => {
 
     const changeFontFamily = (fontFamily: string) =>
         setTextStyles((prev) => ({ ...prev, fontFamily }));
+
+    const changeLineHeight = (lineHeight: number) =>
+        setTextStyles((prev) => ({ ...prev, lineHeight }));
+
+    const changeLetterSpacing = (letterSpacing: number) =>
+        setTextStyles((prev) => ({ ...prev, letterSpacing }));
+
+    const changeTextShadow = (textShadow?: string) =>
+        setTextStyles((prev) => ({ ...prev, textShadow }));
 
     const toggleNoWrap = () =>
         setTextStyles((prev) => ({ ...prev, noWrap: !prev.noWrap }));
@@ -289,6 +300,9 @@ const CreatorPage = () => {
                                 currentFontSize={textStyles.fontSize}
                                 changeTextColor={changeTextColor}
                                 changeFontFamily={changeFontFamily}
+                                changeLineHeight={changeLineHeight}
+                                changeLetterSpacing={changeLetterSpacing}
+                                changeTextShadow={changeTextShadow}
                                 noWrap={textStyles.noWrap}
                                 toggleNoWrap={toggleNoWrap}
                                 textStyles={textStyles}
