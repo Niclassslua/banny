@@ -35,7 +35,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
     const isSwatch = variant === "swatch";
     const triggerRef = useRef<HTMLButtonElement>(null);
     const [isMounted, setIsMounted] = useState(false);
-    const [pickerPosition, setPickerPosition] = useState<{ left: number; top: number } | null>(null);
+    const [pickerPosition, setPickerPosition] = useState<
+        { left: number; top: number; transform?: string } | null
+    >(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -51,9 +53,19 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         const updatePosition = () => {
             if (!triggerRef.current) return;
             const rect = triggerRef.current.getBoundingClientRect();
+            const pickerWidth = 288; // 18rem in pixels
+            const viewportWidth = window.innerWidth;
+            const horizontalPadding = 16;
+
+            const left = Math.min(
+                Math.max(rect.left + rect.width / 2, horizontalPadding + pickerWidth / 2),
+                viewportWidth - horizontalPadding - pickerWidth / 2,
+            );
+
             setPickerPosition({
-                left: rect.left + rect.width / 2,
+                left,
                 top: rect.top,
+                transform: "translate(-50%, calc(-100% - 12px))",
             });
         };
 
@@ -77,7 +89,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         ? {
               left: pickerPosition.left,
               top: pickerPosition.top,
-              transform: "translate(-50%, calc(-100% - 12px))",
+              transform: pickerPosition.transform,
           }
         : undefined;
 
