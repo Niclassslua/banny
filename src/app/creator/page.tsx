@@ -149,7 +149,17 @@ const CreatorPage = () => {
 
     const [textContent, setTextContent] = useState(DEFAULT_TEXT_CONTENT);
     const [textStyles, setTextStyles] = useState<TextStyles>({
-        ...DEFAULT_TEXT_STYLES,
+        bold: true,
+        italic: false,
+        underline: false,
+        strikethrough: false,
+        noWrap: false,
+        fontSize: 72,
+        alignment: "center",
+        textColor: "#FFFFFF",
+        fontFamily: "Arial, sans-serif",
+        lineHeight: 1.2,
+        letterSpacing: 0,
     });
 
     const [selectedPattern, setSelectedPattern] = useState<Pattern>(
@@ -312,6 +322,15 @@ const CreatorPage = () => {
     const changeFontFamily = (fontFamily: string) =>
         setTextStyles((prev) => ({ ...prev, fontFamily }));
 
+    const changeLineHeight = (lineHeight: number) =>
+        setTextStyles((prev) => ({ ...prev, lineHeight }));
+
+    const changeLetterSpacing = (letterSpacing: number) =>
+        setTextStyles((prev) => ({ ...prev, letterSpacing }));
+
+    const changeTextShadow = (textShadow?: string) =>
+        setTextStyles((prev) => ({ ...prev, textShadow }));
+
     const toggleNoWrap = () =>
         setTextStyles((prev) => ({ ...prev, noWrap: !prev.noWrap }));
 
@@ -468,6 +487,9 @@ const CreatorPage = () => {
                                 currentFontSize={textStyles.fontSize}
                                 changeTextColor={changeTextColor}
                                 changeFontFamily={changeFontFamily}
+                                changeLineHeight={changeLineHeight}
+                                changeLetterSpacing={changeLetterSpacing}
+                                changeTextShadow={changeTextShadow}
                                 noWrap={textStyles.noWrap}
                                 toggleNoWrap={toggleNoWrap}
                                 textStyles={textStyles}

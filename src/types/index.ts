@@ -10,6 +10,9 @@ export interface TextStyles {
     alignment: "left" | "center" | "right" | "justify";
     textColor: string;
     fontFamily: string;
+    lineHeight: number;
+    letterSpacing: number;
+    textShadow?: string;
 }
 
 export type PatternCategoryId =
