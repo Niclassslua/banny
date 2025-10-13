@@ -39,9 +39,6 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         { left: number; top: number; transform?: string } | null
     >(null);
 
-    const PICKER_WIDTH = 288; // matches w-[18rem]
-    const VIEWPORT_MARGIN = 16;
-
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -60,24 +57,15 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
             const viewportWidth = window.innerWidth;
             const horizontalPadding = 16;
 
-            let left = rect.left + rect.width / 2;
-            let transformX = "-50%";
-
-            const minLeft = horizontalPadding + pickerWidth / 2;
-            const maxLeft = viewportWidth - horizontalPadding - pickerWidth / 2;
-
-            if (left < minLeft) {
-                left = minLeft;
-                transformX = "-100%";
-            } else if (left > maxLeft) {
-                left = maxLeft;
-                transformX = "0%";
-            }
+            const left = Math.min(
+                Math.max(rect.left + rect.width / 2, horizontalPadding + pickerWidth / 2),
+                viewportWidth - horizontalPadding - pickerWidth / 2,
+            );
 
             setPickerPosition({
                 left,
                 top: rect.top,
-                transform: `translate(${transformX}, calc(-100% - 12px))`,
+                transform: "translate(-50%, calc(-100% - 12px))",
             });
         };
 
@@ -101,7 +89,7 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         ? {
               left: pickerPosition.left,
               top: pickerPosition.top,
-              transform: pickerPosition.transform ?? "translate(-50%, calc(-100% - 12px))",
+              transform: pickerPosition.transform,
           }
         : undefined;
 
