@@ -3,6 +3,7 @@
 
 import React from "react";
 import ColorPicker from "react-best-gradient-color-picker";
+import { Pipette } from "lucide-react";
 
 import { colors } from "@/constants/colors";
 
@@ -12,6 +13,7 @@ interface ColorPickerProps {
     darkMode: boolean;
     isVisible: boolean;
     togglePicker: () => void;
+    variant?: "circle" | "swatch";
 }
 
 const rgbaToHex = (rgba: string): string => {
@@ -26,16 +28,27 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
                                                               setColor,
                                                               darkMode,
                                                               isVisible,
-                                                              togglePicker
+                                                              togglePicker,
+                                                              variant = "circle",
                                                           }) => {
+    const isSwatch = variant === "swatch";
+    const triggerClassName = isSwatch
+        ? "relative flex h-7 w-7 items-center justify-center rounded-full ring-2 ring-white/20 shadow-sm transition duration-150 hover:shadow-md hover:ring-[#A1E2F8]/60"
+        : "h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60";
+    const ariaPressed = isSwatch ? { "aria-pressed": isVisible } : {};
+
     return (
         <div className="relative">
             <button
+                type="button"
                 onClick={togglePicker}
-                className="h-10 w-10 rounded-full ring-2 ring-white/10 transition hover:ring-[#A1E2F8]/60"
+                className={triggerClassName}
                 style={{ background: color }}
                 aria-label="Toggle Color Picker"
-            />
+                {...ariaPressed}
+            >
+                {isSwatch && <Pipette size={14} className="text-white drop-shadow" strokeWidth={1.75} />}
+            </button>
             {isVisible && (
                 <div
                     className="absolute bottom-[calc(100%+0.75rem)] left-1/2 z-50 w-[18rem] -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900/95 p-4 shadow-[0_25px_70px_-35px_rgba(192,230,244,0.6)] backdrop-blur"
