@@ -136,169 +136,6 @@ export const patterns: Pattern[] = [
         },
     },
     {
-        name: "Aurora Dream Corner Whispers",
-        style: (scale: number, color1: string, color2: string) => {
-            const accentStrong = addAlpha(color1, "88");
-            const accentSoft = addAlpha(color1, "55");
-            const glow = addAlpha(color2, "70");
-            const glowSoft = addAlpha(color2, "45");
-            const base = color2;
-            const baseHighlight = addAlpha(color2, "35");
-            const ellipseX = 80 + Math.max(scale - 10, 0) * 1.2;
-            const ellipseY = 60 + Math.max(scale - 10, 0);
-
-            return `
-      background:
-        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 8% 8%, ${accentSoft}, transparent 60%),
-        radial-gradient(ellipse ${ellipseX - 10}% ${ellipseY - 5}% at 75% 35%, ${glow}, transparent 62%),
-        radial-gradient(ellipse ${ellipseX - 15}% ${ellipseY - 5}% at 15% 80%, ${accentStrong}, transparent 62%),
-        radial-gradient(ellipse ${ellipseX - 5}% ${ellipseY - 5}% at 92% 92%, ${glowSoft}, transparent 62%),
-        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
-      background-color: ${base};
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Aurora Dream Soft Harmony",
-        style: (scale: number, color1: string, color2: string) => {
-            const accentStrong = addAlpha(color1, "7f");
-            const accentSoft = addAlpha(color1, "55");
-            const glow = addAlpha(color2, "70");
-            const glowSoft = addAlpha(color2, "45");
-            const base = color2;
-            const baseHighlight = addAlpha(color2, "40");
-            const ellipseX = 75 + Math.max(scale - 10, 0) * 1.1;
-            const ellipseY = 58 + Math.max(scale - 10, 0) * 0.9;
-
-            return `
-      background:
-        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 60% 20%, ${accentStrong}, transparent 65%),
-        radial-gradient(ellipse ${ellipseX - 12}% ${ellipseY - 5}% at 20% 80%, ${accentSoft}, transparent 65%),
-        radial-gradient(ellipse ${ellipseX - 20}% ${ellipseY - 8}% at 60% 65%, ${glow}, transparent 62%),
-        radial-gradient(ellipse ${ellipseX - 15}% ${ellipseY - 10}% at 50% 60%, ${glowSoft}, transparent 68%),
-        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
-      background-color: ${base};
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Aurora Dream Vivid Bloom",
-        style: (scale: number, color1: string, color2: string) => {
-            const accentStrong = addAlpha(color1, "c0");
-            const accent = addAlpha(color1, "90");
-            const glow = addAlpha(color2, "b0");
-            const glowSoft = addAlpha(color2, "55");
-            const base = color2;
-            const baseHighlight = addAlpha(color2, "50");
-            const ellipseX = 78 + Math.max(scale - 10, 0) * 1.1;
-            const ellipseY = 60 + Math.max(scale - 10, 0);
-
-            return `
-      background:
-        radial-gradient(ellipse ${ellipseX}% ${ellipseY}% at 70% 20%, ${accentStrong}, transparent 68%),
-        radial-gradient(ellipse ${ellipseX - 10}% ${ellipseY - 4}% at 20% 80%, ${accent}, transparent 68%),
-        radial-gradient(ellipse ${ellipseX - 18}% ${ellipseY - 6}% at 60% 65%, ${glow}, transparent 68%),
-        radial-gradient(ellipse ${ellipseX - 12}% ${ellipseY - 8}% at 50% 60%, ${glowSoft}, transparent 68%),
-        linear-gradient(180deg, ${baseHighlight} 0%, ${base} 100%);
-      background-color: ${base};
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Diagonal Grid with Light",
-        style: (scale: number, color1: string, color2: string) => {
-            const lineColor = addAlpha(color1, "33");
-            const highlight = addAlpha(color1, "18");
-            const size = Math.max(scale * 3, 18);
-
-            return `
-      background-color: ${color2};
-      background-image:
-        repeating-linear-gradient(45deg, ${lineColor} 0, ${lineColor} 1px, transparent 1px, transparent ${size}px),
-        repeating-linear-gradient(-45deg, ${highlight} 0, ${highlight} 1px, transparent 1px, transparent ${size}px);
-      background-size: ${size}px ${size}px;
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Dark Grid with White Dots",
-        style: (scale: number, color1: string, color2: string) => {
-            const grid = addAlpha(color1, "25");
-            const dots = addAlpha(color1, "80");
-            const size = Math.max(scale * 1.5, 16);
-
-            return `
-      background: ${color2};
-      background-image:
-        linear-gradient(to right, ${grid} 1px, transparent 1px),
-        linear-gradient(to bottom, ${grid} 1px, transparent 1px),
-        radial-gradient(circle, ${dots} 1px, transparent 1px);
-      background-size: ${size}px ${size}px, ${size}px ${size}px, ${size}px ${size}px;
-      background-position: 0 0, 0 0, 0 0;
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Gradient Diagonal Lines",
-        style: (scale: number, color1: string, color2: string) => {
-            const accent = addAlpha(color1, "40");
-            const accentSoft = addAlpha(color1, "25");
-            const spacing = Math.max(scale * 1.2, 10);
-            const fineSpacing = Math.max(spacing / 3, 4);
-
-            return `
-      background-color: ${color2};
-      background-image:
-        repeating-linear-gradient(45deg, ${accent} 0, ${accent} 1px, transparent 1px, transparent ${spacing}px),
-        repeating-linear-gradient(-45deg, ${accentSoft} 0, ${accentSoft} 1px, transparent 1px, transparent ${spacing}px),
-        repeating-linear-gradient(90deg, ${addAlpha(color1, "12")} 0, ${addAlpha(color1, "12")} 1px, transparent 1px, transparent ${fineSpacing}px);
-      background-size: ${spacing * 2}px ${spacing * 2}px, ${spacing * 2}px ${spacing * 2}px, ${fineSpacing}px ${fineSpacing}px;
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Dark Noise Colors",
-        style: (scale: number, color1: string, color2: string) => {
-            const accentA = addAlpha(color1, "33");
-            const accentB = addAlpha(color1, "22");
-            const accentC = addAlpha(color2, "28");
-            const size = Math.max(scale * 1.4, 18);
-            const offset = Math.round(size / 2);
-            const offsetAltX = Math.round(size / 1.5);
-            const offsetAltY = Math.round(size / 3);
-
-            return `
-      background: ${color2};
-      background-image:
-        radial-gradient(circle at 1px 1px, ${accentA} 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, ${accentB} 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, ${accentC} 1px, transparent 0);
-      background-size: ${size}px ${size}px, ${size * 1.5}px ${size * 1.5}px, ${size * 1.25}px ${size * 1.25}px;
-      background-position: 0 0, ${offset}px ${offset}px, ${offsetAltX}px ${offsetAltY}px;
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
-        name: "Top Glow Midnight",
-        style: (scale: number, color1: string, color2: string) => {
-            const glow = addAlpha(color1, "40");
-            const spread = 70 + Math.max(scale - 10, 0) * 1.8;
-
-            return `
-      background: radial-gradient(ellipse 80% ${spread}% at 50% 0%, ${glow}, transparent 70%), ${color2};
-      background-color: ${color2};
-      opacity: 1.0;
-    `;
-        },
-    },
-    {
         name: "Radial Cross",
         style: (scale: number, color1: string, color2: string) => {
             const s = Math.max(scale, 8);
@@ -457,24 +294,6 @@ export const patterns: Pattern[] = [
         },
     },
     {
-        name: "Candy Stripes",
-        style: (scale: number, color1: string, color2: string) => {
-            // Ausgangs-Design: --color,  background-size: 10px 40px
-            const sX = scale;          // Breite der Streifen
-            const sY = scale * 4;      // Höhe des Stripe-Blocks
-            return `
-      background-color: ${color2};
-      opacity: 1.0;
-      background:
-        linear-gradient(45deg, ${color1} 25%, transparent 25%) -${sX * 5}px 0,
-        linear-gradient(-45deg, ${color1} 25%, transparent 25%) -${sX * 5}px 0,
-        linear-gradient(45deg, transparent 75%, ${color1} 75%) -${sX * 5}px 0,
-        linear-gradient(-45deg, transparent 75%, ${color1} 75%) -${sX * 5}px 0;
-      background-size: ${sX}px ${sY}px;
-    `;
-        },
-    },
-    {
         name: "Origami Tiles",
         style: (scale: number, color1: string, color2: string) => {
             // Original-Snippet arbeitet mit --u = 5px → wir skalieren:
@@ -608,61 +427,6 @@ export const patterns: Pattern[] = [
        background: repeating-linear-gradient(-45deg, ${color1}, ${color1} ${scale * 5}px, ${color2} ${scale * 5}px, ${color2} ${scale * 20}px);`,
     },
     {
-        name: "Paper",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-image: linear-gradient(${color1} ${scale * 2}px, transparent ${scale * 2}px), 
-                         linear-gradient(90deg, ${color1} ${scale * 2}px, transparent ${scale * 2}px), 
-                         linear-gradient(${color1} ${scale}px, transparent ${scale}px), 
-                         linear-gradient(90deg, ${color1} ${scale}px, ${color2} ${scale}px);
-       background-size: ${scale * 50}px ${scale * 50}px, ${scale * 50}px ${scale * 50}px, ${scale * 10}px ${scale * 10}px, ${scale * 10}px ${scale * 10}px;
-       background-position: -${scale}px -${scale}px, -${scale}px -${scale}px, -${scale * 2}px -${scale * 2}px, -${scale * 2}px -${scale * 2}px;`,
-    },
-    {
-        name: "Isometric",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-image: linear-gradient(30deg, ${color1} 12%, transparent 12.5%, transparent 87%, ${color1} 87.5%, ${color1}), 
-                         linear-gradient(150deg, ${color1} 12%, transparent 12.5%, transparent 87%, ${color1} 87.5%, ${color1}); 
-       background-size: ${scale * 20}px ${scale * 35}px;`,
-    },
-    {
-        name: "Polka",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-image: radial-gradient(${color1} 2.5px, ${color2} 2.5px); 
-       background-size: ${scale * 10}px ${scale * 10}px;`,
-    },
-    {
-        name: "Polka v2",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-image: radial-gradient(${color1} 2.5px, transparent 2.5px), 
-                         radial-gradient(${color1} 2.5px, ${color2} 2.5px); 
-       background-size: ${scale * 20}px ${scale * 20}px; 
-       background-position: 0 0, ${scale * 10}px ${scale * 10}px;`,
-    },
-    {
-        name: "Lines v3",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-size: ${scale * 20}px ${scale * 20}px; 
-       background-image: repeating-linear-gradient(0deg, ${color1}, ${color1} 3.2px, ${color2} 3.2px, ${color2});`,
-    },
-    {
-        name: "Lines v4",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background-size: ${scale * 20}px ${scale * 20}px; 
-       background-image: repeating-linear-gradient(to right, ${color1}, ${color1} 3.2px, ${color2} 3.2px, ${color2});`,
-    },
-    {
         name: "Triangle",
         style: (scale: number, color1: string, color2: string) =>
             `background-color: ${color2}; 
@@ -688,18 +452,6 @@ export const patterns: Pattern[] = [
        background-position: 0 0, ${scale * 5}px ${scale * 5}px; 
        background-size: ${scale * 10}px ${scale * 10}px;`,
     },
-    {
-        name: "Cross",
-        style: (scale: number, color1: string, color2: string) =>
-            `background-color: ${color2}; 
-       opacity: 1.0; 
-       background: radial-gradient(circle, transparent 20%, ${color2} 20%, ${color2} 80%, transparent 80%, transparent), 
-                  radial-gradient(circle, transparent 20%, ${color2} 20%, ${color2} 80%, transparent 80%, transparent) ${scale * 12.5}px ${scale * 12.5}px, 
-                  linear-gradient(${color1} ${scale}px, transparent ${scale}px) 0 -1px, 
-                  linear-gradient(90deg, ${color1} ${scale}px, ${color2} ${scale}px) -1px 0; 
-       background-size: ${scale * 25}px ${scale * 25}px, ${scale * 25}px ${scale * 25}px, ${scale * 12.5}px ${scale * 12.5}px, ${scale * 12.5}px ${scale * 12.5}px;`,
-    },
-
     {
         name: "Cubes Illusion",
         style: (scale: number, color1: string, color2: string) => {
