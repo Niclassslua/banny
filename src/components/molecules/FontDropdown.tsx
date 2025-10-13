@@ -1,5 +1,5 @@
 // src/components/molecules/FontDropdown.tsx
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface FontDesc {
     name: string;
@@ -19,9 +19,45 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
                                                               onFontChange,
                                                           }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+            const target = event.target as Node | null;
+            if (!target) {
+                setIsOpen(false);
+                return;
+            }
+
+            if (wrapperRef.current?.contains(target)) {
+                return;
+            }
+            setIsOpen(false);
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("touchstart", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("touchstart", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isOpen]);
 
     return (
-        <div className="relative">
+        <div className="relative" ref={wrapperRef}>
             {/* Trigger‑Button */}
             <button
                 type="button"
