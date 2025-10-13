@@ -37,6 +37,9 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
     const [isMounted, setIsMounted] = useState(false);
     const [pickerPosition, setPickerPosition] = useState<{ left: number; top: number } | null>(null);
 
+    const PICKER_WIDTH = 288; // matches w-[18rem]
+    const VIEWPORT_MARGIN = 16;
+
     useEffect(() => {
         setIsMounted(true);
         return () => setIsMounted(false);
@@ -51,8 +54,15 @@ const ColorPickerComponent: React.FC<ColorPickerProps> = ({
         const updatePosition = () => {
             if (!triggerRef.current) return;
             const rect = triggerRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const halfWidth = PICKER_WIDTH / 2;
+            const minCenter = VIEWPORT_MARGIN + halfWidth;
+            const maxCenter = Math.max(minCenter, viewportWidth - VIEWPORT_MARGIN - halfWidth);
+            const rawCenter = rect.left + rect.width / 2;
+            const clampedCenter = Math.min(Math.max(rawCenter, minCenter), maxCenter);
+
             setPickerPosition({
-                left: rect.left + rect.width / 2,
+                left: clampedCenter,
                 top: rect.top,
             });
         };
