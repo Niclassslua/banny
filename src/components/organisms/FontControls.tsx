@@ -29,6 +29,7 @@ interface FontControlsProps {
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
+    previewText: string;
 }
 
 // ───────────────────────────────────────── component
@@ -42,6 +43,7 @@ const FontControls: React.FC<FontControlsProps> = ({
     noWrap,
     toggleNoWrap,
     textStyles,
+    previewText,
 }) => {
     const [selectedFontSize, setSelectedFontSize] = useState(currentFontSize);
     const [selectedFont, setSelectedFont] = useState(textStyles.fontFamily);
@@ -135,7 +137,12 @@ const FontControls: React.FC<FontControlsProps> = ({
 
             {/* Font‑Family */}
             <Section title="Schriftart">
-                <FontDropdown fonts={FONTS} selectedFontFamily={selectedFont} onFontChange={setFont} />
+                <FontDropdown
+                    fonts={FONTS}
+                    selectedFontFamily={selectedFont}
+                    onFontChange={setFont}
+                    previewText={previewText}
+                />
             </Section>
 
             {/* Farbe */}
