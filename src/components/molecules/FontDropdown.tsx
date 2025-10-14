@@ -1,14 +1,10 @@
 // src/components/molecules/FontDropdown.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-interface FontDesc {
-    name: string;
-    style: string;     // z. B. "'Roboto', sans-serif"
-    className: string; // next/font generierte Klasse
-}
+import { FONT_CATEGORIES, FontOption } from "@/constants/fonts";
 
 interface FontDropdownProps {
-    fonts: FontDesc[];
+    fonts: FontOption[];
     selectedFontFamily: string;
     onFontChange: (font: string) => void;
 }
@@ -20,6 +16,17 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
                                                           }) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    const fontsByCategory = useMemo(
+        () =>
+            FONT_CATEGORIES.map((category) => ({
+                category,
+                fonts: fonts
+                    .filter((font) => font.category === category)
+                    .sort((a, b) => a.name.localeCompare(b.name)),
+            })).filter((group) => group.fonts.length > 0),
+        [fonts]
+    );
 
     useEffect(() => {
         if (!isOpen) {
@@ -83,16 +90,23 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
                 <div
                     className="absolute z-10 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-white/10 bg-zinc-900/95 p-1 shadow-[0_20px_60px_-30px_rgba(192,230,244,0.6)] backdrop-blur"
                 >
-                    {fonts.map((font) => (
-                        <div
-                            key={font.name}
-                            className={`cursor-pointer rounded-lg px-3 py-2 text-base text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
-                            onClick={() => {
-                                onFontChange(font.style); // gibt die CSS‑font-family zurück
-                                setIsOpen(false);
-                            }}
-                        >
-                            {font.name}
+                    {fontsByCategory.map((group) => (
+                        <div key={group.category} className="py-1">
+                            <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                                {group.category}
+                            </p>
+                            {group.fonts.map((font) => (
+                                <div
+                                    key={font.name}
+                                    className={`cursor-pointer rounded-lg px-3 py-2 text-base text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
+                                    onClick={() => {
+                                        onFontChange(font.style); // gibt die CSS‑font-family zurück
+                                        setIsOpen(false);
+                                    }}
+                                >
+                                    {font.name}
+                                </div>
+                            ))}
                         </div>
                     ))}
                 </div>
