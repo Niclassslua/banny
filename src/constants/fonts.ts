@@ -1,32 +1,31 @@
 import {
-    Abril_Fatface,
-    Alfa_Slab_One,
-    Bebas_Neue,
-    Bodoni_Moda,
-    Caveat,
-    Cinzel,
-    Dancing_Script,
-    Fira_Code,
-    Great_Vibes,
-    Inter,
-    Josefin_Sans,
-    Lobster,
-    Lora,
-    Merriweather,
-    Noto_Serif,
-    Oswald,
-    Pacifico,
-    Playfair_Display,
-    Poppins,
-    Press_Start_2P,
-    PT_Serif,
-    Raleway,
-    Roboto,
-    Rubik,
-    Satisfy,
-    Source_Code_Pro,
-    Space_Grotesk,
-    Ubuntu,
+    Amatic_SC,
+    Anton,
+    Archivo_Black,
+    Atkinson_Hyperlegible,
+    Black_Han_Sans,
+    Bungee,
+    Cabin,
+    Chango,
+    Cormorant_Garamond,
+    Figtree,
+    Gloria_Hallelujah,
+    IBM_Plex_Mono,
+    Indie_Flower,
+    JetBrains_Mono,
+    Lusitana,
+    Manrope,
+    Monoton,
+    Prata,
+    Rubik_Mono_One,
+    Shadows_Into_Light,
+    Space_Mono,
+    Spectral,
+    Staatliches,
+    Unica_One,
+    Work_Sans,
+    Yellowtail,
+    Zilla_Slab,
 } from "next/font/google";
 
 export type FontCategory = "Sans Serif" | "Serif" | "Display" | "Handwritten" | "Monospace";
@@ -38,37 +37,37 @@ export interface FontOption {
     category: FontCategory;
 }
 
-const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
-const inter = Inter({ subsets: ["latin"], weight: ["400", "600", "700"] });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
-const raleway = Raleway({ subsets: ["latin"], weight: ["400", "700"] });
-const ubuntu = Ubuntu({ subsets: ["latin"], weight: ["400", "700"] });
-const rubik = Rubik({ subsets: ["latin"], weight: ["400", "700"] });
-const josefinSans = Josefin_Sans({ subsets: ["latin"], weight: ["400", "600"] });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "700"] });
-const oswald = Oswald({ subsets: ["latin"], weight: ["400", "700"] });
+const atkinsonHyperlegible = Atkinson_Hyperlegible({ subsets: ["latin"], weight: ["400", "700"] });
+const cabin = Cabin({ subsets: ["latin"], weight: ["400", "700"] });
+const figtree = Figtree({ subsets: ["latin"], weight: ["400", "700"] });
+const manrope = Manrope({ subsets: ["latin"], weight: ["400", "700"] });
+const workSans = Work_Sans({ subsets: ["latin"], weight: ["400", "700"] });
 
-const playfairDisplay = Playfair_Display({ subsets: ["latin"], weight: ["400", "700"] });
-const merriweather = Merriweather({ subsets: ["latin"], weight: ["400", "700"] });
-const notoSerif = Noto_Serif({ subsets: ["latin"], weight: ["400", "700"] });
-const ptSerif = PT_Serif({ subsets: ["latin"], weight: ["400", "700"] });
-const lora = Lora({ subsets: ["latin"], weight: ["400", "700"] });
-const bodoniModa = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "700"] });
-const cinzel = Cinzel({ subsets: ["latin"], weight: ["400", "700"] });
-const abrilFatface = Abril_Fatface({ subsets: ["latin"], weight: "400" });
-const bebasNeue = Bebas_Neue({ subsets: ["latin"], weight: "400" });
-const alfaSlabOne = Alfa_Slab_One({ subsets: ["latin"], weight: "400" });
-const pressStart2P = Press_Start_2P({ subsets: ["latin"], weight: "400" });
+const cormorantGaramond = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "700"] });
+const lusitana = Lusitana({ subsets: ["latin"], weight: ["400", "700"] });
+const prata = Prata({ subsets: ["latin"], weight: "400" });
+const spectral = Spectral({ subsets: ["latin"], weight: ["400", "700"] });
+const zillaSlab = Zilla_Slab({ subsets: ["latin"], weight: ["400", "700"] });
 
-const dancingScript = Dancing_Script({ subsets: ["latin"], weight: ["400", "700"] });
-const pacifico = Pacifico({ subsets: ["latin"], weight: "400" });
-const lobster = Lobster({ subsets: ["latin"], weight: "400" });
-const greatVibes = Great_Vibes({ subsets: ["latin"], weight: "400" });
-const caveat = Caveat({ subsets: ["latin"], weight: ["400", "700"] });
-const satisfy = Satisfy({ subsets: ["latin"], weight: "400" });
+const bungee = Bungee({ subsets: ["latin"], weight: "400" });
+const anton = Anton({ subsets: ["latin"], weight: "400" });
+const archivoBlack = Archivo_Black({ subsets: ["latin"], weight: "400" });
+const blackHanSans = Black_Han_Sans({ subsets: ["latin"], weight: "400" });
+const chango = Chango({ subsets: ["latin"], weight: "400" });
+const monoton = Monoton({ subsets: ["latin"], weight: "400" });
+const staatliches = Staatliches({ subsets: ["latin"], weight: "400" });
+const unicaOne = Unica_One({ subsets: ["latin"], weight: "400" });
+const rubikMonoOne = Rubik_Mono_One({ subsets: ["latin"], weight: "400" });
 
-const sourceCodePro = Source_Code_Pro({ subsets: ["latin"], weight: ["400", "700"] });
-const firaCode = Fira_Code({ subsets: ["latin"], weight: ["400", "700"] });
+const amaticSC = Amatic_SC({ subsets: ["latin"], weight: ["400", "700"] });
+const gloriaHallelujah = Gloria_Hallelujah({ subsets: ["latin"], weight: "400" });
+const indieFlower = Indie_Flower({ subsets: ["latin"], weight: "400" });
+const shadowsIntoLight = Shadows_Into_Light({ subsets: ["latin"], weight: "400" });
+const yellowtail = Yellowtail({ subsets: ["latin"], weight: "400" });
+
+const jetBrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"] });
+const ibmPlexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "700"] });
+const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"] });
 
 const categoryOrder: Record<FontCategory, number> = {
     "Sans Serif": 0,
@@ -79,34 +78,53 @@ const categoryOrder: Record<FontCategory, number> = {
 };
 
 const unsortedFonts: FontOption[] = [
-    { name: "Roboto", style: roboto.style.fontFamily, className: roboto.className, category: "Sans Serif" },
-    { name: "Inter", style: inter.style.fontFamily, className: inter.className, category: "Sans Serif" },
-    { name: "Poppins", style: poppins.style.fontFamily, className: poppins.className, category: "Sans Serif" },
-    { name: "Raleway", style: raleway.style.fontFamily, className: raleway.className, category: "Sans Serif" },
-    { name: "Ubuntu", style: ubuntu.style.fontFamily, className: ubuntu.className, category: "Sans Serif" },
-    { name: "Rubik", style: rubik.style.fontFamily, className: rubik.className, category: "Sans Serif" },
-    { name: "Josefin Sans", style: josefinSans.style.fontFamily, className: josefinSans.className, category: "Sans Serif" },
-    { name: "Space Grotesk", style: spaceGrotesk.style.fontFamily, className: spaceGrotesk.className, category: "Sans Serif" },
-    { name: "Oswald", style: oswald.style.fontFamily, className: oswald.className, category: "Display" },
-    { name: "Playfair Display", style: playfairDisplay.style.fontFamily, className: playfairDisplay.className, category: "Serif" },
-    { name: "Merriweather", style: merriweather.style.fontFamily, className: merriweather.className, category: "Serif" },
-    { name: "Noto Serif", style: notoSerif.style.fontFamily, className: notoSerif.className, category: "Serif" },
-    { name: "PT Serif", style: ptSerif.style.fontFamily, className: ptSerif.className, category: "Serif" },
-    { name: "Lora", style: lora.style.fontFamily, className: lora.className, category: "Serif" },
-    { name: "Bodoni Moda", style: bodoniModa.style.fontFamily, className: bodoniModa.className, category: "Serif" },
-    { name: "Cinzel", style: cinzel.style.fontFamily, className: cinzel.className, category: "Display" },
-    { name: "Abril Fatface", style: abrilFatface.style.fontFamily, className: abrilFatface.className, category: "Display" },
-    { name: "Bebas Neue", style: bebasNeue.style.fontFamily, className: bebasNeue.className, category: "Display" },
-    { name: "Alfa Slab One", style: alfaSlabOne.style.fontFamily, className: alfaSlabOne.className, category: "Display" },
-    { name: "Press Start 2P", style: pressStart2P.style.fontFamily, className: pressStart2P.className, category: "Display" },
-    { name: "Dancing Script", style: dancingScript.style.fontFamily, className: dancingScript.className, category: "Handwritten" },
-    { name: "Pacifico", style: pacifico.style.fontFamily, className: pacifico.className, category: "Handwritten" },
-    { name: "Lobster", style: lobster.style.fontFamily, className: lobster.className, category: "Handwritten" },
-    { name: "Great Vibes", style: greatVibes.style.fontFamily, className: greatVibes.className, category: "Handwritten" },
-    { name: "Caveat", style: caveat.style.fontFamily, className: caveat.className, category: "Handwritten" },
-    { name: "Satisfy", style: satisfy.style.fontFamily, className: satisfy.className, category: "Handwritten" },
-    { name: "Source Code Pro", style: sourceCodePro.style.fontFamily, className: sourceCodePro.className, category: "Monospace" },
-    { name: "Fira Code", style: firaCode.style.fontFamily, className: firaCode.className, category: "Monospace" },
+    {
+        name: "Atkinson Hyperlegible",
+        style: atkinsonHyperlegible.style.fontFamily,
+        className: atkinsonHyperlegible.className,
+        category: "Sans Serif",
+    },
+    { name: "Cabin", style: cabin.style.fontFamily, className: cabin.className, category: "Sans Serif" },
+    { name: "Figtree", style: figtree.style.fontFamily, className: figtree.className, category: "Sans Serif" },
+    { name: "Manrope", style: manrope.style.fontFamily, className: manrope.className, category: "Sans Serif" },
+    { name: "Work Sans", style: workSans.style.fontFamily, className: workSans.className, category: "Sans Serif" },
+    {
+        name: "Cormorant Garamond",
+        style: cormorantGaramond.style.fontFamily,
+        className: cormorantGaramond.className,
+        category: "Serif",
+    },
+    { name: "Lusitana", style: lusitana.style.fontFamily, className: lusitana.className, category: "Serif" },
+    { name: "Prata", style: prata.style.fontFamily, className: prata.className, category: "Serif" },
+    { name: "Spectral", style: spectral.style.fontFamily, className: spectral.className, category: "Serif" },
+    { name: "Zilla Slab", style: zillaSlab.style.fontFamily, className: zillaSlab.className, category: "Serif" },
+    { name: "Anton", style: anton.style.fontFamily, className: anton.className, category: "Display" },
+    { name: "Archivo Black", style: archivoBlack.style.fontFamily, className: archivoBlack.className, category: "Display" },
+    { name: "Black Han Sans", style: blackHanSans.style.fontFamily, className: blackHanSans.className, category: "Display" },
+    { name: "Bungee", style: bungee.style.fontFamily, className: bungee.className, category: "Display" },
+    { name: "Chango", style: chango.style.fontFamily, className: chango.className, category: "Display" },
+    { name: "Monoton", style: monoton.style.fontFamily, className: monoton.className, category: "Display" },
+    { name: "Staatliches", style: staatliches.style.fontFamily, className: staatliches.className, category: "Display" },
+    { name: "Unica One", style: unicaOne.style.fontFamily, className: unicaOne.className, category: "Display" },
+    { name: "Amatic SC", style: amaticSC.style.fontFamily, className: amaticSC.className, category: "Handwritten" },
+    {
+        name: "Gloria Hallelujah",
+        style: gloriaHallelujah.style.fontFamily,
+        className: gloriaHallelujah.className,
+        category: "Handwritten",
+    },
+    { name: "Indie Flower", style: indieFlower.style.fontFamily, className: indieFlower.className, category: "Handwritten" },
+    {
+        name: "Shadows Into Light",
+        style: shadowsIntoLight.style.fontFamily,
+        className: shadowsIntoLight.className,
+        category: "Handwritten",
+    },
+    { name: "Yellowtail", style: yellowtail.style.fontFamily, className: yellowtail.className, category: "Handwritten" },
+    { name: "JetBrains Mono", style: jetBrainsMono.style.fontFamily, className: jetBrainsMono.className, category: "Monospace" },
+    { name: "IBM Plex Mono", style: ibmPlexMono.style.fontFamily, className: ibmPlexMono.className, category: "Monospace" },
+    { name: "Rubik Mono One", style: rubikMonoOne.style.fontFamily, className: rubikMonoOne.className, category: "Monospace" },
+    { name: "Space Mono", style: spaceMono.style.fontFamily, className: spaceMono.className, category: "Monospace" },
 ];
 
 export const FONTS: FontOption[] = [...unsortedFonts].sort((a, b) => {
