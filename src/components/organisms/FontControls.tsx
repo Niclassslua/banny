@@ -1,32 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-    Roboto,
-    Open_Sans,
-    Lato,
-    Montserrat,
-    Poppins,
-    Raleway,
-    Playfair_Display,
-    Merriweather,
-    Ubuntu,
-    Dancing_Script,
-    Pacifico,
-    Cinzel,
-    Rubik,
-    Oswald,
-    Noto_Serif,
-    Lobster,
-    Bebas_Neue,
-    Josefin_Sans,
-    Abril_Fatface,
-    Quicksand,
-    PT_Serif,
-    Fira_Sans,
-    Source_Sans_3,
-    Great_Vibes,
-} from "next/font/google";
 
 import {
     FontStyleControls,
@@ -42,59 +16,7 @@ import { Style } from "@/types/Style";
 import { TextStyles } from "@/types";
 
 import { colors } from "@/constants/colors";
-
-// ───────────────────────────────────────── fonts array
-const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
-const openSans = Open_Sans({ subsets: ["latin"], weight: ["400", "700"] });
-const lato = Lato({ subsets: ["latin"], weight: ["400", "700"] });
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "700"] });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
-const raleway = Raleway({ subsets: ["latin"], weight: ["400", "700"] });
-const playfairDisplay = Playfair_Display({ subsets: ["latin"], weight: ["400", "700"] });
-const merriweather = Merriweather({ subsets: ["latin"], weight: ["400", "700"] });
-const ubuntu = Ubuntu({ subsets: ["latin"], weight: ["400", "700"] });
-const dancingScript = Dancing_Script({ subsets: ["latin"], weight: ["400", "700"] });
-const pacifico = Pacifico({ subsets: ["latin"], weight: "400" });
-const cinzel = Cinzel({ subsets: ["latin"], weight: ["400", "700"] });
-const rubik = Rubik({ subsets: ["latin"], weight: ["400", "700"] });
-const oswald = Oswald({ subsets: ["latin"], weight: ["400", "700"] });
-const notoSerif = Noto_Serif({ subsets: ["latin"], weight: ["400", "700"] });
-const lobster = Lobster({ subsets: ["latin"], weight: "400" });
-const bebasNeue = Bebas_Neue({ subsets: ["latin"], weight: "400" });
-const josefinSans = Josefin_Sans({ subsets: ["latin"], weight: ["400", "600"] });
-const abrilFatface = Abril_Fatface({ subsets: ["latin"], weight: "400" });
-const quicksand = Quicksand({ subsets: ["latin"], weight: ["400", "600"] });
-const ptSerif = PT_Serif({ subsets: ["latin"], weight: ["400", "700"] });
-const firaSans = Fira_Sans({ subsets: ["latin"], weight: ["400", "700"] });
-const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "700"] });
-const greatVibes = Great_Vibes({ subsets: ["latin"], weight: "400" });
-
-const FONTS = [
-    { name: "Roboto", style: roboto.style.fontFamily, className: roboto.className },
-    { name: "Open Sans", style: openSans.style.fontFamily, className: openSans.className },
-    { name: "Lato", style: lato.style.fontFamily, className: lato.className },
-    { name: "Montserrat", style: montserrat.style.fontFamily, className: montserrat.className },
-    { name: "Poppins", style: poppins.style.fontFamily, className: poppins.className },
-    { name: "Raleway", style: raleway.style.fontFamily, className: raleway.className },
-    { name: "Playfair Display", style: playfairDisplay.style.fontFamily, className: playfairDisplay.className },
-    { name: "Merriweather", style: merriweather.style.fontFamily, className: merriweather.className },
-    { name: "Ubuntu", style: ubuntu.style.fontFamily, className: ubuntu.className },
-    { name: "Dancing Script", style: dancingScript.style.fontFamily, className: dancingScript.className },
-    { name: "Pacifico", style: pacifico.style.fontFamily, className: pacifico.className },
-    { name: "Cinzel", style: cinzel.style.fontFamily, className: cinzel.className },
-    { name: "Rubik", style: rubik.style.fontFamily, className: rubik.className },
-    { name: "Oswald", style: oswald.style.fontFamily, className: oswald.className },
-    { name: "Noto Serif", style: notoSerif.style.fontFamily, className: notoSerif.className },
-    { name: "Lobster", style: lobster.style.fontFamily, className: lobster.className },
-    { name: "Bebas Neue", style: bebasNeue.style.fontFamily, className: bebasNeue.className },
-    { name: "Josefin Sans", style: josefinSans.style.fontFamily, className: josefinSans.className },
-    { name: "Abril Fatface", style: abrilFatface.style.fontFamily, className: abrilFatface.className },
-    { name: "Quicksand", style: quicksand.style.fontFamily, className: quicksand.className },
-    { name: "PT Serif", style: ptSerif.style.fontFamily, className: ptSerif.className },
-    { name: "Fira Sans", style: firaSans.style.fontFamily, className: firaSans.className },
-    { name: "Source Sans 3", style: sourceSans.style.fontFamily, className: sourceSans.className },
-    { name: "Great Vibes", style: greatVibes.style.fontFamily, className: greatVibes.className },
-];
+import { FONTS } from "@/constants/fonts";
 
 // ───────────────────────────────────────── props
 interface FontControlsProps {
