@@ -1,6 +1,9 @@
 import {
     Amatic_SC,
+    Anton,
+    Archivo_Black,
     Atkinson_Hyperlegible,
+    Black_Han_Sans,
     Bungee,
     Cabin,
     Chango,
@@ -14,6 +17,7 @@ import {
     Manrope,
     Monoton,
     Prata,
+    Rubik_Mono_One,
     Shadows_Into_Light,
     Space_Mono,
     Spectral,
@@ -46,10 +50,14 @@ const spectral = Spectral({ subsets: ["latin"], weight: ["400", "700"] });
 const zillaSlab = Zilla_Slab({ subsets: ["latin"], weight: ["400", "700"] });
 
 const bungee = Bungee({ subsets: ["latin"], weight: "400" });
+const anton = Anton({ subsets: ["latin"], weight: "400" });
+const archivoBlack = Archivo_Black({ subsets: ["latin"], weight: "400" });
+const blackHanSans = Black_Han_Sans({ subsets: ["latin"], weight: "400" });
 const chango = Chango({ subsets: ["latin"], weight: "400" });
 const monoton = Monoton({ subsets: ["latin"], weight: "400" });
 const staatliches = Staatliches({ subsets: ["latin"], weight: "400" });
 const unicaOne = Unica_One({ subsets: ["latin"], weight: "400" });
+const rubikMonoOne = Rubik_Mono_One({ subsets: ["latin"], weight: "400" });
 
 const amaticSC = Amatic_SC({ subsets: ["latin"], weight: ["400", "700"] });
 const gloriaHallelujah = Gloria_Hallelujah({ subsets: ["latin"], weight: "400" });
@@ -90,6 +98,9 @@ const unsortedFonts: FontOption[] = [
     { name: "Prata", style: prata.style.fontFamily, className: prata.className, category: "Serif" },
     { name: "Spectral", style: spectral.style.fontFamily, className: spectral.className, category: "Serif" },
     { name: "Zilla Slab", style: zillaSlab.style.fontFamily, className: zillaSlab.className, category: "Serif" },
+    { name: "Anton", style: anton.style.fontFamily, className: anton.className, category: "Display" },
+    { name: "Archivo Black", style: archivoBlack.style.fontFamily, className: archivoBlack.className, category: "Display" },
+    { name: "Black Han Sans", style: blackHanSans.style.fontFamily, className: blackHanSans.className, category: "Display" },
     { name: "Bungee", style: bungee.style.fontFamily, className: bungee.className, category: "Display" },
     { name: "Chango", style: chango.style.fontFamily, className: chango.className, category: "Display" },
     { name: "Monoton", style: monoton.style.fontFamily, className: monoton.className, category: "Display" },
@@ -112,6 +123,7 @@ const unsortedFonts: FontOption[] = [
     { name: "Yellowtail", style: yellowtail.style.fontFamily, className: yellowtail.className, category: "Handwritten" },
     { name: "JetBrains Mono", style: jetBrainsMono.style.fontFamily, className: jetBrainsMono.className, category: "Monospace" },
     { name: "IBM Plex Mono", style: ibmPlexMono.style.fontFamily, className: ibmPlexMono.className, category: "Monospace" },
+    { name: "Rubik Mono One", style: rubikMonoOne.style.fontFamily, className: rubikMonoOne.className, category: "Monospace" },
     { name: "Space Mono", style: spaceMono.style.fontFamily, className: spaceMono.className, category: "Monospace" },
 ];
 
