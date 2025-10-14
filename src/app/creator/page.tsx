@@ -471,6 +471,7 @@ const CreatorPage = () => {
                                 noWrap={textStyles.noWrap}
                                 toggleNoWrap={toggleNoWrap}
                                 textStyles={textStyles}
+                                previewText={textContent}
                             />
                         </div>
 

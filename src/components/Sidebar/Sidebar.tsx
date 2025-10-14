@@ -14,6 +14,7 @@ interface SidebarProps {
     noWrap: boolean;
     toggleNoWrap: () => void;
     textStyles: TextStyles;
+    previewText: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                              noWrap,
                                              toggleNoWrap,
                                              textStyles,
+                                             previewText,
                                          }) => {
     return (
         <aside
@@ -42,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 noWrap={noWrap}
                 toggleNoWrap={toggleNoWrap}
                 textStyles={textStyles}
+                previewText={previewText}
             />
         </aside>
     );

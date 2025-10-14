@@ -7,12 +7,14 @@ interface FontDropdownProps {
     fonts: FontOption[];
     selectedFontFamily: string;
     onFontChange: (font: string) => void;
+    previewText: string;
 }
 
 export const FontDropdown: React.FC<FontDropdownProps> = ({
                                                               fonts,
                                                               selectedFontFamily,
                                                               onFontChange,
+                                                              previewText,
                                                           }) => {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -63,18 +65,32 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
         };
     }, [isOpen]);
 
+    const selectedFont = useMemo(
+        () => fonts.find((font) => font.style === selectedFontFamily),
+        [fonts, selectedFontFamily]
+    );
+
+    const previewLabel = previewText.trim() || "Schriftzug";
+
     return (
         <div className="relative" ref={wrapperRef}>
             {/* Trigger‑Button */}
             <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-base text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-base text-white/80 transition hover:border-[#A1E2F8]/40 hover:text-white"
                 onClick={() => setIsOpen((prev) => !prev)}
-                style={{ fontFamily: selectedFontFamily }}
             >
-                <span>
-                    {fonts.find((font) => font.style === selectedFontFamily)?.name || selectedFontFamily || "Schrift auswählen"}
-                </span>
+                <div className="flex flex-col gap-1">
+                    <span
+                        className={`${selectedFont?.className ?? ""} text-base leading-tight text-white`}
+                        style={{ fontFamily: selectedFontFamily || undefined }}
+                    >
+                        {previewLabel}
+                    </span>
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                        {selectedFont?.name || selectedFontFamily || "Schrift auswählen"}
+                    </span>
+                </div>
                 <svg
                     className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
                     viewBox="0 0 20 20"
@@ -98,13 +114,26 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({
                             {group.fonts.map((font) => (
                                 <div
                                     key={font.name}
-                                    className={`cursor-pointer rounded-lg px-3 py-2 text-base text-white/80 transition hover:bg-white/10 hover:text-white ${font.className}`}
+                                    className={`cursor-pointer rounded-lg px-3 py-2 text-white/80 transition hover:bg-white/10 hover:text-white ${
+                                        font.style === selectedFontFamily ? "bg-white/10 text-white" : ""
+                                    }`}
+                                    role="option"
+                                    aria-selected={font.style === selectedFontFamily}
+                                    title={font.name}
                                     onClick={() => {
                                         onFontChange(font.style); // gibt die CSS‑font-family zurück
                                         setIsOpen(false);
                                     }}
                                 >
-                                    {font.name}
+                                    <p
+                                        className={`${font.className} text-base leading-tight text-white`}
+                                        style={{ fontFamily: font.style }}
+                                    >
+                                        {previewLabel}
+                                    </p>
+                                    <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.2em] text-white/40">
+                                        {font.name}
+                                    </p>
                                 </div>
                             ))}
                         </div>
