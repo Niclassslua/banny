@@ -1,0 +1,84 @@
+{
+  "Landing": {
+    "brandLabel": "Banner Creator",
+    "brandTitle": "Banny",
+    "heroTitle": "Dein kleiner Designfreund mit großem Geschmack.",
+    "heroSubtitle": "Banny kombiniert dynamisches Design mit intuitiver Bedienung. In wenigen Klicks setzt du farbenstarke Visuals in Szene.",
+    "heroCta": "Launch den Creator",
+    "featuresSectionLabel": "Features",
+    "featuresSectionTitle": "Mehr Charakter in jedem Banner",
+    "features": {
+      "size": {
+        "title": "Schriftgröße",
+        "description": "Feinjustiere Größen und Proportionen – für perfekte Typografie in jedem Banner."
+      },
+      "fonts": {
+        "title": "24+ Schriftarten",
+        "description": "Entdecke charakterstarke Fonts – von klaren Sans bis verspielten Scripts."
+      },
+      "banners": {
+        "title": "20+ Banner",
+        "description": "Wähle aus modernen Vorlagen – individuell anpassbar mit einem Klick."
+      }
+    }
+  },
+  "Creator": {
+    "brandLabel": "Banner Creator",
+    "brandTitle": "Banny Workspace",
+    "nav": {
+      "landing": "Landing",
+      "creator": "Creator"
+    },
+    "buttons": {
+      "export": "Export",
+      "import": "Import",
+      "reset": "Reset",
+      "download": "Download",
+      "downloading": "Downloading…"
+    },
+    "sections": {
+      "patterns": {
+        "title": "Pattern auswählen",
+        "description": "Feine Texturen für lebendige Banner. Justiere Farben und Skalierung, um deinen Look zu perfektionieren.",
+        "empty": "Keine Patterns für diese Kategorie."
+      },
+      "colors": {
+        "title": "Farben & Scale",
+        "description": "Passe die Farben für deinen Pattern-Look an und justiere die Skalierung für mehr Dynamik."
+      }
+    },
+    "toasts": {
+      "downloadFailed": "Download fehlgeschlagen. Bitte versuche es erneut.",
+      "exportFailed": "Export fehlgeschlagen. Bitte versuche es erneut.",
+      "importUnknownError": "Ein unbekannter Fehler ist beim Importieren aufgetreten."
+    }
+  },
+  "LanguageSwitch": {
+    "labelDe": "DE",
+    "labelEn": "EN"
+  },
+  "Sidebar": {
+    "sections": {
+      "style": "Schriftstil",
+      "alignment": "Ausrichtung",
+      "noWrap": "Zeilenumbruch",
+      "fontSize": "Schriftgröße",
+      "fontFamily": "Schriftart",
+      "textColor": "Textfarbe"
+    },
+    "alignment": {
+      "left": "Links",
+      "center": "Zentriert",
+      "right": "Rechts",
+      "justify": "Blocksatz"
+    },
+    "noWrapAria": "Zeilenumbruch umschalten",
+    "fontStyle": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "underline": "Unterstrichen",
+      "strikethrough": "Durchgestrichen"
+    }
+  }
+}
+

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iOS 16 Emoji Wallpaper</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+
+    #emoji-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #fff;
+    }
+
+    .emoji {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      transition: transform 0.3s, opacity 0.3s, font-size 0.3s;
+      white-space: nowrap;
+    }
+
+    .emoji.small {
+      font-size: 1rem;
+    }
+
+    .emoji.medium {
+      font-size: 2rem;
+    }
+
+    .emoji.large {
+      font-size: 3rem;
+    }
+
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+    }
+
+    #controls input, #controls button {
+      margin: 5px 0;
+    }
+
+    #emoji-input {
+      width: 200px;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    #mode-buttons button {
+      padding: 5px 10px;
+      margin: 5px 5px 0 0;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="emoji-container"></div>
+
+<div id="controls">
+  <div>
+    <label for="emoji-input">Enter Emojis (up to 6):</label><br>
+    <input type="text" id="emoji-input" maxlength="12" placeholder="😀🎉❤️🌟🍀🔥">
+  </div>
+  <div id="mode-buttons">
+    <button data-mode="dynamic">Dynamic</button>
+    <button data-mode="grid">Grid</button>
+    <button data-mode="large">Large</button>
+    <button data-mode="radial">Radial</button>
+    <button data-mode="spiral">Spiral</button>
+  </div>
+</div>
+
+<script>
+  const container = document.getElementById('emoji-container');
+  const emojiInput = document.getElementById('emoji-input');
+  const modeButtons = document.getElementById('mode-buttons');
+
+  let emojis = ['😀', '🎉', '❤️', '🌟', '🍀', '🔥']; // Standard-Emojis
+  let pattern = 'spiral'; // Standard-Muster
+
+  function createEmojiElement(emoji, size = 'medium', rotation = 0, opacity = 1) {
+    const span = document.createElement('span');
+    span.textContent = emoji;
+    span.className = 'emoji';
+    if (size === 'large') span.classList.add('large');
+    if (size === 'medium') span.classList.add('medium');
+    if (size === 'small') span.classList.add('small');
+    if (rotation !== 0) {
+      span.style.transform += ` rotate(${rotation}deg)`;
+    }
+    span.style.opacity = opacity;
+    return span;
+  }
+
+  function placeEmojis() {
+    container.innerHTML = '';
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const numEmojis = emojis.length;
+
+    switch (pattern) {
+      case 'dynamic':
+        placeDynamicEmojis(width, height, numEmojis);
+        break;
+
+      case 'grid':
+        placeGridEmojis(width, height, numEmojis);
+        break;
+
+      case 'large':
+        placeLargeEmojis(width, height, numEmojis);
+        break;
+
+      case 'radial':
+        placeRadialEmojis(width, height, centerX, centerY, numEmojis);
+        break;
+
+      case 'spiral':
+        placeSpiralEmojis(width, height, centerX, centerY, numEmojis);
+        break;
+    }
+  }
+
+  // Funktion zur Bestimmung der zentralen Emojis basierend auf der Anzahl der Emojis
+  function getCentralEmojis(emojis, numEmojis) {
+    switch(numEmojis) {
+      case 1:
+        return [0];
+      case 2:
+        return [0,1];
+      case 3:
+        return [2,0,1];
+      case 4:
+        return [3,0,2,1];
+      case 5:
+        return [1,0,4,2];
+      case 6:
+        return [4,1,5,3];
+      default:
+        return [0];
+    }
+  }
+
+  function placeGridEmojis(width, height, numEmojis) {
+    const gridPadding = 60; // Abstand zwischen den Emojis
+    const cols = Math.ceil(width / gridPadding); // Spaltenanzahl
+    const rows = Math.ceil(height / gridPadding); // Zeilenanzahl
+
+    // Erstelle ein Grid, das die Emoji-Indices speichert
+    const grid = Array.from({ length: rows }, () => Array(cols).fill(-1));
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        // Finde ein Emoji, das nicht in der gleichen Spalte oder Reihe vorkommt
+        let availableEmojis = emojis.map((_, index) => index);
+
+        // Entferne Emojis, die bereits in der gleichen Reihe vorkommen
+        for (let c = 0; c < col; c++) {
+          const usedEmoji = grid[row][c];
+          availableEmojis = availableEmojis.filter((emojiIndex) => emojiIndex !== usedEmoji);
+        }
+
+        // Entferne Emojis, die bereits in der gleichen Spalte vorkommen
+        for (let r = 0; r < row; r++) {
+          const usedEmoji = grid[r][col];
+          availableEmojis = availableEmojis.filter((emojiIndex) => emojiIndex !== usedEmoji);
+        }
+
+        // Wähle ein zufälliges Emoji aus den verfügbaren aus
+        const chosenEmojiIndex = availableEmojis[Math.floor(Math.random() * availableEmojis.length)];
+        grid[row][col] = chosenEmojiIndex;
+
+        // Platzierung des Emojis im Grid
+        const emoji = emojis[chosenEmojiIndex];
+        const emojiElement = createEmojiElement(emoji, 'medium');
+        const x = col * gridPadding;
+        const y = row * gridPadding;
+        container.appendChild(emojiElement);
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+      }
+    }
+  }
+
+
+  function generateBaseRows(numEmojis) {
+    const rows = [];
+    if (numEmojis === 1) {
+      rows.push([emojis[0]]);
+    } else if (numEmojis === 2) {
+      rows.push([emojis[0], emojis[1]]);
+      rows.push([emojis[1], emojis[0]]);
+    } else if (numEmojis === 3) {
+      rows.push([emojis[2], emojis[1], emojis[2], emojis[1]]);
+      rows.push([emojis[1], emojis[0], emojis[1], emojis[0]]);
+      rows.push([emojis[0], emojis[2], emojis[0], emojis[2]]);
+    } else if (numEmojis === 4) {
+      rows.push([emojis[3], emojis[2], emojis[3], emojis[2]]);
+      rows.push([emojis[1], emojis[0], emojis[1], emojis[0]]);
+      rows.push([emojis[2], emojis[3], emojis[2], emojis[3]]);
+      rows.push([emojis[0], emojis[1], emojis[0], emojis[1]]);
+    } else if (numEmojis === 5) {
+      rows.push([emojis[3], emojis[2], emojis[1], emojis[2], emojis[3]]);
+      rows.push([emojis[1], emojis[0], emojis[4], emojis[0], emojis[1]]);
+      rows.push([emojis[4], emojis[3], emojis[2], emojis[3], emojis[4]]);
+      rows.push([emojis[2], emojis[1], emojis[0], emojis[1], emojis[2]]);
+    } else if (numEmojis === 6) {
+      rows.push([emojis[3], emojis[4], emojis[5], emojis[4], emojis[3]]);
+      rows.push([emojis[0], emojis[1], emojis[2], emojis[1], emojis[0]]);
+      rows.push([emojis[5], emojis[3], emojis[4], emojis[3], emojis[5]]);
+      rows.push([emojis[2], emojis[0], emojis[1], emojis[0], emojis[2]]);
+    }
+    return rows;
+  }
+
+
+
+  // Radial-Modus entsprechend dem Benutzerbeispiel
+  function placeRadialEmojis(width, height, centerX, centerY, numEmojis) {
+    const rings = 15;
+    const baseRadius = 50; // Konstanter Abstand zwischen den Ringen
+
+    // Platzieren des zentralen Emojis exakt in der Mitte
+    if (emojis.length > 0) {
+      const centerEmoji = createEmojiElement(emojis[0], 'medium');
+      container.appendChild(centerEmoji);
+      centerEmoji.style.left = `${centerX}px`;
+      centerEmoji.style.top = `${centerY}px`;
+    }
+
+    for (let ring = 1; ring <= rings; ring++) {
+      const numInRing = ring * 6; // Von innen nach außen mehr Emojis
+      const radius = baseRadius * ring; // Gleicher Abstand zwischen den Ringen
+
+      for (let i = 0; i < numInRing; i++) {
+        const angle = (i / numInRing) * 2 * Math.PI;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        // Berechnung der Rotation, damit das Emoji nach innen zeigt
+        const rotation = (Math.atan2(centerY - y, centerX - x) * (180 / Math.PI)) + 270;
+
+        const emojiElement = createEmojiElement(emojis[ring % numEmojis]);
+        container.appendChild(emojiElement);
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+        emojiElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`; // Rotation einfügen
+      }
+    }
+  }
+
+  // Dynamic-Modus: Diagonale Linien mit 45-Grad-Winkel
+  function placeDynamicEmojis(width, height, numEmojis) {
+    const lineSpacing = 100; // Abstand zwischen dicken Linien
+    const smallSpacing = 50; // Abstand für kleine Emojis zwischen dicken Linien
+    const diagonalLength = Math.sqrt(width * width + height * height);
+    const numLines = Math.ceil(diagonalLength / lineSpacing) * 2;
+
+    for (let i = -numLines / 2; i < numLines / 2; i++) {
+      const offset = i * smallSpacing;
+
+      // 45-Grad-Diagonalen: y = -x + offset
+      for (let j = 0; j < diagonalLength; j += lineSpacing) {
+        const x = j + offset;
+        const y = -j + offset;
+
+        if (x >= 0 && x <= width && y >= 0 && y <= height) {
+          // Große Emojis auf dicken Linien
+          const emojiIndex = (Math.floor(j / lineSpacing)) % numEmojis;
+          const largeEmoji = createEmojiElement(emojis[emojiIndex], 'large');
+          container.appendChild(largeEmoji);
+          largeEmoji.style.left = `${x}px`;
+          largeEmoji.style.top = `${y}px`;
+        }
+      }
+
+      for (let j = smallSpacing / 2; j < diagonalLength; j += lineSpacing) {
+        const x = j + offset;
+        const y = -j + offset;
+
+        if (x >= 0 && x <= width && y >= 0 && y <= height) {
+          // Kleine Emojis zwischen den dicken Linien
+          const emojiIndex = (Math.floor(j / smallSpacing)) % numEmojis;
+          const smallEmoji = createEmojiElement(emojis[emojiIndex], 'small');
+          container.appendChild(smallEmoji);
+          smallEmoji.style.left = `${x}px`;
+          smallEmoji.style.top = `${y}px`;
+        }
+      }
+    }
+  }
+
+  // Large-Modus: Versetzte horizontale Reihen mit größeren Emojis
+  function placeLargeEmojis(width, height, numEmojis) {
+    const largeSpacing = 80;
+    const rows = Math.ceil(height / largeSpacing);
+    const cols = Math.ceil(width / largeSpacing);
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const yOffset = (col % 2 === 0) ? -20 : 20; // Versatz nach oben/unten
+        const emojiIndex = (row + col) % numEmojis;
+        const emoji = emojis[emojiIndex];
+        const emojiElement = createEmojiElement(emoji, 'large');
+        const x = col * largeSpacing;
+        const y = row * largeSpacing + yOffset;
+        container.appendChild(emojiElement);
+        emojiElement.style.left = `${x}px`;
+        emojiElement.style.top = `${y}px`;
+      }
+    }
+  }
+
+  // Spiral-Modus: Dichte Spirale mit Größen- und Transparenzänderung
+  function placeSpiralEmojis(width, height, centerX, centerY, numEmojis) {
+    container.innerHTML = '';
+
+    /* ───── Stellschrauben ───── */
+    const arms       = 12;
+    const turns      = 0.5;
+    const stepAngle  = 8 * Math.PI / 180;
+    const fontInner  = 0.0;
+    const fontOuter  = 6.0;
+
+    /* ───── Konstanten ───── */
+    const maxRadius = Math.hypot(width, height) / 2;
+    const a         = maxRadius / (2 * Math.PI * turns);    // r = a·θ
+    const direction = -1;                                   // 1 = CCW, -1 = CW
+
+    /* ───── Spiralarme zeichnen ───── */
+    for (let arm = 0; arm < arms; arm++) {
+      const baseAngle = arm * (2 * Math.PI / arms);
+      const emojiChar = emojis[arm % numEmojis];
+
+      for (let θ = 0; ; θ += stepAngle) {
+        const r = a * θ;
+        if (r > maxRadius) break;
+
+        const angle = baseAngle + direction * θ;            // ← Richtungswechsel!
+        const x = centerX + r * Math.cos(angle);
+        const y = centerY + r * Math.sin(angle);
+
+        const progress = r / maxRadius;
+        const fontSize = fontInner + (fontOuter - fontInner) * progress;
+
+        const span = createEmojiElement(emojiChar, 'medium', 0, 1);
+        span.style.left      = `${x}px`;
+        span.style.top       = `${y}px`;
+        span.style.fontSize  = `${fontSize}rem`;
+        span.style.transform = `translate(-50%,-50%) rotate(${angle + direction * Math.PI/2}rad)`;
+        container.appendChild(span);
+      }
+    }
+  }
+
+
+
+  // Emoji-Eingabe-Handler
+  emojiInput.addEventListener('input', () => {
+    const input = emojiInput.value.trim();
+    emojis = input.length ? [...input.slice(0, 6)] : ['😀', '🎉', '❤️', '🌟', '🍀', '🔥']; // Max 6 Emojis
+    placeEmojis();
+  });
+
+  // Modus-Wechsel-Handler
+  modeButtons.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      pattern = e.target.getAttribute('data-mode');
+      placeEmojis();
+    }
+  });
+
+  // Anpassung bei Fenstergrößenänderung
+  window.addEventListener('resize', placeEmojis);
+
+  // Initiale Platzierung der Emojis
+  placeEmojis();
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+{
+  "Landing": {
+    "brandLabel": "Banner Creator",
+    "brandTitle": "Banny",
+    "heroTitle": "Your little design friend with great taste.",
+    "heroSubtitle": "Banny combines dynamic design with an intuitive workflow so you can create bold visuals in just a few clicks.",
+    "heroCta": "Launch the creator",
+    "featuresSectionLabel": "Features",
+    "featuresSectionTitle": "More character in every banner",
+    "features": {
+      "size": {
+        "title": "Font size",
+        "description": "Fine‑tune size and proportions for perfect typography in every banner."
+      },
+      "fonts": {
+        "title": "24+ fonts",
+        "description": "Discover expressive fonts – from clean sans to playful scripts."
+      },
+      "banners": {
+        "title": "20+ banners",
+        "description": "Pick from modern presets – fully adjustable with a single click."
+      }
+    }
+  },
+  "Creator": {
+    "brandLabel": "Banner Creator",
+    "brandTitle": "Banny Workspace",
+    "nav": {
+      "landing": "Landing",
+      "creator": "Creator"
+    },
+    "buttons": {
+      "export": "Export",
+      "import": "Import",
+      "reset": "Reset",
+      "download": "Download",
+      "downloading": "Downloading…"
+    },
+    "sections": {
+      "patterns": {
+        "title": "Choose a pattern",
+        "description": "Delicate textures for vivid banners. Adjust colors and scale to perfect your look.",
+        "empty": "No patterns available for this category."
+      },
+      "colors": {
+        "title": "Colors & scale",
+        "description": "Adjust pattern colors and tweak the scale for more visual impact."
+      }
+    },
+    "toasts": {
+      "downloadFailed": "Download failed. Please try again.",
+      "exportFailed": "Export failed. Please try again.",
+      "importUnknownError": "An unknown error occurred while importing."
+    }
+  },
+  "LanguageSwitch": {
+    "labelDe": "DE",
+    "labelEn": "EN"
+  },
+  "Sidebar": {
+    "sections": {
+      "style": "Font style",
+      "alignment": "Alignment",
+      "noWrap": "Line break",
+      "fontSize": "Font size",
+      "fontFamily": "Font",
+      "textColor": "Text color"
+    },
+    "alignment": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right",
+      "justify": "Justify"
+    },
+    "noWrapAria": "Toggle line break",
+    "fontStyle": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "strikethrough": "Strikethrough"
+    }
+  }
+}
+

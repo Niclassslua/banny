@@ -1,0 +1,183 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+
+import {
+    FontStyleControls,
+    AlignmentControls,
+    FontSizeControls,
+    FontDropdown,
+    ColorPalettePicker,
+} from "../molecules";
+import { NoWrapToggle } from "../atoms";
+import ColorPickerComponent from "@/components/Sidebar/ColorPicker";
+
+import { Style } from "@/types/Style";
+import { TextStyles } from "@/types";
+
+import { colors } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+
+// ───────────────────────────────────────── props
+interface FontControlsProps {
+    toggleStyle: (s: "bold" | "italic" | "underline" | "strikethrough") => void;
+    changeAlignment: (a: "left" | "center" | "right" | "justify") => void;
+    changeFontSize: (n: number) => void;
+    currentFontSize: number;
+    changeTextColor: (c: string) => void;
+    changeFontFamily: (f: string) => void;
+    noWrap: boolean;
+    toggleNoWrap: () => void;
+    textStyles: TextStyles;
+    previewText: string;
+}
+
+// ───────────────────────────────────────── component
+const FontControls: React.FC<FontControlsProps> = ({
+    toggleStyle,
+    changeAlignment,
+    changeFontSize,
+    currentFontSize,
+    changeTextColor,
+    changeFontFamily,
+    noWrap,
+    toggleNoWrap,
+    textStyles,
+    previewText,
+}) => {
+    const t = useTranslations("Sidebar");
+    const [selectedFontSize, setSelectedFontSize] = useState(currentFontSize);
+    const [selectedFont, setSelectedFont] = useState(textStyles.fontFamily);
+    const [selectedColor, setSelectedColor] = useState(textStyles.textColor);
+    const [alignment, setAlignment] = useState(textStyles.alignment);
+    const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+
+    const setSize = (n: number) => {
+        setSelectedFontSize(n);
+        changeFontSize(n);
+    };
+
+    const setFont = (fontFamily: string) => {
+        setSelectedFont(fontFamily);
+        changeFontFamily(fontFamily);
+    };
+
+    const handleColorChange = (color: string) => {
+        setSelectedColor(color);
+        changeTextColor(color);
+    };
+
+    const toggleColorPicker = () => {
+        setIsColorPickerVisible((prev) => !prev);
+    };
+
+    const handleAlignmentChange = (value: "left" | "center" | "right" | "justify") => {
+        setAlignment(value);
+        changeAlignment(value);
+    };
+
+    const derivedActiveStyles = useMemo<Style[]>(() => {
+        const initial: Style[] = [];
+        if (textStyles.bold) initial.push("bold");
+        if (textStyles.italic) initial.push("italic");
+        if (textStyles.underline) initial.push("underline");
+        if (textStyles.strikethrough) initial.push("strikethrough");
+        return initial;
+    }, [textStyles.bold, textStyles.italic, textStyles.underline, textStyles.strikethrough]);
+
+    const [activeStyles, setActiveStyles] = useState<Style[]>(derivedActiveStyles);
+
+    useEffect(() => {
+        setActiveStyles(derivedActiveStyles);
+    }, [derivedActiveStyles]);
+
+    const handleToggleStyle = (style: Style) => {
+        setActiveStyles((prev) =>
+            prev.includes(style) ? prev.filter((entry) => entry !== style) : [...prev, style]
+        );
+        toggleStyle(style);
+    };
+
+    useEffect(() => {
+        setSelectedFontSize(currentFontSize);
+    }, [currentFontSize]);
+
+    useEffect(() => {
+        setSelectedFont(textStyles.fontFamily);
+    }, [textStyles.fontFamily]);
+
+    useEffect(() => {
+        setSelectedColor(textStyles.textColor);
+    }, [textStyles.textColor]);
+
+    useEffect(() => {
+        setAlignment(textStyles.alignment);
+    }, [textStyles.alignment]);
+
+    return (
+        <div className="flex flex-col gap-10">
+            <Section title={t("sections.style")}>
+                <FontStyleControls value={activeStyles} toggleStyle={handleToggleStyle} />
+            </Section>
+
+            <Section title={t("sections.alignment")}>
+                <AlignmentControls onChange={handleAlignmentChange} value={alignment} />
+            </Section>
+
+            <Section title={t("sections.noWrap")}>
+                <NoWrapToggle active={!noWrap} onToggle={toggleNoWrap} />
+            </Section>
+
+            <Section title={t("sections.fontSize")}>
+                <FontSizeControls value={selectedFontSize} onChange={setSize} />
+            </Section>
+
+            <Section title={t("sections.fontFamily")} noPadding>
+                <FontDropdown
+                    fonts={FONTS}
+                    selectedFontFamily={selectedFont}
+                    onFontChange={setFont}
+                    previewText={previewText}
+                />
+            </Section>
+
+            <Section title={t("sections.textColor")} noPadding>
+                <ColorPalettePicker
+                    colors={colors}
+                    onChange={handleColorChange}
+                    selectedColor={selectedColor}
+                >
+                    <ColorPickerComponent
+                        color={selectedColor}
+                        setColor={handleColorChange}
+                        darkMode
+                        isVisible={isColorPickerVisible}
+                        togglePicker={toggleColorPicker}
+                        variant="swatch"
+                    />
+                </ColorPalettePicker>
+            </Section>
+        </div>
+    );
+};
+
+export default FontControls;
+
+// ───────────────────────────────────────── small helper
+const Section: React.FC<{
+    title: string;
+    children: React.ReactNode;
+    noPadding?: boolean;
+}> = ({ title, children, noPadding = false }) => {
+    return (
+        <section className="flex flex-col gap-5">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#A1E2F8]">
+                {title}
+            </h2>
+            <div className={noPadding ? "" : "pl-4"}>
+                {children}
+            </div>
+        </section>
+    );
+};
