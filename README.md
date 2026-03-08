@@ -36,6 +36,16 @@
 
 ---
 
+## 🐇 The Story behind Banny
+
+*How a missing [Obsidian](https://obsidian.md) banner turned into this:*
+
+> Banny started because I wanted nice banners for my Obsidian notes and couldn't justify opening an image editor every single time, let alone paying for an online "Notion banner creator" tool just to get more than three designs. So I built my own instead.
+>
+> It was rough for a while, half-working and only running locally. But having banners that actually matched my uni courses, each with its own color, an emoji, a bit of personality, made my notes feel like mine. That was motivation enough to see it through. Eventually I sat down with [Cursor](https://cursor.com), cleaned everything up, and gave the project a proper identity, mascot included. GitHub Pages took care of the rest.
+
+---
+
 ## 🖼️ Screenshot
 
 <img width="1296" height="1301" alt="Bildschirmfoto 2026-02-24 um 01 36 33" src="https://github.com/user-attachments/assets/f7bc6a37-4e92-411c-b890-879994787bae" />
@@ -52,21 +62,6 @@ npm run dev
 ```
 
 Open **http://localhost:3002** and click **Launch the creator** (or go to `/creator`).
-
----
-
-## 📦 Deployment (GitHub Pages)
-
-The repo is set up for automatic deployment to **GitHub Pages** via GitHub Actions:
-
-1. **Enable GitHub Pages** in the repo: **Settings → Pages → Build and deployment → Source**: choose **GitHub Actions**.
-2. Push to `main` (or run the workflow manually). The workflow builds a static export and deploys it.
-
-**Live URL** (when the repo is `Niclassslua/banny`):
-
-- **https://niclassslua.github.io/banny/**
-
-The app is built with `output: 'export'` and `basePath: '/banny'`, so it works correctly under the project path.
 
 ---
 
@@ -88,14 +83,14 @@ The app is built with `output: 'export'` and `basePath: '/banny'`, so it works c
 ```text
 src/
 ├── app/
-│   ├── page.tsx              # Landing page
-│   ├── creator/page.tsx      # Creator workspace (orchestrator)
-│   └── layout.tsx            # Root layout (i18n + notifications)
+│   ├── page.tsx               # Landing page
+│   ├── creator/page.tsx       # Creator workspace (orchestrator)
+│   └── layout.tsx             # Root layout (i18n + notifications)
 ├── components/
 │   ├── Sidebar/               # Typography controls
 │   ├── Preview/               # BannerPreview
 │   ├── Settings/              # Colors & scale panel
-│   ├── Notifications/          # Toast provider
+│   ├── Notifications/         # Toast provider
 │   └── atoms | molecules | organisms/
 ├── constants/
 │   ├── patterns.ts            # 50+ pattern definitions + category labels
@@ -103,7 +98,7 @@ src/
 │   └── fonts.ts
 ├── hooks/
 │   ├── useWorkspaceState.ts   # State + localStorage persist
-│   └── usePatternFilters.ts  # Category filter + filtered list
+│   └── usePatternFilters.ts   # Category filter + filtered list
 ├── utils/
 │   ├── parseCSS.ts            # Pattern CSS → inline styles
 │   ├── fileName.ts            # sanitizeFileName
